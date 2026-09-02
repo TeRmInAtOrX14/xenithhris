@@ -7,56 +7,59 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('[Seed] Seeding Admin/CEO credentials for ArtXenith...');
 
-  const ceoEmail = 'subuahad1@gmail.com';
-  const ceoPassword = 'xenith@12';
-  const ceoName = 'Subu Ahad';
+  const accounts = [
+    { email: 'subuahad1@gmail.com', name: 'Subu Ahad', role: 'CEO', code: 'EMP-001' },
+    { email: 'admin@artxenith.com', name: 'System Admin', role: 'Admin', code: 'EMP-000' }
+  ];
 
+  const ceoPassword = 'xenith@12';
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(ceoPassword, salt);
 
-  // Check if User exists
-  let user = await prisma.user.findUnique({
-    where: { email: ceoEmail }
-  });
-
-  if (!user) {
-    console.log(`[Seed] Creating CEO User account: ${ceoEmail}`);
-    user = await prisma.user.create({
-      data: {
-        email: ceoEmail,
-        passwordHash,
-        role: 'CEO',
-        mustChangePassword: false,
-        isActive: true
-      }
+  for (const acc of accounts) {
+    let user = await prisma.user.findFirst({
+      where: { email: { equals: acc.email, mode: 'insensitive' } }
     });
 
-    await prisma.employee.create({
-      data: {
-        userId: user.id,
-        employeeCode: 'EMP-001',
-        fullName: ceoName,
-        designation: 'CEO & Founder',
-        status: 'active',
-        baseSalary: 0,
-        currency: 'PKR',
-        shiftStart: '09:30',
-        shiftEnd: '18:30'
-      }
-    });
-    console.log(`[Seed] CEO user created successfully!`);
-  } else {
-    console.log(`[Seed] Updating password and role for existing CEO user: ${ceoEmail}`);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        passwordHash,
-        role: 'CEO',
-        mustChangePassword: false,
-        isActive: true
-      }
-    });
-    console.log(`[Seed] CEO credentials updated successfully!`);
+    if (!user) {
+      console.log(`[Seed] Creating User account: ${acc.email}`);
+      user = await prisma.user.create({
+        data: {
+          email: acc.email.toLowerCase(),
+          passwordHash,
+          role: acc.role,
+          mustChangePassword: false,
+          isActive: true
+        }
+      });
+
+      await prisma.employee.create({
+        data: {
+          userId: user.id,
+          employeeCode: acc.code,
+          fullName: acc.name,
+          designation: acc.role,
+          status: 'active',
+          baseSalary: 0,
+          currency: 'PKR',
+          shiftStart: '09:30',
+          shiftEnd: '18:30'
+        }
+      });
+      console.log(`[Seed] ${acc.role} user created: ${acc.email}`);
+    } else {
+      console.log(`[Seed] Updating password and role for: ${acc.email}`);
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          role: acc.role,
+          mustChangePassword: false,
+          isActive: true
+        }
+      });
+      console.log(`[Seed] Updated: ${acc.email}`);
+    }
   }
 }
 
