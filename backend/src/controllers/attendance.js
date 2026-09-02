@@ -1,6 +1,4 @@
 const { PrismaClient } = require('@prisma/client');
-const { syncZKTeco } = require('../utils/zkteco');
-const { processBatchPunches } = require('../utils/punchIngest');
 const { logAudit } = require('../utils/audit');
 
 const prisma = new PrismaClient();
