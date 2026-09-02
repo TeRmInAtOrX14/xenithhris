@@ -468,7 +468,7 @@ export default function Employees() {
                     <input
                       type="email"
                       {...register('email', { required: true })}
-                      placeholder="e.g. employee@brandigade.com"
+                      placeholder="e.g. employee@artxenith.com"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none focus:border-brand-blue"
                     />
                   </div>
@@ -668,7 +668,7 @@ export default function Employees() {
                     <input
                       type="email"
                       {...registerEdit('email', { required: true })}
-                      placeholder="e.g. employee@brandigade.com"
+                      placeholder="e.g. employee@artxenith.com"
                       disabled={!isAdmin}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none focus:border-brand-blue disabled:opacity-50"
                     />

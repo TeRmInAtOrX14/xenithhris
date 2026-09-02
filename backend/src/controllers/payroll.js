@@ -204,7 +204,7 @@ exports.runPayroll = async (req, res, next) => {
               const campaignName = campaignObj ? campaignObj.name.toUpperCase() : '';
               
               // Target campaigns list
-              const targetCampaignNames = ['LVGL', 'CLEO HR', 'PATIENT WING', 'LOGICS', 'BRANDIGADE OUTREACH'];
+              const targetCampaignNames = ['LVGL', 'CLEO HR', 'PATIENT WING', 'LOGICS', 'ARTXENITH OUTREACH'];
               const isTargetCampaign = targetCampaignNames.some(name => campaignName.includes(name));
 
               if (isTargetCampaign) {
@@ -593,7 +593,7 @@ exports.generateManualPdf = async (req, res, next) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="payslip-${body.fullName || 'manual'}.pdf"`);
 
-    generatePayslipPdf(res, payslip, { name: 'Brandigade', address: 'Karachi, Pakistan' });
+    generatePayslipPdf(res, payslip, { name: 'ArtXenith', address: 'Karachi, Pakistan' });
   } catch (err) {
     next(err);
   }

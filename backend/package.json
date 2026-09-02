@@ -1,7 +1,7 @@
 {
-  "name": "brandigade-hris-backend",
+  "name": "artxenith-hris-backend",
   "version": "1.0.0",
-  "description": "Internal HRIS backend for Brandigade",
+  "description": "Internal HRIS backend for ArtXenith",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {

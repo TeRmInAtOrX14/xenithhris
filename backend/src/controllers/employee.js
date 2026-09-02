@@ -209,7 +209,7 @@ exports.createEmployee = async (req, res, next) => {
 
     // Hash the password
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password || 'Brandigade123@', salt);
+    const passwordHash = await bcrypt.hash(password || 'ArtXenith2026!', salt);
 
     // Create user and employee in a single transaction
     const newEmployee = await prisma.$transaction(async (tx) => {

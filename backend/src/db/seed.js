@@ -7,9 +7,9 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('[Seed] Initializing production database environment...');
 
-  const adminEmail = process.env.ADMIN_EMAIL || 'kashan.ahmed@brandigade.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'Brandigade1';
-  const adminName = process.env.ADMIN_NAME || 'Kashan Ahmed';
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@artxenith.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'xenith@12';
+  const adminName = process.env.ADMIN_NAME || 'System Admin';
 
   // 1. Check if Super Admin account exists
   let adminUser = await prisma.user.findUnique({

@@ -269,7 +269,7 @@ export default function TeamLeadDashboard() {
         </div>
         <div className="w-full bg-brand-bg-soft rounded-full h-3 border border-brand-border overflow-hidden">
           <div
-            className="brandigade-gradient h-full rounded-full transition-all duration-500 shadow-glow"
+            className="bg-gradient-to-r from-brand-blue to-brand-violet h-full rounded-full transition-all duration-500 shadow-glow"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
