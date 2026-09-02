@@ -1,7 +1,11 @@
 import axios from 'axios';
 
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_URL = import.meta.env.VITE_API_URL || (isLocalhost ? `http://${window.location.hostname}:4000/api` : '/api');
+// Ensure production on Vercel uses relative /api to call Vercel Serverless Function
+const envUrl = import.meta.env.VITE_API_URL;
+const API_URL = isLocalhost
+  ? `http://${window.location.hostname}:4000/api`
+  : (envUrl && !envUrl.includes('brandigade') ? envUrl : '/api');
 
 const api = axios.create({
   baseURL: API_URL,
