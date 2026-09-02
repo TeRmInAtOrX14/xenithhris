@@ -324,3 +324,34 @@ exports.getTodayStatus = async (req, res, next) => {
   }
 };
 
+exports.manualPunch = async (req, res, next) => {
+  try {
+    const { employeeId, date, checkIn, checkOut, status, notes } = req.body;
+    if (!employeeId || !date) {
+      return res.status(400).json({ error: 'Employee ID and Date are required.' });
+    }
+    const dateMidnight = new Date(date);
+    const record = await prisma.attendance.upsert({
+      where: { employeeId_date: { employeeId, date: dateMidnight } },
+      create: {
+        employeeId,
+        date: dateMidnight,
+        checkIn: checkIn ? new Date(checkIn) : null,
+        checkOut: checkOut ? new Date(checkOut) : null,
+        status: status || 'present',
+        notes
+      },
+      update: {
+        checkIn: checkIn ? new Date(checkIn) : undefined,
+        checkOut: checkOut ? new Date(checkOut) : undefined,
+        status: status || undefined,
+        notes: notes || undefined
+      }
+    });
+    await logAudit(req.user.id, 'MANUAL_ATTENDANCE_PUNCH', 'Attendance', record.id);
+    res.json(record);
+  } catch (err) {
+    next(err);
+  }
+};
+
