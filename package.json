@@ -1,0 +1,12 @@
+{
+  "name": "artxenith-hris",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel"
+  },
+  "devDependencies": {
+    "vercel": "^59.11.2"
+  }
+}
