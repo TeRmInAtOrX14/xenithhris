@@ -71,7 +71,7 @@ model Employee {
   subordinates     Employee[]  @relation("EmployeeToManager")
   
   status           String      @default("active") // active, on_leave, terminated, resigned
-  baseSalary       Float       @default(0)
+  baseSalary       Float       @default(0) // Stored in PKR
   currency         String      @default("PKR")
   phone            String?
   birthday         String?
@@ -103,8 +103,20 @@ model Employee {
   loanRequests     LoanRequest[]
   payslips         Payslip[]
   documents        Document[]
-  sales            Sale[]
+  sales            Sale[]          @relation("SalesExecutiveSales")
+  designedProjects Sale[]          @relation("DesignerProjects")
   salaryPayments   SalaryPayment[]
+}
+
+// ----------------------------------------------------------------------
+// System Settings & Configuration
+// ----------------------------------------------------------------------
+
+model SystemSetting {
+  key         String   @id
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
 }
 
 // ----------------------------------------------------------------------
@@ -112,33 +124,41 @@ model Employee {
 // ----------------------------------------------------------------------
 
 model Sale {
-  id                  String            @id @default(uuid())
-  clientName          String
-  projectName         String
-  saleDate            DateTime          @default(now())
-  employeeId          String
-  employee            Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  id                   String            @id @default(uuid())
+  projectNumber        String            @unique // e.g. PRJ-1024
+  clientName           String
+  projectName          String
+  saleDate             DateTime          @default(now())
+  employeeId           String            // Sales Executive ID
+  employee             Employee          @relation("SalesExecutiveSales", fields: [employeeId], references: [id], onDelete: Cascade)
   
-  saleAmount          Float
-  projectStage        String            @default("Initial Sketch") // Initial Sketch, Line Art, Base Color, Final Artwork
-  stageUpdatedAt      DateTime          @default(now())
-  briefStatus         String            @default("Pending") // Pending, Uploaded, Resolved
-  paymentStatus       String            @default("Unpaid") // Unpaid, Partial, Paid
+  designerId           String?           // Assigned Designer ID
+  designer             Employee?         @relation("DesignerProjects", fields: [designerId], references: [id], onDelete: SetNull)
   
-  amountReceived      Float             @default(0)
-  remainingAmount     Float             @default(0)
-  installmentsCount   Int               @default(1)
-  installmentsReceived Int              @default(0)
-  nextPaymentDate     DateTime?
-  paymentMethod       String?           @default("Online/Bank Transfer") // Online/Bank Transfer, Cash, Card
-  notes               String?
+  saleAmount           Float             // USD
+  designerFee          Float             @default(0) // USD
+  amountPaidToDesigner Float             @default(0) // USD
+  salesCommissionUsd   Float             @default(0) // USD
+  
+  projectStage         String            @default("Initial Sketch") // Initial Sketch, Line Art, Base Color, Final Artwork
+  stageUpdatedAt       DateTime          @default(now())
+  briefStatus          String            @default("Pending") // Pending, Uploaded, Resolved
+  paymentStatus        String            @default("Unpaid") // Unpaid, Partial, Paid
+  
+  amountReceived       Float             @default(0) // USD
+  remainingAmount      Float             @default(0) // USD
+  installmentsCount    Int               @default(1)
+  installmentsReceived Int               @default(0)
+  nextPaymentDate      DateTime?
+  paymentMethod        String?           @default("Online/Bank Transfer") // Online/Bank Transfer, Cash, Card
+  notes                String?
 
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
-  briefs              ProjectBrief[]
-  stageLogs           ProjectStageLog[]
-  payments            SalePayment[]
+  briefs               ProjectBrief[]
+  stageLogs            ProjectStageLog[]
+  payments             SalePayment[]
 }
 
 model ProjectBrief {
@@ -428,22 +448,25 @@ model Payslip {
   employeeId           String
   employee             Employee   @relation(fields: [employeeId], references: [id])
   
-  baseSalary           Float
+  baseSalary           Float      // PKR
   daysPresent          Float      @default(0)
   daysInPeriod         Int        @default(0)
   
-  unpaidLeaveDeduction Float      @default(0)
-  lateDeduction        Float      @default(0)
-  loansDeduction       Float      @default(0)
-  otherDeductions      Float      @default(0)
+  unpaidLeaveDeduction Float      @default(0) // PKR
+  lateDeduction        Float      @default(0) // PKR
+  loansDeduction       Float      @default(0) // PKR
+  otherDeductions      Float      @default(0) // PKR
   
-  bonus                Float      @default(0)
-  commission           Float      @default(0)
-  spiffs               Float      @default(0)
-  attendanceAllowance  Float      @default(0)
-  punctualityAllowance Float      @default(0)
+  bonus                Float      @default(0) // PKR
+  commission           Float      @default(0) // PKR (legacy field)
+  commissionUsd        Float      @default(0) // USD
+  commissionPkr        Float      @default(0) // PKR
+  exchangeRateUsed     Float      @default(280) // USD -> PKR exchange rate at finalization
+  spiffs               Float      @default(0) // PKR
+  attendanceAllowance  Float      @default(0) // PKR
+  punctualityAllowance Float      @default(0) // PKR
   
-  netPay               Float
+  netPay               Float      // PKR
   
   showups              Int        @default(0)
   meetingsScheduled    Int        @default(0)

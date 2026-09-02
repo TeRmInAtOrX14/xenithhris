@@ -5,6 +5,7 @@ const { requireAuth } = require('../middlewares/auth');
 
 router.get('/', requireAuth, salesController.getSales);
 router.post('/', requireAuth, salesController.createSale);
+router.put('/:id', requireAuth, salesController.updateSale);
 router.patch('/:id/stage', requireAuth, salesController.updateSaleStage);
 router.post('/:id/briefs', requireAuth, salesController.uploadBrief);
 router.post('/:id/payments', requireAuth, salesController.logPayment);

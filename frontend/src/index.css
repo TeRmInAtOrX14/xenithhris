@@ -11,68 +11,86 @@
   --color-brand-text-soft: var(--brand-text-soft);
   --color-brand-text-mute: var(--brand-text-mute);
   
-  --color-brand-blue: var(--brand-blue);
-  --color-brand-blue-soft: var(--brand-blue-soft);
-  --color-brand-violet: var(--brand-violet);
-  --color-brand-cyan: var(--brand-cyan);
-  --color-brand-green: var(--brand-green);
-  --color-brand-amber: var(--brand-amber);
-  --color-brand-red: var(--brand-red);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-copper: var(--brand-copper);
+  --color-brand-silver: var(--brand-silver);
+
+  --color-brand-sidebar-bg: var(--brand-sidebar-bg);
+  --color-brand-sidebar-text: var(--brand-sidebar-text);
+  --color-brand-sidebar-border: var(--brand-sidebar-border);
+
+  --color-brand-success: var(--brand-success);
+  --color-brand-warning: var(--brand-warning);
+  --color-brand-danger: var(--brand-danger);
+  --color-brand-info: var(--brand-info);
   
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Manrope', system-ui, sans-serif;
 }
 
-/* Global design tokens definitions */
+/* ----------------------------------------------------------------------
+ * ArtXenith / Kinetic HR Enterprise Design Tokens
+ * ---------------------------------------------------------------------- */
 :root {
-  /* Default Dark Mode Theme */
-  --brand-bg: #06070d;
-  --brand-bg-soft: #0a0c16;
-  --brand-bg-elevated: #0d101c;
-  --brand-border: rgba(255, 255, 255, 0.09);
-  --brand-border-strong: rgba(255, 255, 255, 0.18);
+  /* Default Dark Enterprise Theme (Hero Experience) */
+  --brand-bg: #0b0b0b;
+  --brand-bg-soft: #111111;
+  --brand-bg-elevated: #181818;
+  --brand-border: #2b2b2b;
+  --brand-border-strong: #383838;
   
-  --brand-text: #f4f6fb;
-  --brand-text-soft: #aab2c5;
-  --brand-text-mute: #6b7287;
+  --brand-text: #e8e8e8;
+  --brand-text-soft: #a0a0a0;
+  --brand-text-mute: #707070;
   
-  --brand-blue: #3e6cf6;
-  --brand-blue-soft: #5b82ff;
-  --brand-violet: #8b5cf6;
-  --brand-cyan: #22d3ee;
-  --brand-green: #34d399;
-  --brand-amber: #f5b942;
-  --brand-red: #ef4444;
+  --brand-orange: #b76522;
+  --brand-copper: #d17a32;
+  --brand-silver: #b8b8b8;
+
+  --brand-sidebar-bg: #111111;
+  --brand-sidebar-text: #e8e8e8;
+  --brand-sidebar-border: #222222;
+
+  --brand-success: #3a8f5b;
+  --brand-warning: #c98a2e;
+  --brand-danger: #c94a4a;
+  --brand-info: #4b7bb5;
   
-  --brand-glass-bg: rgba(255, 255, 255, 0.035);
-  --brand-glass-bg-strong: rgba(255, 255, 255, 0.06);
+  --brand-glass-bg: rgba(24, 24, 24, 0.7);
+  --brand-glass-bg-strong: rgba(32, 32, 32, 0.9);
 }
 
 [data-theme="light"] {
-  /* Premium Corporate Light Mode Theme */
-  --brand-bg: #f8fafc;
+  /* Light Enterprise Theme (Warm White Canvas with Dark Sidebar) */
+  --brand-bg: #f5f3ef;
   --brand-bg-soft: #ffffff;
-  --brand-bg-elevated: #f1f5f9;
-  --brand-border: rgba(15, 23, 42, 0.08);
-  --brand-border-strong: rgba(15, 23, 42, 0.16);
+  --brand-bg-elevated: #ffffff;
+  --brand-border: #e2e0dc;
+  --brand-border-strong: #cccccc;
   
-  --brand-text: #0f172a;
-  --brand-text-soft: #475569;
-  --brand-text-mute: #94a3b8;
+  --brand-text: #1c1c1c;
+  --brand-text-soft: #666666;
+  --brand-text-mute: #999999;
   
-  --brand-blue: #2563eb;
-  --brand-blue-soft: #3b82f6;
-  --brand-violet: #7c3aed;
-  --brand-cyan: #0891b2;
-  --brand-green: #059669;
-  --brand-amber: #d97706;
-  --brand-red: #dc2626;
+  --brand-orange: #b76522;
+  --brand-copper: #d17a32;
+  --brand-silver: #555555;
+
+  /* Sidebar remains dark #171717 in Light mode to preserve ArtXenith metallic identity */
+  --brand-sidebar-bg: #171717;
+  --brand-sidebar-text: #e8e8e8;
+  --brand-sidebar-border: #262626;
+
+  --brand-success: #2e7d32;
+  --brand-warning: #b45309;
+  --brand-danger: #c2410c;
+  --brand-info: #1d4ed8;
   
-  --brand-glass-bg: rgba(255, 255, 255, 0.7);
-  --brand-glass-bg-strong: rgba(255, 255, 255, 0.85);
+  --brand-glass-bg: rgba(255, 255, 255, 0.85);
+  --brand-glass-bg-strong: rgba(255, 255, 255, 0.95);
 }
 
-/* Custom Base Layer / Global Styles */
+/* Base layer overrides */
 @layer base {
   body {
     background-color: var(--color-brand-bg);
@@ -82,369 +100,110 @@
     overflow-x: hidden;
   }
 
-  /* Transition timings for natural flow theme swapping */
-  body, aside, header, main, .glass-panel, .glass-panel-strong, input, select, textarea, button, tr, td {
-    transition: background-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-                border-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-                color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-                box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Smooth transition timings for dark/light theme switching */
+  body, aside, header, main, .glass-panel, input, select, textarea, button, table, tr, td {
+    transition: background-color 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease;
   }
 
-  /* Global input/select focus overrides for consistent premium feel */
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="number"],
-  input[type="date"],
-  select,
-  textarea {
-    transition: border-color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  input[type="text"]:focus,
-  input[type="email"]:focus,
-  input[type="password"]:focus,
-  input[type="number"]:focus,
-  input[type="date"]:focus,
-  select:focus,
-  textarea:focus {
-    border-color: rgba(91, 130, 255, 0.6) !important;
-    box-shadow: 0 0 14px rgba(91, 130, 255, 0.22) !important;
+  /* Focus ring overrides for brand orange */
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--brand-orange) !important;
     outline: none !important;
-  }
-
-  /* Custom Scrollbar for sleek premium look */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: var(--color-brand-bg);
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-brand-border);
-    border-radius: 4px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-brand-blue-soft);
+    box-shadow: 0 0 0 2px rgba(183, 101, 34, 0.25) !important;
   }
 }
 
-/* Premium Brandigade utilities */
-.brandigade-gradient {
-  background: linear-gradient(120deg, var(--color-brand-blue) 0%, var(--color-brand-violet) 55%, var(--color-brand-cyan) 100%);
-}
-
-.brandigade-gradient-text {
-  background: linear-gradient(100deg, #8fb0ff 0%, #b79bff 45%, #6fe3f4 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-[data-theme="light"] .brandigade-gradient-text {
-  background: linear-gradient(100deg, var(--color-brand-blue) 0%, var(--color-brand-violet) 50%, var(--color-brand-cyan) 100%);
-}
-
+/* Custom Component Utility Classes */
 .glass-panel {
-  background: var(--brand-glass-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--color-brand-border);
+  background-color: var(--brand-bg-elevated);
+  border: 1px solid var(--brand-border);
 }
 
-.glass-panel-strong {
-  background: var(--brand-glass-bg-strong);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--color-brand-border-strong);
+.hover-glow-orange:hover {
+  border-color: var(--brand-orange) !important;
+  box-shadow: 0 0 15px rgba(183, 101, 34, 0.15);
 }
 
-.shadow-glow {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 30px 80px -30px rgba(62, 108, 246, 0.35);
-}
-[data-theme="light"] .shadow-glow {
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 20px 50px -20px rgba(62, 108, 246, 0.18);
-}
-
-/* Background Atmosphere Noise Grid */
-.noise-grid {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
-}
-[data-theme="light"] .noise-grid {
-  background-image:
-    linear-gradient(rgba(15, 23, 42, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.015) 1px, transparent 1px);
+/* Button System */
+.btn-primary {
+  background-color: var(--brand-orange);
+  color: #ffffff;
+  font-weight: 700;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.15s ease;
 }
 
-.card-hover {
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease;
-}
-.card-hover:hover {
-  transform: translateY(-3px);
-  border-color: var(--color-brand-border-strong);
-  box-shadow: 0 20px 40px -15px rgba(62, 108, 246, 0.15);
+.btn-primary:hover {
+  background-color: var(--brand-copper);
 }
 
-/* Premium Accent Glow States */
-.hover-glow-blue {
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.hover-glow-blue:hover {
-  border-color: rgba(62, 108, 246, 0.35);
-  box-shadow: 0 12px 30px -10px rgba(62, 108, 246, 0.25), 0 0 0 1px rgba(62, 108, 246, 0.15);
-  background: rgba(62, 108, 246, 0.02);
-  transform: translateY(-3px);
+.btn-secondary {
+  background-color: var(--brand-bg-elevated);
+  color: var(--brand-text);
+  border: 1px solid var(--brand-border);
+  font-weight: 600;
+  transition: all 0.15s ease;
 }
 
-.hover-glow-violet {
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.hover-glow-violet:hover {
-  border-color: rgba(139, 92, 246, 0.35);
-  box-shadow: 0 12px 30px -10px rgba(139, 92, 246, 0.25), 0 0 0 1px rgba(139, 92, 246, 0.15);
-  background: rgba(139, 92, 246, 0.02);
-  transform: translateY(-3px);
+.btn-secondary:hover {
+  border-color: var(--brand-border-strong);
+  color: #ffffff;
 }
 
-.hover-glow-green {
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.hover-glow-green:hover {
-  border-color: rgba(52, 211, 153, 0.35);
-  box-shadow: 0 12px 30px -10px rgba(52, 211, 153, 0.25), 0 0 0 1px rgba(52, 211, 153, 0.15);
-  background: rgba(52, 211, 153, 0.02);
-  transform: translateY(-3px);
-}
-
-.hover-glow-amber {
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.hover-glow-amber:hover {
-  border-color: rgba(245, 185, 66, 0.35);
-  box-shadow: 0 12px 30px -10px rgba(245, 185, 66, 0.25), 0 0 0 1px rgba(245, 185, 66, 0.15);
-  background: rgba(245, 185, 66, 0.02);
-  transform: translateY(-3px);
+/* Status Badge Pills */
+.status-pill {
+  display: inline-flex;
+  items-center: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
-.hover-glow-cyan {
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.hover-glow-cyan:hover {
-  border-color: rgba(34, 211, 238, 0.35);
-  box-shadow: 0 12px 30px -10px rgba(34, 211, 238, 0.25), 0 0 0 1px rgba(34, 211, 238, 0.15);
-  background: rgba(34, 211, 238, 0.02);
-  transform: translateY(-3px);
+.status-success {
+  background-color: rgba(58, 143, 91, 0.15);
+  color: var(--brand-success);
+  border: 1px solid rgba(58, 143, 91, 0.3);
 }
 
-.hover-glow-red {
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.hover-glow-red:hover {
-  border-color: rgba(239, 68, 68, 0.35);
-  box-shadow: 0 12px 30px -10px rgba(239, 68, 68, 0.25), 0 0 0 1px rgba(239, 68, 68, 0.15);
-  background: rgba(239, 68, 68, 0.02);
-  transform: translateY(-3px);
+.status-warning {
+  background-color: rgba(201, 138, 46, 0.15);
+  color: var(--brand-warning);
+  border: 1px solid rgba(201, 138, 46, 0.3);
 }
 
-/* Micro-animations and premium elements */
-.interactive-btn {
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.interactive-btn:hover {
-  transform: scale(1.02);
-}
-.interactive-btn:active {
-  transform: scale(0.98);
+.status-danger {
+  background-color: rgba(201, 74, 74, 0.15);
+  color: var(--brand-danger);
+  border: 1px solid rgba(201, 74, 74, 0.3);
 }
 
-.input-focus-glow {
-  transition: all 0.2s ease-in-out;
-}
-.input-focus-glow:focus {
-  border-color: var(--color-brand-blue-soft);
-  box-shadow: 0 0 12px rgba(91, 130, 255, 0.25);
-  outline: none;
+.status-neutral {
+  background-color: rgba(112, 112, 112, 0.15);
+  color: var(--brand-text-soft);
+  border: 1px solid var(--brand-border);
 }
 
-/* Glow Atmosphere Effects */
-.glow-field {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-[data-theme="light"] .glow-field {
-  opacity: 0.25;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.glow-field span {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(150px);
-}
-.glow-field .g1 {
-  width: 50vw;
-  height: 50vw;
-  background: radial-gradient(circle, rgba(62, 108, 246, 0.08) 0%, transparent 80%);
-  top: -20%;
-  left: -10%;
-}
-.glow-field .g2 {
-  width: 60vw;
-  height: 60vw;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, transparent 80%);
-  bottom: -20%;
-  right: -10%;
+::-webkit-scrollbar-track {
+  background: var(--brand-bg);
 }
 
-/* ==============================================================================
-   Light Theme Utility Contrast Overrides (SaaS Stripe/Linear Feel)
-   ============================================================================== */
-[data-theme="light"] {
-  /* Prevent static text-white from blending in light background except inside solid primary buttons */
-  .text-white:not(
-    button *, 
-    button, 
-    a.interactive-btn,
-    .brandigade-gradient *, 
-    .bg-brand-blue *, 
-    .bg-brand-violet *, 
-    .bg-brand-green *, 
-    .bg-brand-cyan *, 
-    .bg-brand-red *, 
-    .bg-red-500 *,
-    .bg-green-500 *,
-    .bg-blue-500 *,
-    .bg-violet-500 *,
-    .bg-red-600 *,
-    .bg-green-600 *,
-    .bg-blue-600 *,
-    .bg-violet-600 *,
-    .bg-amber-500 *,
-    .bg-amber-600 *,
-    .bg-brand-blue,
-    .bg-brand-violet,
-    .bg-brand-green,
-    .bg-brand-cyan,
-    .bg-brand-red,
-    .bg-red-500,
-    .bg-green-500,
-    .bg-blue-500,
-    .bg-violet-500,
-    .bg-red-600,
-    .bg-green-600,
-    .bg-blue-600,
-    .bg-violet-600,
-    .bg-amber-500,
-    .bg-amber-600,
-    .badge-primary,
-    .badge-secondary
-  ) {
-    color: var(--brand-text) !important;
-  }
-
-  /* Map hardcoded dark gray/slate texts to theme-friendly colors */
-  .text-slate-100,
-  .text-slate-200,
-  .text-gray-100,
-  .text-gray-200,
-  .text-zinc-100,
-  .text-zinc-200 {
-    color: var(--brand-text) !important;
-  }
-
-  .text-slate-300,
-  .text-gray-300,
-  .text-zinc-300,
-  .text-slate-400,
-  .text-gray-400,
-  .text-zinc-400 {
-    color: var(--brand-text-soft) !important;
-  }
-
-  /* Override hardcoded dark bg colors to light theme equivalents */
-  .bg-slate-900,
-  .bg-gray-900,
-  .bg-zinc-900,
-  .bg-black,
-  .bg-\[\#06070d\],
-  .bg-\[rgba\(62\,108\,246\,0\.02\)\] {
-    background-color: var(--brand-bg) !important;
-  }
-
-  .bg-slate-950,
-  .bg-\[\#0a0c16\],
-  .bg-\[rgba\(62\,108\,246\,0\.05\)\] {
-    background-color: var(--brand-bg-soft) !important;
-  }
-
-  .bg-slate-800,
-  .bg-gray-800,
-  .bg-zinc-800,
-  .bg-\[\#0d101c\],
-  .bg-brand-bg-elevated\/40,
-  .bg-brand-bg-soft\/20,
-  .bg-brand-bg-soft\/40,
-  .bg-brand-bg-soft\/50,
-  .bg-brand-bg-elevated\/20 {
-    background-color: var(--brand-bg-elevated) !important;
-  }
-
-  /* Map border colors to prevent dark border lines on light boxes */
-  .border-slate-800,
-  .border-gray-800,
-  .border-zinc-800,
-  .border-slate-700,
-  .border-gray-700,
-  .border-zinc-700,
-  .border-white\/10,
-  .border-white\/5,
-  .border-white\/8,
-  .border-white\/20,
-  .border-brand-border\/20,
-  .border-brand-border\/30,
-  .border-brand-border\/40,
-  .border-brand-border\/60 {
-    border-color: var(--brand-border) !important;
-  }
-
-  /* Form controls inputs contrast overrides */
-  input,
-  select,
-  textarea {
-    color: var(--brand-text) !important;
-    background-color: var(--brand-bg-soft) !important;
-    border-color: var(--brand-border) !important;
-  }
-  
-  input::placeholder,
-  textarea::placeholder {
-    color: var(--brand-text-mute) !important;
-  }
-
-  /* Hover states for lists and rows */
-  .hover\:bg-brand-bg-elevated\/20:hover,
-  .hover\:bg-brand-bg-soft\/20:hover {
-    background-color: rgba(15, 23, 42, 0.04) !important;
-  }
-  
-  /* Select active lists indicators */
-  .bg-brand-blue\/10 {
-    background-color: rgba(37, 99, 235, 0.08) !important;
-  }
-  
-  /* Text override for matched commission structure items */
-  .text-brand-cyan {
-    color: var(--brand-blue) !important;
-  }
+::-webkit-scrollbar-thumb {
+  background: var(--brand-border-strong);
+  border-radius: 4px;
 }
 
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-orange);
+}

@@ -8,6 +8,8 @@ const adminRoles = ['Admin', 'CEO', 'COO'];
 // Employee Routes
 router.get('/', requireAuth, employeeController.getEmployees);
 router.get('/teams', requireAuth, employeeController.getTeams);
+router.get('/sales-executive/earnings', requireAuth, employeeController.getSalesExecutiveEarnings);
+router.get('/designer/projects', requireAuth, employeeController.getDesignerPortalData);
 router.get('/:id', requireAuth, employeeController.getEmployeeById);
 router.post('/', requireAuth, requireRole(adminRoles), employeeController.createEmployee);
 router.put('/:id', requireAuth, employeeController.updateEmployee);

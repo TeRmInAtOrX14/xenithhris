@@ -248,6 +248,25 @@ exports.runPayroll = async (req, res, next) => {
         }
       }
 
+      // Fetch active USD -> PKR exchange rate setting
+      const rateSetting = await prisma.systemSetting.findUnique({ where: { key: 'usdToPkrRate' } });
+      const activeExchangeRate = rateSetting ? (parseFloat(rateSetting.value) || 280) : 280;
+
+      // Calculate Sales Executive Commission in USD for this month
+      const salesInPeriod = await prisma.sale.findMany({
+        where: {
+          employeeId: emp.id,
+          saleDate: { gte: startOfMonth, lte: endOfMonth }
+        },
+        select: { salesCommissionUsd: true }
+      });
+
+      const totalCommissionUsd = salesInPeriod.reduce((sum, s) => sum + (s.salesCommissionUsd || 0), 0);
+      const calculatedCommissionPkr = totalCommissionUsd * activeExchangeRate;
+
+      // Use sales commission if applicable, or fallback to legacy commission
+      const finalCommissionPkr = totalCommissionUsd > 0 ? calculatedCommissionPkr : commission;
+
       // 8. Final Calculation
       // Attendance Allowance: 2500, cut after one off (totalLeaveDays > 1)
       const allLeaves = await prisma.leaveRequest.aggregate({
@@ -265,7 +284,7 @@ exports.runPayroll = async (req, res, next) => {
       // Punctuality Allowance: 2500, cut on one late (lateCount >= 1)
       const punctualityAllowance = lateCount >= 1 ? 0 : 2500;
 
-      const earnings = baseSalary + attendanceAllowance + punctualityAllowance + bonusAmount + commission + spiffs;
+      const earnings = baseSalary + attendanceAllowance + punctualityAllowance + bonusAmount + finalCommissionPkr + spiffs;
       const deductions = unpaidLeaveDeduction + lateDeduction + loansDeduction + otherDeductionsAmount;
       const netPay = Math.max(0, earnings - deductions);
 
@@ -282,7 +301,10 @@ exports.runPayroll = async (req, res, next) => {
           loansDeduction,
           otherDeductions: otherDeductionsAmount,
           bonus: bonusAmount,
-          commission,
+          commission: finalCommissionPkr,
+          commissionUsd: totalCommissionUsd,
+          commissionPkr: finalCommissionPkr,
+          exchangeRateUsed: activeExchangeRate,
           spiffs,
           attendanceAllowance,
           punctualityAllowance,

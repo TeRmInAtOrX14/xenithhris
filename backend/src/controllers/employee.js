@@ -548,3 +548,175 @@ exports.terminateEmployee = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * GET /api/employees/sales-executive/earnings
+ * Calculates monthly earnings breakdown for Sales Executive in hybrid currency
+ */
+exports.getSalesExecutiveEarnings = async (req, res, next) => {
+  try {
+    const { month, year, employeeId } = req.query;
+    const targetEmpId = employeeId || req.user.employee?.id;
+
+    if (!targetEmpId) {
+      return res.status(400).json({ error: 'No employee linked.' });
+    }
+
+    const emp = await prisma.employee.findUnique({
+      where: { id: targetEmpId },
+      select: { id: true, fullName: true, baseSalary: true, commissionPercentage: true }
+    });
+
+    if (!emp) {
+      return res.status(404).json({ error: 'Employee not found.' });
+    }
+
+    const curDate = new Date();
+    const qMonth = month ? parseInt(month) : curDate.getUTCMonth() + 1;
+    const qYear = year ? parseInt(year) : curDate.getUTCFullYear();
+
+    const startOfMonth = new Date(Date.UTC(qYear, qMonth - 1, 1));
+    const endOfMonth = new Date(Date.UTC(qYear, qMonth, 0, 23, 59, 59));
+
+    // Fetch active exchange rate
+    const rateSetting = await prisma.systemSetting.findUnique({ where: { key: 'usdToPkrRate' } });
+    const usdToPkrRate = rateSetting ? (parseFloat(rateSetting.value) || 280) : 280;
+
+    // Fetch sales for this month
+    const sales = await prisma.sale.findMany({
+      where: {
+        employeeId: targetEmpId,
+        saleDate: { gte: startOfMonth, lte: endOfMonth }
+      }
+    });
+
+    const totalSalesUsd = sales.reduce((sum, s) => sum + s.saleAmount, 0);
+    const totalReceivingsUsd = sales.reduce((sum, s) => sum + s.amountReceived, 0);
+    const totalRemainingReceivingsUsd = sales.reduce((sum, s) => sum + s.remainingAmount, 0);
+    const totalCommissionEarnedUsd = sales.reduce((sum, s) => sum + s.salesCommissionUsd, 0);
+
+    const baseSalaryPkr = emp.baseSalary; // Always PKR
+    const commissionPkr = totalCommissionEarnedUsd * usdToPkrRate;
+    const totalEstimatedEarningsPkr = baseSalaryPkr + commissionPkr;
+
+    // Check salary payments for this month
+    const salaryPayment = await prisma.salaryPayment.findFirst({
+      where: {
+        employeeId: targetEmpId,
+        periodMonth: qMonth,
+        periodYear: qYear
+      }
+    });
+
+    const paidAmountPkr = salaryPayment ? salaryPayment.amountPaid : 0;
+    const remainingAmountPkr = Math.max(0, totalEstimatedEarningsPkr - paidAmountPkr);
+
+    res.json({
+      employeeId: emp.id,
+      fullName: emp.fullName,
+      month: qMonth,
+      year: qYear,
+      baseSalaryPkr,
+      commissionPercentage: emp.commissionPercentage,
+      totalSalesUsd,
+      totalReceivingsUsd,
+      totalRemainingReceivingsUsd,
+      totalCommissionEarnedUsd,
+      usdToPkrRate,
+      commissionPkr,
+      totalEstimatedEarningsPkr,
+      paidAmountPkr,
+      remainingAmountPkr
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/employees/designer/projects
+ * Workspace endpoint for Designer Portal showing assigned projects, stages, & conditional payment info
+ */
+exports.getDesignerPortalData = async (req, res, next) => {
+  try {
+    const { designerId, search } = req.query;
+    const isCEOOrAdmin = ['Admin', 'CEO', 'COO'].includes(req.user.role);
+    const targetDesignerId = designerId || req.user.employee?.id;
+
+    if (!targetDesignerId) {
+      return res.status(400).json({ error: 'No designer employee linked.' });
+    }
+
+    // Check CEO setting for designer payment visibility
+    const showPaySetting = await prisma.systemSetting.findUnique({ where: { key: 'showDesignerPayments' } });
+    const showDesignerPayments = isCEOOrAdmin || (showPaySetting ? showPaySetting.value === 'true' : false);
+
+    const where = { designerId: targetDesignerId };
+    if (search) {
+      where.OR = [
+        { projectNumber: { contains: search, mode: 'insensitive' } },
+        { projectName: { contains: search, mode: 'insensitive' } },
+        { clientName: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    const projects = await prisma.sale.findMany({
+      where,
+      include: {
+        employee: { select: { id: true, fullName: true, employeeCode: true } },
+        briefs: { orderBy: { version: 'desc' } },
+        stageLogs: { orderBy: { createdAt: 'desc' } }
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    const totalAssigned = projects.length;
+    const completed = projects.filter(p => p.projectStage === 'Final Artwork').length;
+    const inProgress = totalAssigned - completed;
+
+    const totalEarnedUsd = projects.reduce((sum, p) => sum + (p.designerFee || 0), 0);
+    const totalPaidUsd = projects.reduce((sum, p) => sum + (p.amountPaidToDesigner || 0), 0);
+    const totalRemainingUsd = Math.max(0, totalEarnedUsd - totalPaidUsd);
+
+    const sanitizedProjects = projects.map(p => {
+      const pData = {
+        id: p.id,
+        projectNumber: p.projectNumber,
+        clientName: p.clientName,
+        projectName: p.projectName,
+        projectStage: p.projectStage,
+        stageUpdatedAt: p.stageUpdatedAt,
+        briefStatus: p.briefStatus,
+        notes: p.notes,
+        employee: p.employee,
+        briefs: p.briefs,
+        stageLogs: p.stageLogs
+      };
+
+      if (showDesignerPayments) {
+        pData.designerFee = p.designerFee;
+        pData.amountPaidToDesigner = p.amountPaidToDesigner;
+        pData.remainingDesignerPayment = Math.max(0, p.designerFee - p.amountPaidToDesigner);
+      }
+
+      return pData;
+    });
+
+    res.json({
+      showDesignerPayments,
+      metrics: {
+        totalAssigned,
+        inProgress,
+        completed,
+        financials: showDesignerPayments ? {
+          totalEarnedUsd,
+          totalPaidUsd,
+          totalRemainingUsd
+        } : null
+      },
+      projects: sanitizedProjects
+    });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -2,11 +2,34 @@ const { PrismaClient } = require('@prisma/client');
 const { logAudit } = require('../utils/audit');
 const prisma = new PrismaClient();
 
-// Helper to determine RBAC filters for sales
-async function getEmployeeIdScope(user) {
-  if (['Admin', 'CEO', 'COO'].includes(user.role)) {
-    return null; // All scope
+// Helper to generate next unique project number (PRJ-1001, PRJ-1002...)
+async function generateProjectNumber() {
+  const lastSale = await prisma.sale.findFirst({
+    orderBy: { createdAt: 'desc' },
+    select: { projectNumber: true }
+  });
+
+  if (!lastSale || !lastSale.projectNumber) {
+    return 'PRJ-1001';
   }
+
+  const match = lastSale.projectNumber.match(/PRJ-(\d+)/);
+  if (match) {
+    const nextNum = parseInt(match[1]) + 1;
+    return `PRJ-${nextNum}`;
+  }
+
+  const count = await prisma.sale.count();
+  return `PRJ-${1000 + count + 1}`;
+}
+
+// Helper to determine RBAC filters for sales
+async function getSalesFilter(user) {
+  const isCEOOrAdmin = ['Admin', 'CEO', 'COO'].includes(user.role);
+  if (isCEOOrAdmin) {
+    return {}; // All sales
+  }
+
   if (user.role === 'Team Lead') {
     const ledCampaigns = await prisma.campaignMember.findMany({
       where: { employeeId: user.employee?.id, role: 'team_lead', status: 'active' },
@@ -17,30 +40,36 @@ async function getEmployeeIdScope(user) {
       where: { campaignId: { in: campaignIds }, status: 'active' },
       select: { employeeId: true }
     });
-    const sdrIds = members.map(m => m.employeeId);
-    if (user.employee?.id) sdrIds.push(user.employee.id);
-    return sdrIds;
+    const teamMemberIds = members.map(m => m.employeeId);
+    if (user.employee?.id) teamMemberIds.push(user.employee.id);
+    return { employeeId: { in: teamMemberIds } };
   }
-  // Regular employee / SDR
-  return user.employee?.id ? [user.employee.id] : [];
+
+  if (user.role === 'Designer') {
+    return { designerId: user.employee?.id || 'none' };
+  }
+
+  // Sales Executive / Employee
+  return { employeeId: user.employee?.id || 'none' };
 }
 
 exports.getSales = async (req, res, next) => {
   try {
-    const { month, year, employeeId, stage, search } = req.query;
-    const scope = await getEmployeeIdScope(req.user);
+    const { month, year, employeeId, designerId, stage, search, projectNumber } = req.query;
+    const roleFilter = await getSalesFilter(req.user);
 
-    const where = {};
-
-    if (scope !== null) {
-      where.employeeId = { in: scope };
-    }
+    const where = { ...roleFilter };
 
     if (employeeId) {
-      if (scope !== null && !scope.includes(employeeId)) {
-        return res.status(403).json({ error: 'Access denied to this employee data.' });
-      }
       where.employeeId = employeeId;
+    }
+
+    if (designerId) {
+      where.designerId = designerId;
+    }
+
+    if (projectNumber) {
+      where.projectNumber = { contains: projectNumber, mode: 'insensitive' };
     }
 
     if (stage) {
@@ -56,7 +85,8 @@ exports.getSales = async (req, res, next) => {
     if (search) {
       where.OR = [
         { clientName: { contains: search, mode: 'insensitive' } },
-        { projectName: { contains: search, mode: 'insensitive' } }
+        { projectName: { contains: search, mode: 'insensitive' } },
+        { projectNumber: { contains: search, mode: 'insensitive' } }
       ];
     }
 
@@ -64,6 +94,9 @@ exports.getSales = async (req, res, next) => {
       where,
       include: {
         employee: {
+          select: { id: true, fullName: true, employeeCode: true, designation: true, commissionPercentage: true }
+        },
+        designer: {
           select: { id: true, fullName: true, employeeCode: true, designation: true }
         },
         briefs: { orderBy: { version: 'desc' } },
@@ -81,10 +114,21 @@ exports.getSales = async (req, res, next) => {
 
 exports.createSale = async (req, res, next) => {
   try {
-    const { clientName, projectName, saleAmount, saleDate, employeeId, installmentsCount, notes, paymentMethod } = req.body;
+    const {
+      clientName,
+      projectName,
+      saleAmount,
+      saleDate,
+      employeeId,
+      designerId,
+      designerFee,
+      installmentsCount,
+      notes,
+      paymentMethod
+    } = req.body;
 
     if (!clientName || !projectName || !saleAmount) {
-      return res.status(400).json({ error: 'Client Name, Project Name, and Sale Amount are required.' });
+      return res.status(400).json({ error: 'Client Name, Project Name, and Sale Amount ($) are required.' });
     }
 
     const targetEmpId = employeeId || req.user.employee?.id;
@@ -92,16 +136,30 @@ exports.createSale = async (req, res, next) => {
       return res.status(400).json({ error: 'No employee linked to assign sale.' });
     }
 
+    // Fetch employee commission percentage for auto-calculation
+    const salesExec = await prisma.employee.findUnique({
+      where: { id: targetEmpId },
+      select: { commissionPercentage: true }
+    });
+
     const totalAmount = parseFloat(saleAmount);
+    const commPct = salesExec?.commissionPercentage || 0;
+    const calculatedCommissionUsd = (totalAmount * commPct) / 100;
     const instCount = parseInt(installmentsCount || 1);
+    const prjNum = await generateProjectNumber();
 
     const sale = await prisma.sale.create({
       data: {
+        projectNumber: prjNum,
         clientName,
         projectName,
         saleDate: saleDate ? new Date(saleDate) : new Date(),
         employeeId: targetEmpId,
+        designerId: designerId || null,
         saleAmount: totalAmount,
+        designerFee: designerFee ? parseFloat(designerFee) : 0,
+        amountPaidToDesigner: 0,
+        salesCommissionUsd: calculatedCommissionUsd,
         projectStage: 'Initial Sketch',
         stageUpdatedAt: new Date(),
         briefStatus: 'Pending',
@@ -114,7 +172,8 @@ exports.createSale = async (req, res, next) => {
         notes
       },
       include: {
-        employee: { select: { id: true, fullName: true, employeeCode: true } }
+        employee: { select: { id: true, fullName: true, employeeCode: true } },
+        designer: { select: { id: true, fullName: true, employeeCode: true } }
       }
     });
 
@@ -125,12 +184,78 @@ exports.createSale = async (req, res, next) => {
         updatedById: req.user.id,
         previousStage: 'New Created',
         newStage: 'Initial Sketch',
-        notes: 'Project created'
+        notes: `Project #${prjNum} created`
       }
     });
 
-    await logAudit(req.user.id, 'CREATE_SALE', 'Sale', sale.id, { clientName, saleAmount: totalAmount });
+    await logAudit(req.user.id, 'CREATE_SALE', 'Sale', sale.id, { projectNumber: prjNum, clientName, saleAmount: totalAmount });
     res.json(sale);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateSale = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      clientName,
+      projectName,
+      saleAmount,
+      designerId,
+      designerFee,
+      amountPaidToDesigner,
+      paymentMethod,
+      notes
+    } = req.body;
+
+    const existing = await prisma.sale.findUnique({ where: { id }, include: { employee: true } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Sale record not found.' });
+    }
+
+    const isCEOOrAdmin = ['Admin', 'CEO', 'COO'].includes(req.user.role);
+    const isOwner = existing.employeeId === req.user.employee?.id;
+
+    if (!isCEOOrAdmin && !isOwner && req.user.role !== 'Team Lead') {
+      return res.status(403).json({ error: 'Access denied to edit this sale.' });
+    }
+
+    const updates = {};
+    if (clientName) updates.clientName = clientName;
+    if (projectName) updates.projectName = projectName;
+    if (designerId !== undefined) updates.designerId = designerId || null;
+    if (paymentMethod) updates.paymentMethod = paymentMethod;
+    if (notes !== undefined) updates.notes = notes;
+
+    if (saleAmount !== undefined) {
+      const newAmount = parseFloat(saleAmount);
+      updates.saleAmount = newAmount;
+      updates.remainingAmount = Math.max(0, newAmount - existing.amountReceived);
+      
+      const commPct = existing.employee?.commissionPercentage || 0;
+      updates.salesCommissionUsd = (newAmount * commPct) / 100;
+    }
+
+    if (designerFee !== undefined) {
+      updates.designerFee = parseFloat(designerFee) || 0;
+    }
+
+    if (amountPaidToDesigner !== undefined && isCEOOrAdmin) {
+      updates.amountPaidToDesigner = parseFloat(amountPaidToDesigner) || 0;
+    }
+
+    const updatedSale = await prisma.sale.update({
+      where: { id },
+      data: updates,
+      include: {
+        employee: { select: { id: true, fullName: true, employeeCode: true } },
+        designer: { select: { id: true, fullName: true, employeeCode: true } }
+      }
+    });
+
+    await logAudit(req.user.id, 'UPDATE_SALE', 'Sale', id, updates);
+    res.json(updatedSale);
   } catch (err) {
     next(err);
   }
@@ -149,6 +274,11 @@ exports.updateSaleStage = async (req, res, next) => {
     const existing = await prisma.sale.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ error: 'Sale record not found.' });
+    }
+
+    // Role check: Designer can only update stage for assigned projects
+    if (req.user.role === 'Designer' && existing.designerId !== req.user.employee?.id) {
+      return res.status(403).json({ error: 'Designers can only update stage for projects assigned to them.' });
     }
 
     const updated = await prisma.sale.update({
@@ -265,14 +395,9 @@ exports.logPayment = async (req, res, next) => {
 
 exports.getAlerts = async (req, res, next) => {
   try {
-    const scope = await getEmployeeIdScope(req.user);
-    const where = {};
-    if (scope !== null) {
-      where.employeeId = { in: scope };
-    }
-
+    const roleFilter = await getSalesFilter(req.user);
     const sales = await prisma.sale.findMany({
-      where,
+      where: roleFilter,
       include: {
         employee: { select: { id: true, fullName: true, employeeCode: true } }
       }
@@ -291,7 +416,7 @@ exports.getAlerts = async (req, res, next) => {
             type: 'stagnant_project',
             severity: 'warning',
             title: `Project Stagnant (>5 Days)`,
-            message: `Project "${sale.projectName}" for client ${sale.clientName} has been in "${sale.projectStage}" stage for ${Math.floor(daysInStage)} days.`,
+            message: `Project #${sale.projectNumber} (${sale.projectName}) has been in "${sale.projectStage}" stage for ${Math.floor(daysInStage)} days.`,
             saleId: sale.id,
             employeeName: sale.employee?.fullName,
             days: Math.floor(daysInStage)
@@ -308,7 +433,7 @@ exports.getAlerts = async (req, res, next) => {
             type: 'missing_brief',
             severity: 'alert',
             title: `Missing Project Brief (>2 Days)`,
-            message: `Sale "${sale.projectName}" was created ${Math.floor(daysSinceSale)} days ago but project brief is still pending.`,
+            message: `Sale #${sale.projectNumber} (${sale.projectName}) was created ${Math.floor(daysSinceSale)} days ago but project brief is still pending.`,
             saleId: sale.id,
             employeeName: sale.employee?.fullName,
             days: Math.floor(daysSinceSale)
