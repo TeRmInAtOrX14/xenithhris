@@ -56,8 +56,8 @@
   --brand-danger: #c94a4a;
   --brand-info: #4b7bb5;
   
-  --brand-glass-bg: rgba(24, 24, 24, 0.7);
-  --brand-glass-bg-strong: rgba(32, 32, 32, 0.9);
+  --brand-glass-bg: rgba(24, 24, 24, 0.75);
+  --brand-glass-bg-strong: rgba(32, 32, 32, 0.95);
 }
 
 [data-theme="light"] {
@@ -69,42 +69,48 @@
   --brand-border-strong: #cccccc;
   
   --brand-text: #1c1c1c;
-  --brand-text-soft: #666666;
-  --brand-text-mute: #999999;
+  --brand-text-soft: #555555;
+  --brand-text-mute: #777777;
   
   --brand-orange: #b76522;
   --brand-copper: #d17a32;
   --brand-silver: #555555;
 
-  /* Sidebar remains dark #171717 in Light mode to preserve ArtXenith metallic identity */
-  --brand-sidebar-bg: #171717;
+  /* Sidebar remains dark #111111 in Light mode to preserve ArtXenith metallic identity */
+  --brand-sidebar-bg: #111111;
   --brand-sidebar-text: #e8e8e8;
-  --brand-sidebar-border: #262626;
+  --brand-sidebar-border: #222222;
 
   --brand-success: #2e7d32;
   --brand-warning: #b45309;
   --brand-danger: #c2410c;
   --brand-info: #1d4ed8;
   
-  --brand-glass-bg: rgba(255, 255, 255, 0.85);
-  --brand-glass-bg-strong: rgba(255, 255, 255, 0.95);
+  --brand-glass-bg: rgba(255, 255, 255, 0.9);
+  --brand-glass-bg-strong: rgba(255, 255, 255, 0.98);
 }
 
 /* Base layer overrides */
 @layer base {
   body {
-    background-color: var(--color-brand-bg);
-    color: var(--color-brand-text);
+    background-color: var(--brand-bg);
+    color: var(--brand-text);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
 
   /* Smooth transition timings for dark/light theme switching */
-  body, aside, header, main, .glass-panel, input, select, textarea, button, table, tr, td {
-    transition: background-color 0.2s ease,
-                border-color 0.2s ease,
-                color 0.2s ease;
+  body, header, main, .glass-panel, input, select, textarea, table, tr, td {
+    transition: background-color 0.15s ease,
+                border-color 0.15s ease,
+                color 0.15s ease;
+  }
+
+  /* Dropdown Option readability in both themes */
+  option {
+    background-color: var(--brand-bg-elevated);
+    color: var(--brand-text);
   }
 
   /* Focus ring overrides for brand orange */

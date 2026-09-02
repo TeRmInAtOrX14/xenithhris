@@ -153,7 +153,7 @@ export default function FinanceDashboard() {
           <select
             value={month}
             onChange={(e) => setMonth(Number(e.target.value))}
-            className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg-soft/40 text-xs text-white appearance-none cursor-pointer focus:outline-none"
+            className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg-soft/40 text-xs text-brand-text appearance-none cursor-pointer focus:outline-none"
           >
             {[...Array(12)].map((_, i) => (
               <option key={i + 1} value={i + 1}>
@@ -164,7 +164,7 @@ export default function FinanceDashboard() {
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg-soft/40 text-xs text-white appearance-none cursor-pointer focus:outline-none"
+            className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg-soft/40 text-xs text-brand-text appearance-none cursor-pointer focus:outline-none"
           >
             <option value={2026}>2026</option>
             <option value={2025}>2025</option>
@@ -199,7 +199,7 @@ export default function FinanceDashboard() {
             <DollarSign className="w-5 h-5 text-brand-cyan" />
           </div>
           <div>
-            <p className="text-3xl font-extrabold text-white font-display">PKR {Math.round(pnl?.totalReceivings || 0).toLocaleString()}</p>
+            <p className="text-3xl font-extrabold text-brand-text font-display">PKR {Math.round(pnl?.totalReceivings || 0).toLocaleString()}</p>
             <p className="text-[9px] text-brand-text-mute mt-1.5 font-bold uppercase">
               Client Payments Received
             </p>
@@ -225,7 +225,7 @@ export default function FinanceDashboard() {
             <Users className="w-5 h-5 text-brand-violet" />
           </div>
           <div>
-            <p className="text-3xl font-extrabold text-white font-display">PKR {Math.round(pnl?.totalSalariesPaid || 0).toLocaleString()}</p>
+            <p className="text-3xl font-extrabold text-brand-text font-display">PKR {Math.round(pnl?.totalSalariesPaid || 0).toLocaleString()}</p>
             <p className="text-[9px] text-brand-text-mute mt-1.5 font-bold uppercase">
               Out of PKR {Math.round(pnl?.totalSalariesCost || 0).toLocaleString()} Total
             </p>
@@ -236,7 +236,7 @@ export default function FinanceDashboard() {
       {/* Section 1: Company Expenses */}
       <div className="p-6 rounded-2xl glass-panel border border-brand-border/40 space-y-4">
         <div className="flex justify-between items-center pb-3 border-b border-brand-border/40">
-          <h3 className="text-sm font-extrabold text-white uppercase font-display flex items-center gap-2">
+          <h3 className="text-sm font-extrabold text-brand-text uppercase font-display flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-brand-amber" />
             Company Expenses Log
           </h3>
@@ -263,14 +263,14 @@ export default function FinanceDashboard() {
             <tbody className="divide-y divide-brand-border/30 text-brand-text-soft">
               {expenses.map(exp => (
                 <tr key={exp.id} className="hover:bg-brand-bg-elevated/20">
-                  <td className="p-3 font-mono font-bold text-white">{new Date(exp.date).toLocaleDateString()}</td>
+                  <td className="p-3 font-mono font-bold text-brand-text">{new Date(exp.date).toLocaleDateString()}</td>
                   <td className="p-3">
                     <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-brand-amber/10 text-brand-amber border border-brand-amber/20">
                       {exp.category}
                     </span>
                   </td>
-                  <td className="p-3 font-bold text-white">{exp.description}</td>
-                  <td className="p-3 text-right font-mono font-extrabold text-white">PKR {exp.amount.toLocaleString()}</td>
+                  <td className="p-3 font-bold text-brand-text">{exp.description}</td>
+                  <td className="p-3 text-right font-mono font-extrabold text-brand-text">PKR {exp.amount.toLocaleString()}</td>
                   <td className="p-3 font-mono text-[10px]">{exp.paymentMethod}</td>
                 </tr>
               ))}
@@ -287,7 +287,7 @@ export default function FinanceDashboard() {
       {/* Section 2: Employee Salary Payouts & Outstanding Balances */}
       <div className="p-6 rounded-2xl glass-panel border border-brand-border/40 space-y-4">
         <div className="flex justify-between items-center pb-3 border-b border-brand-border/40">
-          <h3 className="text-sm font-extrabold text-white uppercase font-display flex items-center gap-2">
+          <h3 className="text-sm font-extrabold text-brand-text uppercase font-display flex items-center gap-2">
             <Users className="w-4 h-4 text-brand-violet" />
             Employee Salary Payouts & Commission Management
           </h3>
@@ -313,7 +313,7 @@ export default function FinanceDashboard() {
               {salaries.map(sal => (
                 <tr key={sal.employeeId} className="hover:bg-brand-bg-elevated/20">
                   <td className="p-3">
-                    <div className="font-bold text-white">{sal.fullName}</div>
+                    <div className="font-bold text-brand-text">{sal.fullName}</div>
                     <div className="text-[10px] text-brand-text-mute font-mono">{sal.employeeCode} • {sal.designation}</div>
                   </td>
                   <td className="p-3 text-right font-mono">PKR {sal.basicSalary.toLocaleString()}</td>
@@ -322,7 +322,7 @@ export default function FinanceDashboard() {
                   </td>
                   <td className="p-3 text-right font-mono text-brand-green">PKR {sal.bonuses.toLocaleString()}</td>
                   <td className="p-3 text-right font-mono text-red-400">PKR {sal.deductions.toLocaleString()}</td>
-                  <td className="p-3 text-right font-mono font-extrabold text-white">PKR {sal.netSalary.toLocaleString()}</td>
+                  <td className="p-3 text-right font-mono font-extrabold text-brand-text">PKR {sal.netSalary.toLocaleString()}</td>
                   <td className="p-3 text-right font-mono text-brand-green font-bold">PKR {sal.amountPaid.toLocaleString()}</td>
                   <td className="p-3 text-right font-mono text-brand-amber font-bold">PKR {sal.remainingAmount.toLocaleString()}</td>
                   <td className="p-3">
@@ -363,8 +363,8 @@ export default function FinanceDashboard() {
               className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-brand-bg-elevated border border-brand-border rounded-2xl p-6 shadow-glow z-50 text-left"
             >
               <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-4">
-                <h3 className="text-sm font-extrabold text-white font-display uppercase">Record Company Expense</h3>
-                <button onClick={() => setExpenseModalOpen(false)} className="p-1 text-brand-text-soft hover:text-white">
+                <h3 className="text-sm font-extrabold text-brand-text font-display uppercase">Record Company Expense</h3>
+                <button onClick={() => setExpenseModalOpen(false)} className="p-1 text-brand-text-soft hover:text-brand-text">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -375,7 +375,7 @@ export default function FinanceDashboard() {
                   <select
                     value={expenseForm.category}
                     onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                   >
                     {EXPENSE_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
@@ -389,7 +389,7 @@ export default function FinanceDashboard() {
                     value={expenseForm.description}
                     onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
                     placeholder="e.g. Monthly Office Internet Bill"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -401,7 +401,7 @@ export default function FinanceDashboard() {
                     value={expenseForm.amount}
                     onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
                     placeholder="e.g. 25000"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -412,7 +412,7 @@ export default function FinanceDashboard() {
                     required
                     value={expenseForm.date}
                     onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -420,7 +420,7 @@ export default function FinanceDashboard() {
                   <button
                     type="button"
                     onClick={() => setExpenseModalOpen(false)}
-                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-white"
+                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-brand-text"
                   >
                     Cancel
                   </button>
@@ -450,10 +450,10 @@ export default function FinanceDashboard() {
             >
               <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-4">
                 <div>
-                  <h3 className="text-sm font-extrabold text-white font-display uppercase">Update Salary & Commission Payout</h3>
+                  <h3 className="text-sm font-extrabold text-brand-text font-display uppercase">Update Salary & Commission Payout</h3>
                   <p className="text-[11px] text-brand-cyan mt-0.5">{activeSalary.fullName} ({activeSalary.employeeCode})</p>
                 </div>
-                <button onClick={() => setSalaryModalOpen(false)} className="p-1 text-brand-text-soft hover:text-white">
+                <button onClick={() => setSalaryModalOpen(false)} className="p-1 text-brand-text-soft hover:text-brand-text">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -467,7 +467,7 @@ export default function FinanceDashboard() {
                       required
                       value={salaryForm.basicSalary}
                       onChange={(e) => setSalaryForm({ ...salaryForm, basicSalary: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     />
                   </div>
                   <div>
@@ -476,7 +476,7 @@ export default function FinanceDashboard() {
                       type="number"
                       value={salaryForm.commissionAmount}
                       onChange={(e) => setSalaryForm({ ...salaryForm, commissionAmount: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     />
                   </div>
                 </div>
@@ -488,7 +488,7 @@ export default function FinanceDashboard() {
                       type="number"
                       value={salaryForm.bonuses}
                       onChange={(e) => setSalaryForm({ ...salaryForm, bonuses: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     />
                   </div>
                   <div>
@@ -497,7 +497,7 @@ export default function FinanceDashboard() {
                       type="number"
                       value={salaryForm.deductions}
                       onChange={(e) => setSalaryForm({ ...salaryForm, deductions: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     />
                   </div>
                 </div>
@@ -510,7 +510,7 @@ export default function FinanceDashboard() {
                       required
                       value={salaryForm.amountPaid}
                       onChange={(e) => setSalaryForm({ ...salaryForm, amountPaid: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none font-bold text-brand-green"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none font-bold text-brand-green"
                     />
                   </div>
                   <div>
@@ -518,7 +518,7 @@ export default function FinanceDashboard() {
                     <select
                       value={salaryForm.paymentMethod}
                       onChange={(e) => setSalaryForm({ ...salaryForm, paymentMethod: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     >
                       <option value="Online/Bank Transfer">Online / Bank Transfer</option>
                       <option value="Cash">Cash</option>
@@ -530,13 +530,13 @@ export default function FinanceDashboard() {
                   <button
                     type="button"
                     onClick={() => setSalaryModalOpen(false)}
-                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-white"
+                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-brand-text"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-full bg-gradient-to-r from-brand-violet to-purple-600 text-white font-bold font-display"
+                    className="px-5 py-2 rounded-full bg-gradient-to-r from-brand-violet to-purple-600 text-brand-text font-bold font-display"
                   >
                     Save Payout Record
                   </button>

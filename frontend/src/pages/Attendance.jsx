@@ -97,7 +97,7 @@ export default function Attendance() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-extrabold tracking-tight text-white font-display uppercase">Attendance Registry</h2>
+          <h2 className="text-xl font-extrabold tracking-tight text-brand-text font-display uppercase">Attendance Registry</h2>
           <p className="text-xs text-brand-text-soft mt-1">Review check-in timestamps, shift durations, grace periods, and late penalties.</p>
         </div>
         
@@ -123,7 +123,7 @@ export default function Attendance() {
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             onClick={(e) => e.target.showPicker && e.target.showPicker()}
-            className="px-3.5 py-2 rounded-xl border border-brand-border bg-brand-bg/40 text-xs text-white focus:outline-none cursor-pointer"
+            className="px-3.5 py-2 rounded-xl border border-brand-border bg-brand-bg/40 text-xs text-brand-text focus:outline-none cursor-pointer"
           />
           <span className="text-brand-text-mute text-xs">to</span>
           <input
@@ -131,7 +131,7 @@ export default function Attendance() {
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             onClick={(e) => e.target.showPicker && e.target.showPicker()}
-            className="px-3.5 py-2 rounded-xl border border-brand-border bg-brand-bg/40 text-xs text-white focus:outline-none cursor-pointer"
+            className="px-3.5 py-2 rounded-xl border border-brand-border bg-brand-bg/40 text-xs text-brand-text focus:outline-none cursor-pointer"
           />
         </div>
 
@@ -140,7 +140,7 @@ export default function Attendance() {
             <select
               value={selectedEmployee}
               onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="w-full px-4 py-2 rounded-xl border border-brand-border bg-brand-bg/40 text-xs text-white appearance-none cursor-pointer focus:outline-none focus:border-brand-blue"
+              className="w-full px-4 py-2 rounded-xl border border-brand-border bg-brand-bg/40 text-xs text-brand-text appearance-none cursor-pointer focus:outline-none focus:border-brand-blue"
             >
               <option value="">All Employees</option>
               {employees.map(e => (
@@ -177,9 +177,9 @@ export default function Attendance() {
               <tbody className="divide-y divide-brand-border text-xs text-brand-text-soft">
                 {records.map(rec => (
                   <tr key={rec.id} className="hover:bg-brand-bg-elevated/20 transition-colors">
-                    <td className="p-4 font-bold text-white font-mono">{formatDate(rec.date)}</td>
+                    <td className="p-4 font-bold text-brand-text font-mono">{formatDate(rec.date)}</td>
                     <td className="p-4">
-                      <div className="font-bold text-white">{rec.employee?.fullName}</div>
+                      <div className="font-bold text-brand-text">{rec.employee?.fullName}</div>
                       <div className="text-[10px] text-brand-text-mute mt-0.5">{rec.employee?.employeeCode}</div>
                     </td>
                     <td className="p-4">
@@ -224,8 +224,8 @@ export default function Attendance() {
               className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-brand-bg-elevated border border-brand-border rounded-2xl p-6 shadow-glow z-50"
             >
               <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-6">
-                <h3 className="text-sm font-extrabold text-white font-display uppercase">Log Manual Punch</h3>
-                <button onClick={() => setManualModalOpen(false)} className="p-1.5 rounded-xl border border-brand-border text-brand-text-soft hover:text-white cursor-pointer">
+                <h3 className="text-sm font-extrabold text-brand-text font-display uppercase">Log Manual Punch</h3>
+                <button onClick={() => setManualModalOpen(false)} className="p-1.5 rounded-xl border border-brand-border text-brand-text-soft hover:text-brand-text cursor-pointer">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -235,7 +235,7 @@ export default function Attendance() {
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-brand-text-soft mb-2">Select Employee</label>
                   <select
                     {...register('employeeId', { required: true })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none cursor-pointer"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text focus:outline-none cursor-pointer"
                   >
                     <option value="">Choose profile...</option>
                     {employees.map(e => (
@@ -249,7 +249,7 @@ export default function Attendance() {
                   <input
                     type="date"
                     {...register('date', { required: true })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -257,7 +257,7 @@ export default function Attendance() {
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-brand-text-soft mb-2">Attendance Status</label>
                   <select
                     {...register('status', { required: true })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none cursor-pointer"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text focus:outline-none cursor-pointer"
                   >
                     <option value="present">Present</option>
                     <option value="half_day">Half Day</option>
@@ -271,7 +271,7 @@ export default function Attendance() {
                   <input
                     type="datetime-local"
                     {...register('checkIn')}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -281,7 +281,7 @@ export default function Attendance() {
                     rows={2}
                     {...register('note')}
                     placeholder="e.g. Forgot to scan biometric punch..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -289,7 +289,7 @@ export default function Attendance() {
                   <button
                     type="button"
                     onClick={() => setManualModalOpen(false)}
-                    className="px-5 py-2 rounded-full border border-brand-border hover:bg-brand-bg font-semibold text-xs text-brand-text-soft hover:text-white transition-colors cursor-pointer"
+                    className="px-5 py-2 rounded-full border border-brand-border hover:bg-brand-bg font-semibold text-xs text-brand-text-soft hover:text-brand-text transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>

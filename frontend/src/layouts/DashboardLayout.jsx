@@ -161,17 +161,17 @@ export default function DashboardLayout() {
         }`}
       >
         {/* Sidebar Header with Logo */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-brand-sidebar-border">
+        <div className="h-20 flex items-center justify-between px-4 border-b border-brand-sidebar-border shrink-0">
           {!collapsed ? (
-            <div className="flex items-center gap-2.5">
-              <img src="/logo.png" alt="ArtXenith Logo" className="h-8 w-auto object-contain" />
-              <span className="px-1.5 py-0.5 text-[8px] font-extrabold uppercase bg-brand-orange text-white rounded font-mono">
+            <div className="flex items-center gap-2 py-1 overflow-hidden">
+              <img src="/logo.png" alt="ArtXenith Logo" className="w-[155px] h-10 object-contain aspect-auto" />
+              <span className="px-1.5 py-0.5 text-[8px] font-extrabold uppercase bg-brand-orange text-white rounded font-mono shrink-0">
                 HRIS
               </span>
             </div>
           ) : (
-            <div className="flex justify-center w-full">
-              <img src="/favicon.png" alt="ArtXenith Favicon" className="h-7 w-7 object-contain" />
+            <div className="flex justify-center w-full py-1">
+              <img src="/favicon.png" alt="ArtXenith Favicon" className="w-10 h-10 object-contain aspect-auto" />
             </div>
           )}
 
@@ -381,7 +381,7 @@ export default function DashboardLayout() {
                 <span>/</span>
                 <span className="text-brand-orange">{currentUser.role}</span>
               </div>
-              <h1 className="text-sm font-extrabold text-white font-display tracking-tight">
+              <h1 className="text-sm font-extrabold text-brand-text font-display tracking-tight">
                 {getPageTitle(location.pathname)}
               </h1>
             </div>
@@ -408,7 +408,7 @@ export default function DashboardLayout() {
             {/* Real Theme System Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-xl border border-brand-border text-brand-text-soft hover:text-white hover:border-brand-orange/40 transition-all cursor-pointer flex items-center justify-center bg-brand-bg-elevated/50"
+              className="p-2 rounded-xl border border-brand-border text-brand-text-soft hover:text-brand-text hover:border-brand-orange/40 transition-all cursor-pointer flex items-center justify-center bg-brand-bg-elevated/50"
               aria-label="Toggle Theme"
               title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
@@ -423,7 +423,7 @@ export default function DashboardLayout() {
             <div className="relative">
               <button
                 onClick={() => setNotifOpen(!notifOpen)}
-                className="p-2 rounded-xl border border-brand-border text-brand-text-soft hover:text-white hover:border-brand-orange/40 transition-colors cursor-pointer relative bg-brand-bg-elevated/50"
+                className="p-2 rounded-xl border border-brand-border text-brand-text-soft hover:text-brand-text hover:border-brand-orange/40 transition-colors cursor-pointer relative bg-brand-bg-elevated/50"
               >
                 <Bell className="w-4 h-4" />
                 {unreadCount > 0 && (
@@ -442,7 +442,7 @@ export default function DashboardLayout() {
                       className="absolute right-0 mt-2 w-80 bg-brand-bg-elevated border border-brand-border rounded-2xl p-4 shadow-2xl z-50 text-left"
                     >
                       <div className="flex items-center justify-between mb-3 border-b border-brand-border pb-2.5">
-                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest font-mono">Notifications</h4>
+                        <h4 className="text-[10px] font-bold text-brand-text uppercase tracking-widest font-mono">Notifications</h4>
                         {unreadCount > 0 && (
                           <button
                             onClick={markAllAsRead}

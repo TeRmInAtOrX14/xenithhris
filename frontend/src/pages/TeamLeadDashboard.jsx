@@ -203,7 +203,7 @@ export default function TeamLeadDashboard() {
       {/* Top Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl glass-panel relative overflow-hidden border border-brand-border/40">
         <div className="z-10">
-          <h2 className="text-2xl font-extrabold text-white font-display uppercase tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-extrabold text-brand-text font-display uppercase tracking-tight flex items-center gap-2">
             <Users className="w-6 h-6 text-brand-cyan" />
             Team Lead Hub
           </h2>
@@ -211,7 +211,7 @@ export default function TeamLeadDashboard() {
         </div>
         <div className="z-10 text-right">
           <span className="text-[9px] font-bold text-brand-text-mute uppercase tracking-widest block">Campaign Assigned</span>
-          <span className="text-sm font-extrabold text-white uppercase font-display bg-brand-cyan/15 border border-brand-cyan/30 px-3.5 py-1 rounded-full mt-1 inline-block">
+          <span className="text-sm font-extrabold text-brand-text uppercase font-display bg-brand-cyan/15 border border-brand-cyan/30 px-3.5 py-1 rounded-full mt-1 inline-block">
             {teamName}
           </span>
         </div>
@@ -226,7 +226,7 @@ export default function TeamLeadDashboard() {
             <span className="text-[9px] font-bold uppercase tracking-wider">Total SDRs</span>
             <Users className="w-4.5 h-4.5 text-brand-blue" />
           </div>
-          <p className="text-2xl font-extrabold text-white font-display">{totalSdrs}</p>
+          <p className="text-2xl font-extrabold text-brand-text font-display">{totalSdrs}</p>
           <span className="text-[8px] text-brand-text-mute mt-1 font-mono uppercase">Assigned Team Size</span>
         </div>
 
@@ -246,7 +246,7 @@ export default function TeamLeadDashboard() {
             <span className="text-[9px] font-bold uppercase tracking-wider">Monthly Show-ups</span>
             <TrendingUp className="w-4.5 h-4.5 text-brand-cyan" />
           </div>
-          <p className="text-2xl font-extrabold text-white font-display">{monthlyShowups}</p>
+          <p className="text-2xl font-extrabold text-brand-text font-display">{monthlyShowups}</p>
           <span className="text-[8px] text-brand-text-mute mt-1 font-mono uppercase">{meetingsBooked} Booked</span>
         </div>
 
@@ -256,7 +256,7 @@ export default function TeamLeadDashboard() {
             <span className="text-[9px] font-bold uppercase tracking-wider">Team Commission</span>
             <DollarSign className="w-4.5 h-4.5 text-brand-violet" />
           </div>
-          <p className="text-2xl font-extrabold text-white font-display">PKR {Math.round(totalTeamCommission).toLocaleString()}</p>
+          <p className="text-2xl font-extrabold text-brand-text font-display">PKR {Math.round(totalTeamCommission).toLocaleString()}</p>
           <span className="text-[8px] text-brand-text-mute mt-1 font-mono uppercase">Payout this Month</span>
         </div>
       </div>
@@ -265,7 +265,7 @@ export default function TeamLeadDashboard() {
       <div className="p-6 rounded-2xl glass-panel border border-brand-border/40">
         <div className="flex justify-between items-center text-xs font-bold text-brand-text-soft mb-3">
           <span className="uppercase tracking-wider">Team Campaign Progress Target</span>
-          <span className="font-mono text-white">{monthlyShowups} / {teamTarget} ({progressPercent.toFixed(0)}%)</span>
+          <span className="font-mono text-brand-text">{monthlyShowups} / {teamTarget} ({progressPercent.toFixed(0)}%)</span>
         </div>
         <div className="w-full bg-brand-bg-soft rounded-full h-3 border border-brand-border overflow-hidden">
           <div
@@ -282,7 +282,7 @@ export default function TeamLeadDashboard() {
         <div className="lg:col-span-2 space-y-6">
           {/* Show-ups by Team Member */}
           <div className="p-6 rounded-2xl glass-panel space-y-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-display">Show-ups by Team Member</h3>
+            <h3 className="text-xs font-bold text-brand-text uppercase tracking-wider font-display">Show-ups by Team Member</h3>
             <div className="h-64 w-full">
               {showupsByMemberData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -304,7 +304,7 @@ export default function TeamLeadDashboard() {
 
           {/* Attendance Trend Line */}
           <div className="p-6 rounded-2xl glass-panel space-y-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-display">Daily Attendance Trend Rate</h3>
+            <h3 className="text-xs font-bold text-brand-text uppercase tracking-wider font-display">Daily Attendance Trend Rate</h3>
             <div className="h-64 w-full">
               {attendanceTrendData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -327,12 +327,12 @@ export default function TeamLeadDashboard() {
         <div className="space-y-6">
           {/* Team Analytics Insight */}
           <div className="p-6 rounded-2xl glass-panel space-y-4 text-xs">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-display font-bold">Team Performance Insights</h3>
+            <h3 className="text-xs font-bold text-brand-text uppercase tracking-wider font-display font-bold">Team Performance Insights</h3>
             
             <div className="space-y-3.5">
               <div className="flex justify-between items-center">
                 <span className="text-brand-text-soft">Top Performer of Month:</span>
-                <span className="font-bold text-white uppercase tracking-wide flex items-center gap-1">
+                <span className="font-bold text-brand-text uppercase tracking-wide flex items-center gap-1">
                   <Award className="w-3.5 h-3.5 text-brand-cyan" />
                   {topPerformer}
                 </span>
@@ -356,7 +356,7 @@ export default function TeamLeadDashboard() {
 
           {/* Commission distribution pie chart */}
           <div className="p-6 rounded-2xl glass-panel space-y-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-display">Commission Payout Shares</h3>
+            <h3 className="text-xs font-bold text-brand-text uppercase tracking-wider font-display">Commission Payout Shares</h3>
             <div className="h-48 w-full flex justify-center items-center">
               {commissionDistributionData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -388,7 +388,7 @@ export default function TeamLeadDashboard() {
 
       {/* Team Roster Table */}
       <div className="p-6 rounded-2xl glass-panel border border-brand-border/40 space-y-4">
-        <h3 className="text-xs font-bold text-white uppercase tracking-wider font-display">Active Team Members</h3>
+        <h3 className="text-xs font-bold text-brand-text uppercase tracking-wider font-display">Active Team Members</h3>
         
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
@@ -424,16 +424,16 @@ export default function TeamLeadDashboard() {
 
                 return (
                   <tr key={sdr.id} className="border-b border-brand-border/30 hover:bg-brand-bg-elevated/20 transition-colors">
-                    <td className="py-3 px-4 font-bold text-white">{sdr.fullName}</td>
+                    <td className="py-3 px-4 font-bold text-brand-text">{sdr.fullName}</td>
                     <td className="py-3 px-4 font-mono text-[10px] text-brand-text-soft">{sdr.designation}</td>
                     <td className="py-3 px-4">
                       <span className={`px-2.5 py-0.5 rounded-full border text-[8px] font-bold uppercase tracking-widest ${statusColor}`}>
                         {statusLabel}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-center font-mono font-bold text-white">{perf?.meetingsBooked || 0}</td>
+                    <td className="py-3 px-4 text-center font-mono font-bold text-brand-text">{perf?.meetingsBooked || 0}</td>
                     <td className="py-3 px-4 text-center font-mono font-bold text-brand-green">{perf?.showups || 0}</td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-white">
+                    <td className="py-3 px-4 text-right font-mono font-bold text-brand-text">
                       PKR {Math.round(perf?.commissionEarned || 0).toLocaleString()}
                     </td>
                   </tr>

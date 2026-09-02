@@ -222,7 +222,7 @@ export default function SalesSheet() {
       {/* Top Header & Export Controls */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-extrabold tracking-tight text-white font-display uppercase flex items-center gap-2">
+          <h2 className="text-xl font-extrabold tracking-tight text-brand-text font-display uppercase flex items-center gap-2">
             <Table className="w-5 h-5 text-brand-cyan" />
             Excel Sales Sheet & Pipeline
           </h2>
@@ -232,7 +232,7 @@ export default function SalesSheet() {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={exportCSV}
-            className="px-4 py-2.5 rounded-full border border-brand-border hover:border-brand-border-strong bg-brand-bg-soft/40 text-xs font-bold uppercase tracking-wider font-display text-brand-text-soft hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="px-4 py-2.5 rounded-full border border-brand-border hover:border-brand-border-strong bg-brand-bg-soft/40 text-xs font-bold uppercase tracking-wider font-display text-brand-text-soft hover:text-brand-text transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Download className="w-4 h-4 text-brand-cyan" />
             Export CSV
@@ -281,7 +281,7 @@ export default function SalesSheet() {
             <select
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
-              className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white appearance-none cursor-pointer focus:outline-none"
+              className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text appearance-none cursor-pointer focus:outline-none"
             >
               {[...Array(12)].map((_, i) => (
                 <option key={i + 1} value={i + 1}>
@@ -292,7 +292,7 @@ export default function SalesSheet() {
             <select
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white appearance-none cursor-pointer focus:outline-none"
+              className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text appearance-none cursor-pointer focus:outline-none"
             >
               <option value={2026}>2026</option>
               <option value={2025}>2025</option>
@@ -307,7 +307,7 @@ export default function SalesSheet() {
               placeholder="Search Client or Project..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white placeholder-brand-text-mute focus:outline-none focus:border-brand-blue"
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text placeholder-brand-text-mute focus:outline-none focus:border-brand-blue"
             />
           </div>
         </div>
@@ -317,7 +317,7 @@ export default function SalesSheet() {
           <select
             value={selectedStage}
             onChange={(e) => setSelectedStage(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white appearance-none cursor-pointer focus:outline-none"
+            className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text appearance-none cursor-pointer focus:outline-none"
           >
             <option value="">All Project Stages</option>
             {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -328,7 +328,7 @@ export default function SalesSheet() {
             <select
               value={selectedEmployee}
               onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white appearance-none cursor-pointer focus:outline-none"
+              className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text appearance-none cursor-pointer focus:outline-none"
             >
               <option value="">All Employees</option>
               {employees.map(emp => (
@@ -365,18 +365,18 @@ export default function SalesSheet() {
                   <tr key={sale.id} className="hover:bg-brand-bg-elevated/20 transition-colors">
                     {/* Client & Project */}
                     <td className="p-3.5">
-                      <div className="font-extrabold text-white text-sm">{sale.projectName}</div>
+                      <div className="font-extrabold text-brand-text text-sm">{sale.projectName}</div>
                       <div className="text-[11px] text-brand-cyan mt-0.5">{sale.clientName}</div>
                     </td>
 
                     {/* Date & Staff */}
                     <td className="p-3.5 font-mono">
-                      <div className="text-white font-bold">{new Date(sale.saleDate).toLocaleDateString()}</div>
+                      <div className="text-brand-text font-bold">{new Date(sale.saleDate).toLocaleDateString()}</div>
                       <div className="text-[10px] text-brand-text-mute mt-0.5">{sale.employee?.fullName || 'Unassigned'}</div>
                     </td>
 
                     {/* Sale Amount */}
-                    <td className="p-3.5 text-right font-mono font-extrabold text-white">
+                    <td className="p-3.5 text-right font-mono font-extrabold text-brand-text">
                       PKR {sale.saleAmount.toLocaleString()}
                     </td>
 
@@ -388,7 +388,7 @@ export default function SalesSheet() {
 
                     {/* Installments */}
                     <td className="p-3.5 font-mono text-center">
-                      <span className="px-2 py-0.5 rounded-md bg-brand-bg-elevated border border-brand-border text-[10px] font-bold text-white">
+                      <span className="px-2 py-0.5 rounded-md bg-brand-bg-elevated border border-brand-border text-[10px] font-bold text-brand-text">
                         {sale.installmentsReceived} / {sale.installmentsCount}
                       </span>
                     </td>
@@ -427,7 +427,7 @@ export default function SalesSheet() {
                         </span>
                         <button
                           onClick={() => { setActiveSale(sale); setBriefModalOpen(true); }}
-                          className="p-1 rounded bg-brand-bg border border-brand-border text-brand-text hover:text-white"
+                          className="p-1 rounded bg-brand-bg border border-brand-border text-brand-text hover:text-brand-text"
                           title="Upload / View Briefs"
                         >
                           <Upload className="w-3.5 h-3.5" />
@@ -460,7 +460,7 @@ export default function SalesSheet() {
                         </button>
                         <button
                           onClick={() => { setActiveSale(sale); setHistoryModalOpen(true); }}
-                          className="p-1 rounded bg-brand-bg-elevated border border-brand-border text-brand-text-soft hover:text-white"
+                          className="p-1 rounded bg-brand-bg-elevated border border-brand-border text-brand-text-soft hover:text-brand-text"
                           title="View Stage History Log"
                         >
                           <Clock className="w-3.5 h-3.5" />
@@ -495,8 +495,8 @@ export default function SalesSheet() {
               className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-brand-bg-elevated border border-brand-border rounded-2xl p-6 shadow-glow z-50 text-left"
             >
               <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-6">
-                <h3 className="text-sm font-extrabold text-white font-display uppercase">Log New Client Sale</h3>
-                <button onClick={() => setNewSaleModalOpen(false)} className="p-1 rounded text-brand-text-soft hover:text-white">
+                <h3 className="text-sm font-extrabold text-brand-text font-display uppercase">Log New Client Sale</h3>
+                <button onClick={() => setNewSaleModalOpen(false)} className="p-1 rounded text-brand-text-soft hover:text-brand-text">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -511,7 +511,7 @@ export default function SalesSheet() {
                       value={newSaleData.clientName}
                       onChange={(e) => setNewSaleData({ ...newSaleData, clientName: e.target.value })}
                       placeholder="e.g. Acme Corp"
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     />
                   </div>
                   <div>
@@ -522,7 +522,7 @@ export default function SalesSheet() {
                       value={newSaleData.projectName}
                       onChange={(e) => setNewSaleData({ ...newSaleData, projectName: e.target.value })}
                       placeholder="e.g. Mascot Design"
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     />
                   </div>
                 </div>
@@ -536,7 +536,7 @@ export default function SalesSheet() {
                       value={newSaleData.saleAmount}
                       onChange={(e) => setNewSaleData({ ...newSaleData, saleAmount: e.target.value })}
                       placeholder="e.g. 150000"
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     />
                   </div>
                   <div>
@@ -546,7 +546,7 @@ export default function SalesSheet() {
                       required
                       value={newSaleData.saleDate}
                       onChange={(e) => setNewSaleData({ ...newSaleData, saleDate: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     />
                   </div>
                 </div>
@@ -559,7 +559,7 @@ export default function SalesSheet() {
                       min={1}
                       value={newSaleData.installmentsCount}
                       onChange={(e) => setNewSaleData({ ...newSaleData, installmentsCount: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     />
                   </div>
                   <div>
@@ -567,7 +567,7 @@ export default function SalesSheet() {
                     <select
                       value={newSaleData.employeeId}
                       onChange={(e) => setNewSaleData({ ...newSaleData, employeeId: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                     >
                       <option value="">Myself ({currentUser.email})</option>
                       {employees.map(emp => (
@@ -583,7 +583,7 @@ export default function SalesSheet() {
                     rows={2}
                     value={newSaleData.notes}
                     onChange={(e) => setNewSaleData({ ...newSaleData, notes: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -591,7 +591,7 @@ export default function SalesSheet() {
                   <button
                     type="button"
                     onClick={() => setNewSaleModalOpen(false)}
-                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-white"
+                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-brand-text"
                   >
                     Cancel
                   </button>
@@ -621,10 +621,10 @@ export default function SalesSheet() {
             >
               <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-4">
                 <div>
-                  <h3 className="text-sm font-extrabold text-white font-display uppercase">Log Payment Installment</h3>
+                  <h3 className="text-sm font-extrabold text-brand-text font-display uppercase">Log Payment Installment</h3>
                   <p className="text-[11px] text-brand-cyan mt-0.5">{activeSale.projectName} — {activeSale.clientName}</p>
                 </div>
-                <button onClick={() => setPaymentModalOpen(false)} className="p-1 rounded text-brand-text-soft hover:text-white">
+                <button onClick={() => setPaymentModalOpen(false)} className="p-1 rounded text-brand-text-soft hover:text-brand-text">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -643,7 +643,7 @@ export default function SalesSheet() {
                     value={paymentData.amount}
                     onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
                     placeholder="e.g. 50000"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -652,7 +652,7 @@ export default function SalesSheet() {
                   <select
                     value={paymentData.paymentMethod}
                     onChange={(e) => setPaymentData({ ...paymentData, paymentMethod: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                   >
                     <option value="Online/Bank Transfer">Online / Bank Transfer</option>
                     <option value="Cash">Cash</option>
@@ -667,7 +667,7 @@ export default function SalesSheet() {
                     value={paymentData.notes}
                     onChange={(e) => setPaymentData({ ...paymentData, notes: e.target.value })}
                     placeholder="e.g. 2nd Installment via HBL"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -675,7 +675,7 @@ export default function SalesSheet() {
                   <button
                     type="button"
                     onClick={() => setPaymentModalOpen(false)}
-                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-white"
+                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-brand-text"
                   >
                     Cancel
                   </button>
@@ -705,10 +705,10 @@ export default function SalesSheet() {
             >
               <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-4">
                 <div>
-                  <h3 className="text-sm font-extrabold text-white font-display uppercase">Upload Project Brief</h3>
+                  <h3 className="text-sm font-extrabold text-brand-text font-display uppercase">Upload Project Brief</h3>
                   <p className="text-[11px] text-brand-cyan mt-0.5">{activeSale.projectName}</p>
                 </div>
-                <button onClick={() => setBriefModalOpen(false)} className="p-1 rounded text-brand-text-soft hover:text-white">
+                <button onClick={() => setBriefModalOpen(false)} className="p-1 rounded text-brand-text-soft hover:text-brand-text">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -720,7 +720,7 @@ export default function SalesSheet() {
                   {activeSale.briefs.map(b => (
                     <div key={b.id} className="p-2 rounded-lg bg-brand-bg/60 border border-brand-border flex justify-between items-center text-xs">
                       <div>
-                        <p className="font-bold text-white">{b.fileName} (v{b.version})</p>
+                        <p className="font-bold text-brand-text">{b.fileName} (v{b.version})</p>
                         <p className="text-[9px] text-brand-text-mute">{new Date(b.createdAt).toLocaleDateString()}</p>
                       </div>
                       <a href={b.fileUrl} download={b.fileName} className="text-[10px] font-bold text-brand-cyan hover:underline">
@@ -738,7 +738,7 @@ export default function SalesSheet() {
                     type="file"
                     required={!briefData.fileUrl}
                     onChange={handleFileUpload}
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -749,7 +749,7 @@ export default function SalesSheet() {
                     value={briefData.notes}
                     onChange={(e) => setBriefData({ ...briefData, notes: e.target.value })}
                     placeholder="e.g. Client requested 3D mascot render"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-white focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
                   />
                 </div>
 
@@ -757,7 +757,7 @@ export default function SalesSheet() {
                   <button
                     type="button"
                     onClick={() => setBriefModalOpen(false)}
-                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-white"
+                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-brand-text"
                   >
                     Cancel
                   </button>
