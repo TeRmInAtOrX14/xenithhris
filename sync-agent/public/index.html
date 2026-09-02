@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brandigade Biometric Sync Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --panel-bg: rgba(30, 41, 59, 0.7);
+      --panel-border: rgba(255, 255, 255, 0.1);
+      --card-bg: rgba(15, 23, 42, 0.6);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    .header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .status-badges {
+      display: flex;
+      gap: 12px;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .dot.green { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    .dot.yellow { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+    .dot.red { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+    .main-container {
+      flex: 1;
+      padding: 24px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .card-val {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 4px;
+      word-break: break-all;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid var(--panel-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    .controls-bar {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .action-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .auto-sync-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-left: 16px;
+      border-left: 1px solid var(--panel-border);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255,255,255,0.2);
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--success);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    select, input[type="text"], input[type="number"], input[type="password"] {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .console-card {
+      background: #090d16;
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 340px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+
+    .console-header {
+      background: rgba(15, 23, 42, 0.9);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .console-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .console-body {
+      flex: 1;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-y: auto;
+      max-height: 420px;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .log-time { color: #64748b; flex-shrink: 0; }
+    .log-info { color: #94a3b8; }
+    .log-success { color: #34d399; font-weight: 500; }
+    .log-warning { color: #fbbf24; }
+    .log-error { color: #f87171; font-weight: 600; }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 100;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 560px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon">B</div>
+      <div>
+        <div class="brand-title">Brandigade Biometric Agent</div>
+        <div class="brand-subtitle">Office Attendance Sync Manager</div>
+      </div>
+    </div>
+    <div class="status-badges">
+      <div class="badge">
+        <div id="device-dot" class="dot yellow"></div>
+        <span id="device-status-text">Testing Device...</span>
+      </div>
+      <div class="badge">
+        <div id="api-dot" class="dot yellow"></div>
+        <span id="api-status-text">Testing HRIS...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="main-container">
+
+    <!-- Cards Grid -->
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">ZKTeco Device</span>
+          <button class="btn btn-secondary btn-sm" onclick="testDevice()">Test Ping</button>
+        </div>
+        <div class="card-val" id="val-device-ip">192.168.18.201:4370</div>
+        <div class="card-sub" id="sub-device-status">Checking LAN reachability...</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">HRIS Cloud Server</span>
+          <button class="btn btn-secondary btn-sm" onclick="testApi()">Verify Token</button>
+        </div>
+        <div class="card-val" id="val-api-url">https://hris.brandigade.com/api</div>
+        <div class="card-sub" id="sub-api-status">Connecting over HTTPS...</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Last Sync Run</span>
+          <span class="card-sub" id="val-last-time">Never</span>
+        </div>
+        <div class="card-val" id="val-last-synced">0 Punches</div>
+        <div class="card-sub" id="sub-last-details">Synced: 0 | Skipped: 0</div>
+      </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+      <div class="action-group">
+        <button id="btn-sync-now" class="btn btn-primary" onclick="triggerSync(false)">
+          <span id="sync-now-text">⚡ Sync Now (3-Day)</span>
+        </button>
+        <button id="btn-sync-full" class="btn btn-secondary" onclick="triggerSync(true)">
+          🔄 Full Sync (60 Days)
+        </button>
+      </div>
+
+      <div class="action-group">
+        <div class="auto-sync-group">
+          <span style="font-size: 13px; font-weight: 500;">Auto-Sync:</span>
+          <label class="switch">
+            <input type="checkbox" id="toggle-auto-sync" onchange="toggleAutoSync()">
+            <span class="slider"></span>
+          </label>
+          <select id="auto-sync-interval" onchange="toggleAutoSync()">
+            <option value="15">Every 15 mins</option>
+            <option value="30" selected>Every 30 mins</option>
+            <option value="60">Every 1 hour</option>
+            <option value="120">Every 2 hours</option>
+          </select>
+        </div>
+
+        <button class="btn btn-secondary" onclick="openSettings()">
+          ⚙️ Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Terminal Console -->
+    <div class="console-card">
+      <div class="console-header">
+        <div class="console-title">
+          <span>>_ LIVE SYSTEM CONSOLE</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" onclick="clearConsole()">Clear</button>
+        </div>
+      </div>
+      <div class="console-body" id="console-body">
+        <!-- Log lines will stream here -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-size: 18px; font-weight: 700;">Configuration Settings</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeSettings()">✕</button>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">ZKTeco Biometric Device IP</label>
+        <input type="text" id="cfg-ip" placeholder="192.168.18.201">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">TCP Comm Port</label>
+        <input type="text" id="cfg-port" placeholder="4370">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">HRIS API URL</label>
+        <input type="text" id="cfg-url" placeholder="https://hris.brandigade.com/api">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Sync Secret Token</label>
+        <input type="password" id="cfg-token" placeholder="9cdc165468a0e9f7f2e3a671c1e3dd55a15228208612276999255d1de623686c">
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Lookback Days</label>
+          <input type="number" id="cfg-lookback" placeholder="3">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Full Lookback Days</label>
+          <input type="number" id="cfg-full-lookback" placeholder="60">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 12px;">
+        <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Save & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const consoleBody = document.getElementById('console-body');
+    let autoScroll = true;
+
+    function appendLog(log) {
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      const timeStr = log.time ? new Date(log.time).toLocaleTimeString() : new Date().toLocaleTimeString();
+      line.innerHTML = `
+        <span class="log-time">[${timeStr}]</span>
+        <span class="log-${log.type}">${escapeHtml(log.message)}</span>
+      `;
+      consoleBody.appendChild(line);
+
+      if (autoScroll) {
+        consoleBody.scrollTop = consoleBody.scrollHeight;
+      }
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function clearConsole() {
+      consoleBody.innerHTML = '';
+    }
+
+    // Connect SSE Stream
+    function initLogStream() {
+      const eventSource = new EventSource('/api/logs/stream');
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'init' && data.history) {
+          data.history.forEach(appendLog);
+        } else {
+          appendLog(data);
+        }
+      };
+    }
+
+    // Status polling
+    async function updateStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        
+        document.getElementById('val-device-ip').innerText = `${data.env.DEVICE_IP}:${data.env.DEVICE_PORT}`;
+        document.getElementById('val-api-url').innerText = data.env.HRIS_API_URL;
+
+        if (data.lastState.lastRunAt) {
+          document.getElementById('val-last-time').innerText = new Date(data.lastState.lastRunAt).toLocaleTimeString();
+          document.getElementById('val-last-synced').innerText = `${data.lastState.lastSynced || 0} Punches`;
+          document.getElementById('sub-last-details').innerText = `Synced: ${data.lastState.lastSynced || 0} | Skipped: ${data.lastState.lastSkipped || 0}`;
+        }
+
+        document.getElementById('toggle-auto-sync').checked = data.autoSyncActive;
+      } catch (err) {
+        console.error('Failed to update status:', err);
+      }
+    }
+
+    async function testDevice() {
+      document.getElementById('device-dot').className = 'dot yellow';
+      document.getElementById('device-status-text').innerText = 'Testing...';
+      document.getElementById('sub-device-status').innerText = 'Probing TCP port...';
+
+      try {
+        const res = await fetch('/api/test-device', { method: 'POST' });
+        const data = await res.json();
+        if (data.reachable) {
+          document.getElementById('device-dot').className = 'dot green';
+          document.getElementById('device-status-text').innerText = 'Device Online';
+          document.getElementById('sub-device-status').innerText = `Connected (${data.latencyMs}ms)`;
+        } else {
+          document.getElementById('device-dot').className = 'dot red';
+          document.getElementById('device-status-text').innerText = 'Unreachable';
+          document.getElementById('sub-device-status').innerText = 'Device offline / wrong IP';
+        }
+      } catch (err) {
+        document.getElementById('device-dot').className = 'dot red';
+        document.getElementById('device-status-text').innerText = 'Error';
+      }
+    }
+
+    async function testApi() {
+      document.getElementById('api-dot').className = 'dot yellow';
+      document.getElementById('api-status-text').innerText = 'Testing API...';
+      document.getElementById('sub-api-status').innerText = 'Validating token...';
+
+      try {
+        const res = await fetch('/api/test-api', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          document.getElementById('api-dot').className = 'dot green';
+          document.getElementById('api-status-text').innerText = 'HRIS Online';
+          document.getElementById('sub-api-status').innerText = 'Token verified (HTTP 200)';
+        } else {
+          document.getElementById('api-dot').className = 'dot red';
+          document.getElementById('api-status-text').innerText = 'API Error';
+          document.getElementById('sub-api-status').innerText = data.message || 'Token mismatch';
+        }
+      } catch (err) {
+        document.getElementById('api-dot').className = 'dot red';
+        document.getElementById('api-status-text').innerText = 'Server Offline';
+      }
+    }
+
+    async function triggerSync(full = false) {
+      const btnSyncNow = document.getElementById('btn-sync-now');
+      const btnSyncFull = document.getElementById('btn-sync-full');
+      
+      btnSyncNow.disabled = true;
+      btnSyncFull.disabled = true;
+      document.getElementById('sync-now-text').innerHTML = '<div class="spinner"></div> Syncing...';
+
+      try {
+        const res = await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full })
+        });
+        const data = await res.json();
+        updateStatus();
+      } catch (err) {
+        alert('Sync error: ' + err.message);
+      } finally {
+        btnSyncNow.disabled = false;
+        btnSyncFull.disabled = false;
+        document.getElementById('sync-now-text').innerHTML = '⚡ Sync Now (3-Day)';
+      }
+    }
+
+    async function toggleAutoSync() {
+      const active = document.getElementById('toggle-auto-sync').checked;
+      const intervalMinutes = document.getElementById('auto-sync-interval').value;
+
+      try {
+        await fetch('/api/auto-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active, intervalMinutes })
+        });
+      } catch (err) {
+        console.error('Failed to toggle auto sync:', err);
+      }
+    }
+
+    async function openSettings() {
+      try {
+        const res = await fetch('/api/config');
+        const cfg = await res.json();
+        document.getElementById('cfg-ip').value = cfg.ZKTECO_IP;
+        document.getElementById('cfg-port').value = cfg.ZKTECO_PORT;
+        document.getElementById('cfg-url').value = cfg.HRIS_API_URL;
+        document.getElementById('cfg-token').value = cfg.SYNC_AGENT_TOKEN;
+        document.getElementById('cfg-lookback').value = cfg.LOOKBACK_DAYS;
+        document.getElementById('cfg-full-lookback').value = cfg.FULL_LOOKBACK_DAYS;
+        document.getElementById('settings-modal').classList.add('active');
+      } catch (err) {
+        alert('Failed to load settings: ' + err.message);
+      }
+    }
+
+    function closeSettings() {
+      document.getElementById('settings-modal').classList.remove('active');
+    }
+
+    async function saveSettings() {
+      const payload = {
+        ZKTECO_IP: document.getElementById('cfg-ip').value,
+        ZKTECO_PORT: document.getElementById('cfg-port').value,
+        HRIS_API_URL: document.getElementById('cfg-url').value,
+        SYNC_AGENT_TOKEN: document.getElementById('cfg-token').value,
+        LOOKBACK_DAYS: document.getElementById('cfg-lookback').value,
+        FULL_LOOKBACK_DAYS: document.getElementById('cfg-full-lookback').value,
+      };
+
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeSettings();
+          updateStatus();
+          testDevice();
+          testApi();
+        } else {
+          alert('Error saving settings: ' + data.error);
+        }
+      } catch (err) {
+        alert('Failed to save settings: ' + err.message);
+      }
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      initLogStream();
+      updateStatus();
+      testDevice();
+      testApi();
+    });
+  </script>
+</body>
+</html>
