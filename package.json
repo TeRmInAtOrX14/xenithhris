@@ -3,10 +3,24 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "deploy": "vercel --prod",
-    "deploy:preview": "vercel"
+    "postinstall": "prisma generate --schema=backend/prisma/schema.prisma",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@supabase/supabase-js": "^2.108.2",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "helmet": "^8.2.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.11.0",
+    "nodemailer": "^9.0.1",
+    "pdfkit": "^0.15.0"
   },
   "devDependencies": {
-    "vercel": "^59.11.2"
+    "prisma": "^5.22.0",
+    "vercel": "latest"
   }
 }
