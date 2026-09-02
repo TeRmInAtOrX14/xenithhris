@@ -21,12 +21,14 @@ import {
   Cpu,
   Sun,
   Moon,
-  PhoneCall
+  Table,
+  FileCode,
+  Palette,
+  CircleDollarSign
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
 import { useTheme } from '../utils/themeContext';
-import { openBrandigadeDialer } from '../utils/openDialer';
 
 export default function DashboardLayout() {
   const { theme, isDark, toggleTheme } = useTheme();
@@ -84,13 +86,17 @@ export default function DashboardLayout() {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const links = [
-    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee', 'SDR'] },
+    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee'] },
+    { label: 'Sales Sheet', path: '/dashboard/sales', icon: Table, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee'] },
+    { label: 'Project Briefs', path: '/dashboard/briefs', icon: FileCode, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee'] },
+    { label: 'Artist Assignments', path: '/dashboard/artist-assignments', icon: Palette, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee'] },
     { label: 'Employees', path: '/dashboard/employees', icon: Users, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee'] },
-    { label: 'Attendance', path: '/dashboard/attendance', icon: CalendarCheck, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee', 'SDR'] },
-    { label: 'Requests', path: '/dashboard/requests', icon: FileSpreadsheet, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee', 'SDR'] },
+    { label: 'Attendance', path: '/dashboard/attendance', icon: CalendarCheck, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee'] },
+    { label: 'Requests', path: '/dashboard/requests', icon: FileSpreadsheet, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee'] },
+    { label: 'Finance & P&L', path: '/dashboard/finance', icon: CircleDollarSign, roles: ['Admin', 'CEO', 'COO'] },
     { label: 'Campaigns', path: '/dashboard/campaigns', icon: Briefcase, roles: ['Admin', 'CEO', 'COO'] },
-    { label: 'Loans & Advances', path: '/dashboard/loans', icon: PiggyBank, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee', 'SDR'] },
-    { label: 'Payroll & Payslips', path: '/dashboard/payroll', icon: FileText, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee', 'SDR'] },
+    { label: 'Loans & Advances', path: '/dashboard/loans', icon: PiggyBank, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee'] },
+    { label: 'Payroll & Payslips', path: '/dashboard/payroll', icon: FileText, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Employee'] },
     { label: 'Digital Twin', path: '/dashboard/digital-twin', icon: Cpu, roles: ['Admin', 'CEO', 'COO'] },
     { label: 'Audit Trail', path: '/dashboard/audit', icon: ShieldAlert, roles: ['Admin', 'CEO', 'COO'] }
   ];
@@ -118,14 +124,14 @@ export default function DashboardLayout() {
         <div className="h-20 flex items-center justify-between px-5 border-b border-brand-border overflow-hidden">
           {!collapsed ? (
             <div className="flex items-center gap-2 min-w-0">
-              <img src="/logo.png" alt="Brandigade logo" className="h-8 w-auto object-contain shrink-0" />
+              <img src="/logo.png" alt="ArtXenith logo" className="h-8 w-auto object-contain shrink-0" />
               <span className="px-1 py-0.5 text-[7px] font-extrabold uppercase bg-brand-blue text-white rounded shrink-0">
                 HRIS
               </span>
             </div>
           ) : (
             <div className="flex justify-center w-full">
-              <img src="/favicon.png" alt="Brandigade favicon" className="h-8 w-8 object-contain" />
+              <img src="/favicon.png" alt="ArtXenith favicon" className="h-8 w-8 object-contain" />
             </div>
           )}
 
@@ -224,7 +230,7 @@ export default function DashboardLayout() {
             >
               <div className="h-20 flex items-center justify-between px-6 border-b border-brand-border">
                 <div className="flex items-center gap-2">
-                  <img src="/logo.png" alt="Brandigade logo" className="h-12 w-auto object-contain" />
+                  <img src="/logo.png" alt="ArtXenith logo" className="h-12 w-auto object-contain" />
                   <span className="px-1 py-0.5 text-[7px] font-extrabold uppercase bg-brand-blue text-white rounded">HRIS</span>
                 </div>
                 <button onClick={() => setSidebarOpen(false)}>
@@ -302,16 +308,6 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex items-center gap-4 relative">
-            {/* Brandigade Dialer Button */}
-            <button
-              onClick={openBrandigadeDialer}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg text-xs font-bold font-display uppercase tracking-wider shadow-lg hover:shadow-cyan-500/20 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer border border-brand-cyan/30"
-              title="Launch Brandigade Dialer (App / Browser: dialer.brandigade.com)"
-            >
-              <PhoneCall className="w-3.5 h-3.5 animate-pulse" />
-              <span className="hidden sm:inline">Brandigade Dialer</span>
-            </button>
-
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}

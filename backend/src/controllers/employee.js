@@ -20,7 +20,7 @@ exports.getTeams = async (req, res, next) => {
     }
 
     // Role restriction: SDRs & standard Employees can only see campaigns they are members of
-    if (['SDR', 'Employee'].includes(req.user.role) && req.user.employee?.id) {
+    if (['Employee'].includes(req.user.role) && req.user.employee?.id) {
       where.members = {
         some: { employeeId: req.user.employee.id, status: 'active' }
       };
@@ -77,7 +77,7 @@ exports.getEmployees = async (req, res, next) => {
     }
 
     // Role restriction: SDR & Employee can only see their own record
-    if (['Employee', 'SDR'].includes(req.user.role) && req.user.employee?.id) {
+    if (['Employee'].includes(req.user.role) && req.user.employee?.id) {
       where.id = req.user.employee.id;
     }
 
@@ -114,7 +114,7 @@ exports.getEmployeeById = async (req, res, next) => {
     const { id } = req.params;
 
     // Standard employees and SDRs can only view their own details
-    if (['Employee', 'SDR'].includes(req.user.role) && req.user.employee?.id !== id) {
+    if (['Employee'].includes(req.user.role) && req.user.employee?.id !== id) {
       return res.status(403).json({ error: 'Access denied.' });
     }
 
@@ -306,7 +306,7 @@ exports.updateEmployee = async (req, res, next) => {
     const updates = req.body;
 
     // Restriction: Non-admin roles (Employee, SDR, Team Lead) can only edit some fields of their own profile
-    if (['Employee', 'SDR', 'Team Lead'].includes(req.user.role)) {
+    if (['Employee', 'Team Lead'].includes(req.user.role)) {
       if (req.user.employee?.id !== id) {
         return res.status(403).json({ error: 'Access denied.' });
       }
@@ -520,18 +520,18 @@ exports.terminateEmployee = async (req, res, next) => {
     ]);
 
     // Send termination email
-    const subject = 'Employment Termination Notice - Brandigade';
+    const subject = 'Employment Termination Notice - ArtXenith';
     const html = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; rounded-xl;">
         <h2 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 10px;">Employment Termination Notice</h2>
         <p>Dear <strong>${emp.fullName}</strong>,</p>
-        <p>We are writing to officially inform you that your employment with <strong>Brandigade</strong> has been terminated, effective immediately.</p>
-        <p>Consequently, your credentials and user access to the Brandigade HRIS portal have been deactivated.</p>
-        <p>For any inquiries regarding your final settlement, unpaid salary clearance, or return of company properties, please reach out to the HR department directly at <a href="mailto:hr@brandigade.com">hr@brandigade.com</a>.</p>
+        <p>We are writing to officially inform you that your employment with <strong>ArtXenith</strong> has been terminated, effective immediately.</p>
+        <p>Consequently, your credentials and user access to the ArtXenith HRIS portal have been deactivated.</p>
+        <p>For any inquiries regarding your final settlement, unpaid salary clearance, or return of company properties, please reach out to the HR department directly at <a href="mailto:hr@artxenith.com">hr@artxenith.com</a>.</p>
         <p>We appreciate the time you spent with us and wish you the best in your future endeavors.</p>
         <br/>
         <p>Sincerely,</p>
-        <p><strong>HR Department</strong><br/>Brandigade</p>
+        <p><strong>HR Department</strong><br/>ArtXenith</p>
       </div>
     `;
 

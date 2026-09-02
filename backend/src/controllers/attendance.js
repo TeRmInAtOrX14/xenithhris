@@ -22,7 +22,7 @@ exports.getAttendance = async (req, res, next) => {
       }
     }
 
-    if (['Employee', 'SDR'].includes(req.user.role)) {
+    if (['Employee'].includes(req.user.role)) {
       // Regular employees and SDRs can only see their own attendance
       if (!req.user.employee) {
         return res.status(400).json({ error: 'No employee profile linked to user.' });
@@ -89,7 +89,7 @@ exports.getAttendanceSummary = async (req, res, next) => {
     }
 
     // RBAC check: standard Employees and SDRs can only see their own attendance summary
-    if (['Employee', 'SDR'].includes(req.user.role) && req.user.employee?.id !== employeeId) {
+    if (['Employee'].includes(req.user.role) && req.user.employee?.id !== employeeId) {
       return res.status(403).json({ error: 'Access denied.' });
     }
 
@@ -163,44 +163,48 @@ exports.getAttendanceSummary = async (req, res, next) => {
   }
 };
 
-exports.syncAttendance = async (req, res, next) => {
+exports.checkIn = async (req, res, next) => {
   try {
-    const result = await syncZKTeco();
-    
-    await logAudit(req.user.id, 'SYNC_ZKTECO_ATTENDANCE', 'Attendance', null, result);
-    res.json(result);
-  } catch (err) {
-    next(err);
-  }
-};
-
-exports.manualPunch = async (req, res, next) => {
-  try {
-    const { employeeId, date, status, checkIn, checkOut, note } = req.body;
-
-    if (!employeeId || !date || !status) {
-      return res.status(400).json({ error: 'employeeId, date, and status are required' });
+    if (!req.user.employee) {
+      return res.status(400).json({ error: 'No employee profile linked to your user account.' });
     }
 
-    const dateObj = new Date(date);
-    const dateMidnight = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
+    const employeeId = req.user.employee.id;
+    const now = new Date();
+    const dateMidnight = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 
-    const checkInDate = checkIn ? new Date(checkIn) : null;
-    const checkOutDate = checkOut ? new Date(checkOut) : null;
-
-    // Calculate late minutes if check-in is manual
-    let lateMins = 0;
-    if (checkInDate) {
-      const emp = await prisma.employee.findUnique({ where: { id: employeeId } });
-      const shiftStart = emp?.shiftStart || '09:30';
-      const [sh, sm] = shiftStart.split(':').map(Number);
-      const shiftStartMins = sh * 60 + sm;
-      const checkInMins = checkInDate.getHours() * 60 + checkInDate.getMinutes();
-      const diff = checkInMins - shiftStartMins;
-      const grace = emp?.graceMinutes !== undefined ? emp.graceMinutes : 15;
-      if (diff > grace) {
-        lateMins = diff;
+    // Check if employee already has an attendance record for today
+    const existing = await prisma.attendance.findUnique({
+      where: {
+        employeeId_date: {
+          employeeId,
+          date: dateMidnight
+        }
       }
+    });
+
+    if (existing && existing.checkIn) {
+      const formattedTime = new Date(existing.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return res.status(400).json({ error: `You have already checked in today at ${formattedTime}.` });
+    }
+
+    // Calculate late minutes based on shiftStart & graceMinutes
+    const emp = await prisma.employee.findUnique({ where: { id: employeeId } });
+    const shiftStart = emp?.shiftStart || '09:30';
+    const [sh, sm] = shiftStart.split(':').map(Number);
+    const shiftStartMins = sh * 60 + sm;
+    const checkInMins = now.getHours() * 60 + now.getMinutes();
+    const diff = checkInMins - shiftStartMins;
+    const grace = emp?.graceMinutes !== undefined ? emp.graceMinutes : 15;
+    
+    let lateMins = 0;
+    if (diff > grace) {
+      lateMins = diff;
+    }
+
+    let status = 'present';
+    if (existing?.status && existing.status !== 'absent') {
+      status = existing.status;
     }
 
     const record = await prisma.attendance.upsert({
@@ -214,40 +218,109 @@ exports.manualPunch = async (req, res, next) => {
         employeeId,
         date: dateMidnight,
         status,
-        checkIn: checkInDate,
+        checkIn: now,
         checkOut: null,
-        earlyDeparture: 0,
-        overtime: 0,
         late: lateMins,
-        note
+        note: 'HRIS Web Check-In'
       },
       update: {
         status,
-        checkIn: checkInDate,
-        checkOut: null,
-        earlyDeparture: 0,
-        overtime: 0,
+        checkIn: now,
         late: lateMins,
-        note
+        note: existing?.note ? `${existing.note} | Web Check-In` : 'HRIS Web Check-In'
       }
     });
 
-    await logAudit(req.user.id, 'MANUAL_ATTENDANCE_PUNCH', 'Attendance', record.id, { status, date });
-    res.json(record);
+    await logAudit(req.user.id, 'EMPLOYEE_CHECK_IN', 'Attendance', record.id, { checkIn: now });
+    res.json({ message: 'Check-in recorded successfully', record });
   } catch (err) {
     next(err);
   }
 };
 
-exports.receivePunches = async (req, res, next) => {
+exports.checkOut = async (req, res, next) => {
   try {
-    const { punches } = req.body;
-    if (!Array.isArray(punches)) {
-      return res.status(400).json({ error: 'Payload must contain a "punches" array.' });
+    if (!req.user.employee) {
+      return res.status(400).json({ error: 'No employee profile linked to your user account.' });
     }
 
-    const result = await processBatchPunches(punches);
-    res.json(result);
+    const employeeId = req.user.employee.id;
+    const now = new Date();
+    const dateMidnight = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+
+    const existing = await prisma.attendance.findUnique({
+      where: {
+        employeeId_date: {
+          employeeId,
+          date: dateMidnight
+        }
+      }
+    });
+
+    if (!existing || !existing.checkIn) {
+      return res.status(400).json({ error: 'You must check in before checking out.' });
+    }
+
+    if (existing.checkOut) {
+      const formattedTime = new Date(existing.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return res.status(400).json({ error: `You have already checked out today at ${formattedTime}.` });
+    }
+
+    // Calculate early departure or overtime against shiftEnd
+    const emp = await prisma.employee.findUnique({ where: { id: employeeId } });
+    const shiftEnd = emp?.shiftEnd || '18:30';
+    const [eh, em] = shiftEnd.split(':').map(Number);
+    const shiftEndMins = eh * 60 + em;
+    const checkOutMins = now.getHours() * 60 + now.getMinutes();
+    
+    let earlyDeparture = 0;
+    let overtime = 0;
+    if (checkOutMins < shiftEndMins) {
+      earlyDeparture = shiftEndMins - checkOutMins;
+    } else if (checkOutMins > shiftEndMins) {
+      overtime = checkOutMins - shiftEndMins;
+    }
+
+    const record = await prisma.attendance.update({
+      where: { id: existing.id },
+      data: {
+        checkOut: now,
+        earlyDeparture,
+        overtime
+      }
+    });
+
+    await logAudit(req.user.id, 'EMPLOYEE_CHECK_OUT', 'Attendance', record.id, { checkOut: now });
+    res.json({ message: 'Check-out recorded successfully', record });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getTodayStatus = async (req, res, next) => {
+  try {
+    if (!req.user.employee) {
+      return res.json({ checkedIn: false, checkedOut: false, record: null });
+    }
+
+    const employeeId = req.user.employee.id;
+    const now = new Date();
+    const dateMidnight = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+
+    const record = await prisma.attendance.findUnique({
+      where: {
+        employeeId_date: {
+          employeeId,
+          date: dateMidnight
+        }
+      }
+    });
+
+    res.json({
+      checkedIn: Boolean(record && record.checkIn),
+      checkedOut: Boolean(record && record.checkOut),
+      record
+    });
   } catch (err) {
     next(err);
   }

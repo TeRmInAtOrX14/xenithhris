@@ -33,7 +33,7 @@ export default function Login() {
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));
-    toast.success('Welcome to Brandigade HRIS!');
+    toast.success('Welcome to ArtXenith HRIS!');
     navigate('/dashboard');
   };
 
@@ -126,7 +126,7 @@ export default function Login() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <img src="/logo.png" alt="Brandigade logo" className="h-24 w-auto object-contain" />
+            <img src="/logo.png" alt="ArtXenith logo" className="h-24 w-auto object-contain" />
             <span className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest bg-brand-blue text-white rounded">
               HRIS
             </span>
@@ -173,7 +173,7 @@ export default function Login() {
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-mute" />
               <input
                 type="email"
-                placeholder="name@brandigade.com"
+                placeholder="name@artxenith.com"
                 {...register('email', { required: 'Email is required' })}
                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-brand-border bg-brand-bg-soft text-sm text-brand-text placeholder-brand-text-mute focus:outline-none focus:border-brand-blue transition-colors"
               />

@@ -55,7 +55,7 @@ exports.getLoanRequests = async (req, res, next) => {
     if (status) where.status = status;
 
     // RBAC: Non-admin roles (Employee, SDR, Team Lead) can only view their own loan requests
-    if (['Employee', 'SDR', 'Team Lead'].includes(req.user.role)) {
+    if (['Employee', 'Team Lead'].includes(req.user.role)) {
       where.employeeId = req.user.employee.id;
     } else {
       if (employeeId) where.employeeId = employeeId;

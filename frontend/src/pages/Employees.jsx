@@ -490,7 +490,6 @@ export default function Employees() {
                       className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none cursor-pointer"
                     >
                       <option value="Employee">Employee</option>
-                      <option value="SDR">SDR</option>
                       <option value="Team Lead">Team Lead</option>
                       <option value="Admin">Admin</option>
                       <option value="CEO">CEO</option>
@@ -683,7 +682,6 @@ export default function Employees() {
                       className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none cursor-pointer disabled:opacity-50"
                     >
                       <option value="Employee">Employee</option>
-                      <option value="SDR">SDR</option>
                       <option value="Team Lead">Team Lead</option>
                       <option value="Admin">Admin</option>
                       <option value="CEO">CEO</option>

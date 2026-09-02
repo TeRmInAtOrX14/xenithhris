@@ -6,7 +6,6 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  RotateCw,
   Plus,
   X,
   User,
@@ -14,12 +13,12 @@ import {
 } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import CheckInWidget from '../components/CheckInWidget';
 
 export default function Attendance() {
   const [records, setRecords] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
   
   // Filters
   const [startDate, setStartDate] = useState(() => {
@@ -69,20 +68,6 @@ export default function Attendance() {
     fetchEmployees();
   }, []);
 
-  const handleSync = async () => {
-    try {
-      setSyncing(true);
-      toast.loading('Connecting to ZKTeco machine...', { id: 'zk-sync' });
-      const res = await api.post('/attendance/sync');
-      toast.success(`Synced successfully! New punches: ${res.data.synced}, Skipped: ${res.data.skipped}`, { id: 'zk-sync' });
-      fetchAttendance();
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Biometric sync timed out. Make sure the machine is online.', { id: 'zk-sync' });
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   const handleManualPunch = async (data) => {
     try {
       await api.post('/attendance/manual', data);
@@ -106,33 +91,25 @@ export default function Attendance() {
 
   return (
     <div className="space-y-6 text-left">
+      {/* Interactive HRIS Self Check-In Widget */}
+      <CheckInWidget onStatusChange={fetchAttendance} />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-extrabold tracking-tight text-white font-display uppercase">Attendance Registry</h2>
-          <p className="text-xs text-brand-text-soft mt-1">Review biometric check-in details, grace periods, and late penalties.</p>
+          <p className="text-xs text-brand-text-soft mt-1">Review check-in timestamps, shift durations, grace periods, and late penalties.</p>
         </div>
         
         <div className="flex gap-3">
           {isAdmin && (
-            <>
-              <button
-                onClick={handleSync}
-                disabled={syncing}
-                className="px-5 py-2.5 rounded-full border border-brand-border hover:border-brand-border-strong bg-brand-bg-soft/40 text-xs font-bold uppercase tracking-wider font-display text-brand-text-soft hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                <RotateCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-                Sync Biometric
-              </button>
-
-              <button
-                onClick={() => setManualModalOpen(true)}
-                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg hover:scale-[1.02] transition-all font-bold font-display text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-blue/20"
-              >
-                <Plus className="w-4 h-4" />
-                Manual Punch
-              </button>
-            </>
+            <button
+              onClick={() => setManualModalOpen(true)}
+              className="px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg hover:scale-[1.02] transition-all font-bold font-display text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-blue/20"
+            >
+              <Plus className="w-4 h-4" />
+              Manual Punch
+            </button>
           )}
         </div>
       </div>

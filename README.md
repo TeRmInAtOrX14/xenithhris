@@ -1,6 +1,6 @@
-# ArtXenith HRIS & Biometric Attendance System
+# ArtXenith HRIS & Attendance System
 
-**ArtXenith HRIS** is an enterprise-grade, full-stack Human Resource Information System and Biometric Sync suite built for ArtXenith. It manages employee lifecycles, org charts, request workflows, campaign & SDR performance tracking, dynamic commission slabs, spiffs, loans, biometric attendance, internal communications workspace, SDR dialer, and automated payroll with PDF payslips.
+**ArtXenith HRIS** is an enterprise-grade, full-stack Human Resource Information System built for ArtXenith. It manages employee lifecycles, org charts, request workflows, campaign & SDR performance tracking, dynamic commission slabs, spiffs, loans, direct HRIS web check-in & check-out attendance tracking, internal communications workspace, SDR dialer, and automated payroll with PDF payslips.
 
 ---
 
@@ -8,26 +8,17 @@
 
 ```mermaid
 flowchart TD
-    subgraph Office_LAN["Office Local Network (LAN)"]
-        ZK["ZKTeco Biometric Device\n(UFace 800 / Face & Fingerprint)"]
-        Agent["Biometric Sync Agent\n(sync-agent Node.js CLI)"]
-        TaskSch["Windows Task Scheduler / Cron\n(Runs every 5-15 mins)"]
-        
-        TaskSch --> Agent
-        Agent -- "Reads punches via TCP 4370 (node-zklib)" --> ZK
-    end
-
     subgraph Hosting_Cloud["Cloud Hosting (Namecheap / Vercel / VPS)"]
-        API["Brandigade HRIS Backend API\n(Express.js Node 22+)"]
-        AuthMiddleware["Sync Agent Auth\n(x-sync-token validation)"]
-        DB[(Database\nPostgreSQL / Supabase / Namecheap MySQL)]
-        Frontend["Brandigade HRIS Frontend\n(React / Modern Web Interface)"]
+        API["ArtXenith HRIS Backend API\n(Express.js Node 22+)"]
+        AuthMiddleware["JWT Authentication Middleware"]
+        DB[(Database\nPostgreSQL / Supabase)]
+        Frontend["ArtXenith HRIS Frontend\n(React / Modern Web Interface)"]
         
         API <--> DB
         Frontend <--> API
     end
 
-    Agent -- "HTTP POST /api/attendance/punches (HTTPS)" --> AuthMiddleware --> API
+    User["Employees / SDRs / Staff"] -- "Web Check-In / Check-Out (Timestamp Recorded)" --> Frontend
 ```
 
 ---
@@ -38,19 +29,17 @@ flowchart TD
 - **Multi-Tenant Auth**: JWT Bearer authentication with short-lived access tokens and refresh tokens.
 - **Google SSO**: One-click Google Sign-In (`Sign in with Google`).
 - **First-Time Login Security**: Enforced password change upon initial account creation.
-- **Sync Agent Auth**: Dedicated `x-sync-token` security layer for off-site biometric log ingestion.
 
 ### 2. Employee Records & Org Chart
 - **360° Employee Profiles**: Full name, employee code (`EMP-001`), designation, phone, bank details, emergency contacts, photo, and shift parameters.
-- **Biometric Linking**: `zkUserId` / `employeeCode` automatic mapping to biometric hardware IDs.
 - **Hierarchical Org Chart**: Built automatically from manager-subordinate relations.
 - **Compensation History**: Full audit trail of salary increments with effective dates and reasons.
 
-### 3. Biometric Attendance & Shift Management
-- **Remote Biometric Ingestion**: Office-side `sync-agent` reads hardware attendance logs and pushes them to cloud/Namecheap API over HTTPS.
-- **Smart Punch Deduplication & Merging**: Earliest punch recorded as `checkIn`.
+### 3. HRIS Web Check-In & Attendance Management
+- **Direct Web Check-In & Check-Out**: Staff members mark check-in/check-out directly from their HRIS dashboard portal.
+- **Timestamp Accuracy**: Exact server timestamps recorded automatically upon check-in/out.
 - **Late Minutes & Grace Period**: Automatic late minute calculation against employee shift start (`09:30`) and custom grace periods (`15 mins`).
-- **Summary Metrics**: Monthly present days, late count, total late minutes, half-days, and leave totals.
+- **Summary Metrics**: Monthly present days, late count, total late minutes, half-days, early departures, overtime, and leave totals.
 
 ### 4. Employee Self-Service & Request Workflows
 - **Leave Requests**: Annual, Sick, Casual, Unpaid leave applications with manager approval/rejection workflow.
@@ -74,9 +63,23 @@ flowchart TD
 - **Automated Monthly Payroll**: Computes base salary, pro-rated attendance deductions, late penalties, loan repayments, spiffs, and commissions.
 - **Automated PDF Payslips**: Generates downloadable PDF payslips using `PDFKit`.
 
-### 9. Integrated Brandigade Dialer Launcher
-- **Desktop & Web Integration**: One-click **"Brandigade Dialer"** button embedded in the main navigation header and SDR dashboard.
-- **Smart Protocol Fallback**: Attempts to launch the native desktop application (`brandigadedialer://`). If the desktop app is not installed, it automatically opens `https://dialer.brandigade.com` in Google Chrome / browser tab.
+### 9. Excel Sales Sheet & 4-Stage Project Progression
+- **Interactive Sales Sheet**: Monthly filtered sales grid tracking Client Name, Project Name, Sale Amount, Amount Received, Remaining Balance, Installments, Payment Method, and Notes.
+- **4 Predefined Project Stages**: `Initial Sketch` → `Line Art` → `Base Color` → `Final Artwork` with stage duration logging.
+- **Stagnant Project & Missing Brief Alerts**: Automated alerts for projects stuck >5 days in the same stage or missing briefs after 2 days.
+
+### 10. Brief Management & Document Versioning
+- **Multi-Format Brief Uploads**: Store DOCX, PDF, and client guidelines linked directly to project sales.
+- **Version History**: Maintained version history (`v1`, `v2`, `v3`...) with full download access.
+
+### 11. Executive Finance & Profit / Loss Portal (Admin Only)
+- **Company Expenses Log**: Track Office Expenses, Rent, Utilities, Software/Subscriptions, Equipment, and Misc.
+- **Company Receivings**: Aggregated client payments and installment receipts.
+- **Salary Payout Manager**: Basic Salary, configurable Commission %, Bonuses, Deductions, Net Salary, Amount Paid, and Outstanding Salaries.
+- **Profit & Loss Engine**: Automatically computes `Receivings − Expenses − Salaries` with monthly/yearly breakdowns.
+
+### 12. Artist Work Assignment Board
+- **Artist Tracking**: Displays assigned artists, current project stages, days spent, progress bars, and alert badges.
 
 ---
 
@@ -87,7 +90,10 @@ flowchart TD
 | **Manage Employees & Salaries** | Full Access | Read-Only | Read Self Only |
 | **View Org Chart** | Full Access | Full Access | Full Access |
 | **Approve / Reject Requests** | Full Access | Team Members Only | Self Only (Submit) |
-| **Biometric Attendance** | View All / Manual Override | Team Members Only | Self Only |
+| **HRIS Web Attendance** | View All / Manual Override | Team Members Only | Self Only |
+| **Sales Sheet & Projects** | View All | Team Sales Only | Self Sales Only |
+| **Project Briefs & Versions** | View All | Team Briefs Only | Self Briefs Only |
+| **Executive Finance & P&L** | Full Access | No Access | No Access |
 | **Campaign & Performance Management** | Full Access | Assigned Campaigns | Self Performance |
 | **Manage Commission Slabs** | Full Access | Read-Only | No Access |
 | **Award Spiffs** | Full Access | Team Members | No Access |
@@ -96,83 +102,38 @@ flowchart TD
 
 ---
 
-## Database Architecture
+## Database & Supabase Deployment
 
-The system uses **Prisma ORM** for type-safe database access.
+The system uses **Prisma ORM** & **Supabase PostgreSQL** for type-safe, database-level secured data access.
 
-### Supported Databases
-1. **PostgreSQL / Supabase** (Default): Configured in `prisma/schema.prisma` with connection pooling (`DATABASE_URL` & `DIRECT_URL`).
-2. **Namecheap MySQL / MariaDB**: If deploying to standard cPanel hosting with MySQL, change the provider in `prisma/schema.prisma` to `"mysql"`.
+### Environment Setup (`.env`)
+```env
+PORT=4000
+DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?schema=public"
+DIRECT_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?schema=public"
+NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT_REF].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
+SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
+JWT_SECRET="your_generated_jwt_secret"
+COMPANY_NAME="ArtXenith"
+```
 
-```prisma
-datasource db {
-  provider  = "postgresql" // or "mysql" for Namecheap cPanel MySQL
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
-}
+### Running Migrations & RLS Security
+```bash
+# Push database schema & RLS policies
+npx prisma db push
 ```
 
 ---
 
-## Deploying to Namecheap & Setup Guide
+## Deploying to Vercel
 
-### Step 1: Upload & Install HRIS Backend on Namecheap
-1. Log into **cPanel** on Namecheap.
-2. Open **Setup Node.js App** and create a new Node application:
-   - **Node.js Version**: 20.x or 22.x
-   - **Application Root**: `backend`
-   - **Application Startup File**: `src/server.js`
-3. Upload the `backend` code directory to your Namecheap server.
-4. Create a database in Namecheap cPanel (**MySQL Databases** or **PostgreSQL Databases**).
-5. In your Node App dashboard on cPanel, add Environment Variables:
-   ```env
-   PORT=4000
-   DATABASE_URL="postgresql://user:pass@localhost:5432/brandigade_hris"
-   JWT_SECRET="your_generated_jwt_secret"
-   SYNC_AGENT_TOKEN="your_strong_sync_secret_token"
-   OFFICE_START_TIME="09:30"
-   COMPANY_NAME="Brandigade"
-   ```
-6. Run `npm install` and `npx prisma db push` via cPanel terminal.
-
----
-
-### Step 2: Setting Up the Office `sync-agent`
-The `sync-agent` runs on a machine located in your office network that can reach the ZKTeco device IP.
-
-1. Open `sync-agent/.env` on the office machine:
-   ```env
-   HRIS_API_URL=https://hris.brandigade.com/api
-   SYNC_AGENT_TOKEN=your_strong_sync_secret_token
-   ZKTECO_IP=192.168.1.100
-   ZKTECO_PORT=4370
-   LOOKBACK_DAYS=3
-   ```
-2. Install dependencies:
-   ```bash
-   cd sync-agent
-   npm install
-   ```
-3. Test sync execution:
-   ```bash
-   npm start
-   ```
-4. **Automate Execution**:
-   - **Windows**: Add a Task in **Task Scheduler** to run `node index.js` every 10 minutes.
-   - **Linux**: Add a `cron` job: `*/10 * * * * cd /path/to/sync-agent && node index.js >> sync.log 2>&1`.
-
----
-
-## Seeding Employee Data
-
-To seed or import initial employee records:
-1. Provide your CSV/Excel employee sheet.
-2. Run the importer:
-   ```bash
-   npm run seed
-   ```
+```bash
+# Deploy production build via Vercel CLI
+npx vercel --prod
+```
 
 ---
 
 ## License & Support
-Built for internal use at **Brandigade**. All rights reserved.
+Built for internal use at **ArtXenith**. All rights reserved.

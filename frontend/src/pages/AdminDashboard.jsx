@@ -21,7 +21,7 @@ export default function AdminDashboard({ stats, campaigns = [] }) {
             <Users className="w-5 h-5 text-brand-blue" />
           </div>
           <p className="text-3xl font-extrabold text-white font-display">{stats?.totalEmployees || 0}</p>
-          <p className="text-[9px] text-brand-text-mute mt-2 font-bold">Active synced biometric profiles</p>
+          <p className="text-[9px] text-brand-text-mute mt-2 font-bold">Active employee profiles</p>
         </div>
 
         {/* Active Campaigns */}
@@ -41,7 +41,7 @@ export default function AdminDashboard({ stats, campaigns = [] }) {
             <UserCheck className="w-5 h-5 text-brand-green" />
           </div>
           <p className="text-3xl font-extrabold text-brand-green font-display">{stats?.presentToday || 0}</p>
-          <p className="text-[9px] text-brand-text-mute mt-2 font-bold">ZKTeco machine synced logs</p>
+          <p className="text-[9px] text-brand-text-mute mt-2 font-bold">HRIS check-in logs</p>
         </div>
 
         {/* Lates Today */}

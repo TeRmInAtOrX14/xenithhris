@@ -18,7 +18,6 @@ import {
   TrendingDown,
   PhoneCall
 } from 'lucide-react';
-import { openBrandigadeDialer } from '../utils/openDialer';
 import {
   AreaChart,
   Area,
@@ -42,7 +41,7 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-export default function SDRDashboard() {
+export default function EmployeeDashboard() {
   const { theme, isDark } = useTheme();
 
   const strokeColor = isDark ? '#6b7287' : '#94a3b8';
@@ -98,7 +97,7 @@ export default function SDRDashboard() {
         setCampaignDashboard(campDashRes.data);
       }
     } catch (e) {
-      toast.error('Failed to load SDR performance metrics');
+      toast.error('Failed to load performance metrics');
       console.error(e);
     } finally {
       setLoading(false);
@@ -184,18 +183,11 @@ export default function SDRDashboard() {
         <div className="z-10">
           <h2 className="text-2xl font-extrabold text-white font-display uppercase tracking-tight flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-brand-cyan" />
-            SDR Outreach Hub
+            My Dashboard
           </h2>
           <p className="text-xs text-brand-text-soft mt-1">Personal intelligence portal for {employee?.fullName}.</p>
         </div>
         <div className="flex items-center gap-4 z-10">
-          <button
-            onClick={openBrandigadeDialer}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg font-extrabold text-xs uppercase tracking-wider font-display shadow-lg hover:shadow-cyan-500/25 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer border border-brand-cyan/30"
-          >
-            <PhoneCall className="w-4 h-4 animate-pulse" />
-            <span>Launch Brandigade Dialer</span>
-          </button>
           <div className="text-right">
             <span className="text-[9px] font-bold text-brand-text-mute uppercase tracking-widest block">Active Assignment</span>
             <span className="text-xs font-bold text-white uppercase font-display bg-brand-blue/10 border border-brand-blue/20 px-3 py-1 rounded-full mt-1 inline-block">

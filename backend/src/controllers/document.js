@@ -81,7 +81,7 @@ exports.getDocuments = async (req, res, next) => {
     const where = {};
 
     // RBAC
-    if (['Employee', 'SDR'].includes(req.user.role)) {
+    if (['Employee'].includes(req.user.role)) {
       where.employeeId = req.user.employee.id;
     } else if (req.user.role === 'Team Lead') {
       const sdrIds = await getTeamLeadSdrIds(req.user.employee?.id);

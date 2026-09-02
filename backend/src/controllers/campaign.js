@@ -282,7 +282,7 @@ exports.assignMember = async (req, res, next) => {
       select: { userId: true }
     });
     if (emp && emp.userId) {
-      const newUserRole = role === 'team_lead' ? 'Team Lead' : 'SDR';
+      const newUserRole = role === 'team_lead' ? 'Team Lead' : 'Employee';
       await prisma.user.update({
         where: { id: emp.userId },
         data: { role: newUserRole }
@@ -354,7 +354,7 @@ exports.toggleMemberStatus = async (req, res, next) => {
     });
     if (emp && emp.userId) {
       const newUserRole = status === 'active'
-        ? (member.role === 'team_lead' ? 'Team Lead' : 'SDR')
+        ? (member.role === 'team_lead' ? 'Team Lead' : 'Employee')
         : 'Employee';
       await prisma.user.update({
         where: { id: emp.userId },

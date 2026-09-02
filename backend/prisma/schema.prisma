@@ -16,7 +16,7 @@ model User {
   id                 String    @id @default(uuid())
   email              String    @unique
   passwordHash       String
-  role               String    @default("Employee") // Admin, CEO, COO, Team Lead, SDR, Employee
+  role               String    @default("Employee") // Admin, CEO, COO, Team Lead, Employee
   googleId           String?   @unique
   refreshToken       String?
   isActive           Boolean   @default(true)
@@ -83,6 +83,10 @@ model Employee {
   shiftEnd         String      @default("18:30")
   graceMinutes     Int         @default(15)
   zkUserId         String?     @unique
+  
+  commissionPercentage Float    @default(0)
+  department           String?  @default("Operations")
+  joiningDate          DateTime? @default(now())
 
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
@@ -99,6 +103,136 @@ model Employee {
   loanRequests     LoanRequest[]
   payslips         Payslip[]
   documents        Document[]
+  sales            Sale[]
+  salaryPayments   SalaryPayment[]
+}
+
+// ----------------------------------------------------------------------
+// Sales, Projects, Briefs & Payments
+// ----------------------------------------------------------------------
+
+model Sale {
+  id                  String            @id @default(uuid())
+  clientName          String
+  projectName         String
+  saleDate            DateTime          @default(now())
+  employeeId          String
+  employee            Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  saleAmount          Float
+  projectStage        String            @default("Initial Sketch") // Initial Sketch, Line Art, Base Color, Final Artwork
+  stageUpdatedAt      DateTime          @default(now())
+  briefStatus         String            @default("Pending") // Pending, Uploaded, Resolved
+  paymentStatus       String            @default("Unpaid") // Unpaid, Partial, Paid
+  
+  amountReceived      Float             @default(0)
+  remainingAmount     Float             @default(0)
+  installmentsCount   Int               @default(1)
+  installmentsReceived Int              @default(0)
+  nextPaymentDate     DateTime?
+  paymentMethod       String?           @default("Online/Bank Transfer") // Online/Bank Transfer, Cash, Card
+  notes               String?
+
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  briefs              ProjectBrief[]
+  stageLogs           ProjectStageLog[]
+  payments            SalePayment[]
+}
+
+model ProjectBrief {
+  id           String   @id @default(uuid())
+  saleId       String
+  sale         Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  uploadedById String
+  fileName     String
+  fileUrl      String   // Data URL or file URL
+  fileType     String   @default("docx")
+  version      Int      @default(1)
+  notes        String?
+  createdAt    DateTime @default(now())
+}
+
+model ProjectStageLog {
+  id            String   @id @default(uuid())
+  saleId        String
+  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  updatedById   String
+  previousStage String
+  newStage      String
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+model SalePayment {
+  id            String   @id @default(uuid())
+  saleId        String
+  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  amount        Float
+  paymentDate   DateTime @default(now())
+  paymentMethod String   @default("Online/Bank Transfer")
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------
+// Finance, Expenses & Salary Payouts
+// ----------------------------------------------------------------------
+
+model Expense {
+  id            String   @id @default(uuid())
+  category      String   // Office Expenses, Office Rent, Utilities, Software/Subscriptions, Equipment, Miscellaneous
+  description   String
+  amount        Float
+  date          DateTime @default(now())
+  paymentMethod String   @default("Online/Bank Transfer")
+  notes         String?
+  createdById   String
+  createdAt     DateTime @default(now())
+}
+
+model SalaryPayment {
+  id               String   @id @default(uuid())
+  employeeId       String
+  employee         Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  payslipId        String?
+  periodMonth      Int
+  periodYear       Int
+  basicSalary      Float
+  commissionAmount Float    @default(0)
+  bonuses          Float    @default(0)
+  deductions       Float    @default(0)
+  netSalary        Float
+  amountPaid       Float    @default(0)
+  remainingAmount  Float    @default(0)
+  paymentDate      DateTime @default(now())
+  paymentMethod    String   @default("Online/Bank Transfer")
+  status           String   @default("Pending") // Fully Paid, Partial, Pending
+  notes            String?
+  createdAt        DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String?
+  details    Json?
+  createdAt  DateTime @default(now())
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id])
+  name         String
+  type         String   // contract, id, medical, receipt...
+  fileUrl      String   // link to Supabase Storage
+  uploadedById String
+  createdAt    DateTime @default(now())
 }
 
 // ----------------------------------------------------------------------
@@ -335,26 +469,4 @@ model Notification {
   isRead    Boolean  @default(false)
   link      String?
   createdAt DateTime @default(now())
-}
-
-model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String?
-  user       User?    @relation(fields: [userId], references: [id])
-  action     String
-  entityType String
-  entityId   String?
-  details    Json?
-  createdAt  DateTime @default(now())
-}
-
-model Document {
-  id           String   @id @default(uuid())
-  employeeId   String
-  employee     Employee @relation(fields: [employeeId], references: [id])
-  name         String
-  type         String   // contract, id, medical, receipt...
-  fileUrl      String   // link to Supabase Storage
-  uploadedById String
-  createdAt    DateTime @default(now())
 }

@@ -29,7 +29,7 @@ import toast from 'react-hot-toast';
 // Import separate dashboard components
 import AdminDashboard from './AdminDashboard';
 import TeamLeadDashboard from './TeamLeadDashboard';
-import SDRDashboard from './SDRDashboard';
+import EmployeeDashboard from './EmployeeDashboard';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -114,7 +114,7 @@ export default function Dashboard() {
     fetchDashboardStats();
   }, [isAdmin, isTeamLead]);
 
-  // For TeamLead and SDR, skip parent-level loading — they manage their own fetching
+  // For TeamLead and Employee, skip parent-level loading — they manage their own fetching
   if (loading && isAdmin) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[60vh]">
@@ -141,7 +141,7 @@ export default function Dashboard() {
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-      { isAdmin ? (<AdminDashboard stats={stats} campaigns={stats?.campaigns || []} />) : isTeamLead ? (<TeamLeadDashboard />) : (<SDRDashboard stats={stats} />) }
+      { isAdmin ? (<AdminDashboard stats={stats} campaigns={stats?.campaigns || []} />) : isTeamLead ? (<TeamLeadDashboard />) : (<EmployeeDashboard stats={stats} />) }
     </motion.div>
   );
 }

@@ -20,7 +20,7 @@ app.use(cors({
                     /^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$/.test(origin);
                     
     const allowedOrigins = [
-      'https://hris.brandigade.com',
+      'https://hris.artxenith.com',
       process.env.FRONTEND_URL
     ].filter(Boolean);
 
@@ -50,6 +50,8 @@ const loanRoutes = require('./routes/loan');
 const payrollRoutes = require('./routes/payroll');
 const documentRoutes = require('./routes/document');
 const systemRoutes = require('./routes/system');
+const salesRoutes = require('./routes/sales');
+const financeRoutes = require('./routes/finance');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
@@ -60,6 +62,8 @@ app.use('/api/loans', loanRoutes);
 app.use('/api/payroll', payrollRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/system', systemRoutes);
+app.use('/api/sales', salesRoutes);
+app.use('/api/finance', financeRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
@@ -67,24 +71,5 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`HRIS Backend running on port ${PORT}`);
-  console.log(`[Biometric Agent] Ingestion endpoint ready at /api/attendance/punches`);
-
-  // Direct TCP pull scheduler (only runs if explicitly enabled, e.g., when server runs on office LAN)
-  if (process.env.ENABLE_DIRECT_ZK_SYNC === 'true') {
-    const { syncZKTeco } = require('./utils/zkteco');
-    const AUTO_SYNC_INTERVAL = 2 * 60 * 60 * 1000; // 2 hours in ms
-
-    console.log(`[Scheduler] Direct ZKTeco TCP auto-sync active (Interval: 2 hours)`);
-    setInterval(async () => {
-      console.log('[Scheduler] Initiating automatic biometric direct TCP sync...');
-      try {
-        const result = await syncZKTeco();
-        if (result.synced > 0 || result.errors.length > 0) {
-          console.log(`[Scheduler] Auto-sync finished. Synced: ${result.synced}, Skipped: ${result.skipped}, Errors: ${result.errors.length}`);
-        }
-      } catch (err) {
-        console.error('[Scheduler] Auto-sync encountered an error:', err.message);
-      }
-    }, AUTO_SYNC_INTERVAL);
-  }
 });
+

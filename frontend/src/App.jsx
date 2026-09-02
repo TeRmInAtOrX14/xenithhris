@@ -15,6 +15,10 @@ import Loans from './pages/Loans';
 import Payroll from './pages/Payroll';
 import Audit from './pages/Audit';
 import DigitalTwin from './pages/DigitalTwin';
+import SalesSheet from './pages/SalesSheet';
+import BriefManagement from './pages/BriefManagement';
+import ArtistAssignments from './pages/ArtistAssignments';
+import FinanceDashboard from './pages/FinanceDashboard';
 
 const queryClient = new QueryClient();
 
@@ -46,9 +50,13 @@ export default function App() {
               }
             >
               <Route index element={<Dashboard />} />
+              <Route path="sales" element={<SalesSheet />} />
+              <Route path="briefs" element={<BriefManagement />} />
+              <Route path="artist-assignments" element={<ArtistAssignments />} />
               <Route path="employees" element={<Employees />} />
               <Route path="attendance" element={<Attendance />} />
               <Route path="requests" element={<Requests />} />
+              <Route path="finance" element={<FinanceDashboard />} />
               <Route path="campaigns" element={<Campaigns />} />
               <Route path="loans" element={<Loans />} />
               <Route path="payroll" element={<Payroll />} />

@@ -24,22 +24,29 @@ function maskBankAccount(accountStr) {
  * Generates a redesigned, professional payslip PDF and pipes it to a writable stream.
  * Fits on a single A4 page.
  */
-function generatePayslipPdf(stream, payslip, company = { name: 'Brandigade', address: 'Karachi, Pakistan' }) {
+function generatePayslipPdf(stream, payslip, company = { name: 'ArtXenith', address: 'Karachi, Pakistan' }) {
   const doc = new PDFDocument({ margin: 50, size: 'A4' });
   doc.pipe(stream);
 
   // ---------------- HEADER SECTION ----------------
-  const logoPath = path.join(__dirname, '..', 'public', 'logo.png');
+  let logoPath = path.join(__dirname, '..', 'public', 'logo.png');
+  if (!fs.existsSync(logoPath)) {
+    logoPath = path.join(__dirname, '..', '..', 'public', 'logo.png');
+  }
+  if (!fs.existsSync(logoPath)) {
+    logoPath = path.join(__dirname, '..', '..', 'frontend', 'public', 'logo.png');
+  }
+
   if (fs.existsSync(logoPath)) {
     doc.image(logoPath, 50, 48, { width: 175 });
   } else {
-    // High-quality modern geometric fallback logo
+    // Fallback text logo
     doc.save();
     doc.circle(75, 70, 20).fill('#1E3A8A');
     doc.circle(75, 70, 16).fill('#2563EB');
-    doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(18).text('B', 69, 63);
+    doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(18).text('A', 69, 63);
     doc.restore();
-    doc.fontSize(22).fillColor('#1E3A8A').font('Helvetica-Bold').text('Brandigade', 105, 53);
+    doc.fontSize(22).fillColor('#1E3A8A').font('Helvetica-Bold').text('ArtXenith', 105, 53);
   }
 
   // Payslip title & metadata on the right
@@ -228,10 +235,10 @@ function generatePayslipPdf(stream, payslip, company = { name: 'Brandigade', add
   doc.text('This is a system-generated payslip and does not require a signature.', 50, y, { align: 'center', width: 495 });
   y += 11;
   doc.font('Helvetica-Bold').fillColor('#4B5563');
-  doc.text('Brandigade HR Department', 50, y, { align: 'center', width: 495 });
+  doc.text('ArtXenith HR Department', 50, y, { align: 'center', width: 495 });
   y += 10;
   doc.font('Helvetica').fillColor('#9CA3AF');
-  doc.text('Generated Automatically by Brandigade HRIS', 50, y, { align: 'center', width: 495 });
+  doc.text('Generated Automatically by ArtXenith HRIS', 50, y, { align: 'center', width: 495 });
 
   doc.end();
 }

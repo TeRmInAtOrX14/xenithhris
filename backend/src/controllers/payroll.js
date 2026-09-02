@@ -358,7 +358,7 @@ exports.finalizePayroll = async (req, res, next) => {
       const writeStream = fs.createWriteStream(tempFilePath);
 
       // 2. Generate PDF into temporary file
-      generatePayslipPdf(writeStream, payslip, { name: 'Brandigade HRIS', address: 'Karachi, Pakistan' });
+      generatePayslipPdf(writeStream, payslip, { name: 'ArtXenith HRIS', address: 'Karachi, Pakistan' });
 
       // Wait for stream to finish writing
       await new Promise((resolve, reject) => {
@@ -442,7 +442,7 @@ exports.getPayslipsByRun = async (req, res, next) => {
     const { runId } = req.params;
     
     // RBAC: Standard Employee/SDR should use /my-payslips instead
-    if (['Employee', 'SDR'].includes(req.user.role)) {
+    if (['Employee'].includes(req.user.role)) {
       return res.status(403).json({ error: 'Access denied.' });
     }
 
@@ -515,7 +515,7 @@ exports.getPayslipPdfFile = async (req, res, next) => {
     }
 
     // Role check: Normal Employee/SDR can only download their own payslip
-    if (['Employee', 'SDR'].includes(req.user.role) && (!req.user.employee || req.user.employee.id !== payslip.employeeId)) {
+    if (['Employee'].includes(req.user.role) && (!req.user.employee || req.user.employee.id !== payslip.employeeId)) {
       return res.status(403).json({ error: 'Forbidden: Access denied' });
     }
 
@@ -523,7 +523,7 @@ exports.getPayslipPdfFile = async (req, res, next) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="payslip-${payslip.id}.pdf"`);
 
-    generatePayslipPdf(res, payslip, { name: 'Brandigade', address: 'Karachi, Pakistan' });
+    generatePayslipPdf(res, payslip, { name: 'ArtXenith', address: 'Karachi, Pakistan' });
   } catch (err) {
     next(err);
   }

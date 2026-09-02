@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
  * Generate a PDF buffer for a payslip using the existing generatePayslipPdf utility.
  * This returns a Buffer that can be attached to an email.
  */
-function generatePayslipPdfBuffer(payslip, company = { name: 'Brandigade', address: 'Karachi, Pakistan' }) {
+function generatePayslipPdfBuffer(payslip, company = { name: 'ArtXenith', address: 'Karachi, Pakistan' }) {
   return new Promise((resolve, reject) => {
     // The original generatePayslipPdf writes to a stream; we capture that stream.
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -50,7 +50,7 @@ async function sendPayslipEmail(toEmail, payslip, pdfBuffer) {
   const text = `Dear ${payslip.employee?.fullName || ''},\n\nYour payslip for ${monthNames[periodMonth - 1]} ${periodYear} is attached.\n\nBest regards,\nHR Department`;
 
   await transporter.sendMail({
-    from: 'hr@brandigade.com',
+    from: process.env.SMTP_USER || 'hr@artxenith.com',
     to: toEmail,
     subject,
     text,
