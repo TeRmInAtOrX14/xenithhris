@@ -1,4 +1,14 @@
 require('dotenv').config();
+
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = "postgresql://postgres.aldlnbdvkczqpfjatyyh:JmTBKCxsu2vnrH2l@aws-0-ap-southeast-2.pooler.supabase.com:6543/postgres?schema=public&pgbouncer=true";
+}
+if (!process.env.DIRECT_URL) {
+  process.env.DIRECT_URL = "postgresql://postgres.aldlnbdvkczqpfjatyyh:JmTBKCxsu2vnrH2l@aws-0-ap-southeast-2.pooler.supabase.com:5432/postgres?schema=public";
+}
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = "JmTBKCxsu2vnrH2l";
+}
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
