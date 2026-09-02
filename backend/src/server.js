@@ -21,10 +21,11 @@ app.use(cors({
                     
     const allowedOrigins = [
       'https://hris.artxenith.com',
+      'https://xenithhris.vercel.app',
       process.env.FRONTEND_URL
     ].filter(Boolean);
 
-    if (isLocal || allowedOrigins.includes(origin)) {
+    if (isLocal || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
       callback(new Error(`Origin ${origin} not allowed by CORS`));
@@ -68,8 +69,12 @@ app.use('/api/finance', financeRoutes);
 // Global Error Handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`HRIS Backend running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
+    console.log(`HRIS Backend running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
 

@@ -8,3 +8,6 @@ backend/data/
 .DS_Store
 dist/
 sample_payslip.pdf
+
+.vercel
+.env*
