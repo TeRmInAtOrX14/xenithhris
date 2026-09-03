@@ -222,12 +222,15 @@ exports.createEmployee = async (req, res, next) => {
         }
       });
 
+      const isDesignerRole = (role === 'Designer') || (designation || '').toLowerCase().includes('designer') || (designation || '').toLowerCase().includes('artist');
+
       const emp = await tx.employee.create({
         data: {
           userId: user.id,
           employeeCode,
           fullName,
           designation,
+          department: department || (isDesignerRole ? 'Design' : 'Sales'),
           managerId: managerId || null,
           baseSalary: parseFloat(baseSalary) || 0,
           currency: currency || 'PKR',
@@ -235,10 +238,12 @@ exports.createEmployee = async (req, res, next) => {
           birthday: birthday || null,
           bankAccount: bankAccount || null,
           emergencyContact: emergencyContact || null,
-          shiftStart: shiftStart || '09:30',
-          shiftEnd: shiftEnd || '18:30',
+          shiftStart: shiftStart || '18:00',
+          shiftEnd: shiftEnd || '00:30',
           graceMinutes: graceMinutes !== undefined ? parseInt(graceMinutes) : 15,
-          zkUserId: zkUserId || null
+          zkUserId: zkUserId || null,
+          isArtist: isDesignerRole,
+          attendanceExempt: isDesignerRole
         },
         include: {
           user: { select: { email: true, role: true } },
@@ -856,4 +861,73 @@ exports.importEmployees = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * PATCH /api/employees/:id/reset-password
+ * CEO / Admin resets password or updates login credentials for an Artist / Employee
+ */
+exports.resetEmployeeCredentials = async (req, res, next) => {
+  try {
+    if (!['Admin', 'CEO', 'COO'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Only CEO/Admin can manage employee login credentials.' });
+    }
+
+    const { id } = req.params;
+    const { password, email, role, isActive } = req.body;
+
+    const employee = await prisma.employee.findUnique({
+      where: { id },
+      include: { user: true }
+    });
+
+    if (!employee || !employee.userId) {
+      return res.status(404).json({ error: 'Employee or linked user account not found.' });
+    }
+
+    const userUpdates = {};
+    if (email) userUpdates.email = email.toLowerCase().trim();
+    if (role) userUpdates.role = role;
+    if (isActive !== undefined) userUpdates.isActive = Boolean(isActive);
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      userUpdates.passwordHash = await bcrypt.hash(password, salt);
+      userUpdates.mustChangePassword = false;
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: employee.userId },
+      data: userUpdates,
+      select: { id: true, email: true, role: true, isActive: true, updatedAt: true }
+    });
+
+    // If role updated to Designer, also sync isArtist / attendanceExempt
+    if (role) {
+      const isDesigner = role === 'Designer';
+      await prisma.employee.update({
+        where: { id },
+        data: {
+          isArtist: isDesigner,
+          attendanceExempt: isDesigner
+        }
+      });
+    }
+
+    await logAudit(req.user.id, 'RESET_EMPLOYEE_CREDENTIALS', 'User', employee.userId, {
+      employeeCode: employee.employeeCode,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      passwordChanged: Boolean(password)
+    });
+
+    res.json({
+      message: `Login credentials updated for ${employee.fullName}.`,
+      user: updatedUser,
+      employee: { id: employee.id, fullName: employee.fullName, employeeCode: employee.employeeCode }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 

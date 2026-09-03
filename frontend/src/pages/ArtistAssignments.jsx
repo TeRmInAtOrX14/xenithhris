@@ -12,10 +12,16 @@ import {
   Sparkles,
   ChevronRight,
   ShieldAlert,
-  Lock,
   Upload,
   BadgeDollarSign,
-  X
+  X,
+  UserPlus,
+  KeyRound,
+  Eye,
+  ShieldCheck,
+  Trash2,
+  Pencil,
+  Copy
 } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
@@ -41,6 +47,28 @@ export default function ArtistAssignments() {
   const [payoutReason, setPayoutReason] = useState('');
   const [submittingPayout, setSubmittingPayout] = useState(false);
   const [payoutRequests, setPayoutRequests] = useState([]);
+
+  // CEO Artist Credentials Management States
+  const [artistModalOpen, setArtistModalOpen] = useState(false);
+  const [credentialsModalOpen, setCredentialsModalOpen] = useState(false);
+  const [artistsList, setArtistsList] = useState([]);
+  const [selectedArtist, setSelectedArtist] = useState(null);
+
+  const [artistForm, setArtistForm] = useState({
+    fullName: '',
+    email: '',
+    password: 'xenith@123',
+    designation: 'Graphic Designer',
+    baseSalary: '100000',
+    phone: '',
+    employeeCode: ''
+  });
+
+  const [credForm, setCredForm] = useState({
+    password: '',
+    email: '',
+    isActive: true
+  });
 
   const currentUser = JSON.parse(localStorage.getItem('user')) || {};
   const isDesigner = currentUser.role === 'Designer';
@@ -68,6 +96,20 @@ export default function ArtistAssignments() {
         // CEO/Admin setting check
         const sysRes = await api.get('/system/settings');
         setShowDesignerPayments(sysRes.data.showDesignerPayments);
+
+        // Fetch Artists list for CEO Credentials management
+        if (isCEOOrAdmin) {
+          try {
+            const empRes = await api.get('/employees');
+            const artists = (empRes.data || []).filter(e =>
+              e.user?.role === 'Designer' ||
+              e.isArtist ||
+              (e.designation || '').toLowerCase().includes('designer') ||
+              (e.designation || '').toLowerCase().includes('artist')
+            );
+            setArtistsList(artists);
+          } catch (_) { /* silent */ }
+        }
       }
     } catch (e) {
       toast.error('Failed to load designer project assignments');
@@ -117,23 +159,55 @@ export default function ArtistAssignments() {
         <div>
           <h2 className="text-xl font-extrabold tracking-tight text-white font-display uppercase flex items-center gap-2">
             <Palette className="w-5 h-5 text-brand-cyan" />
-            Designer Portal & Project Stage Workspace
+            Artist Portal & Project Stage Workspace
           </h2>
           <p className="text-xs text-brand-text-soft mt-1">
             Track assigned artwork projects (#PRJ-1024), 4-stage progression, briefs, and client requirements.
           </p>
         </div>
 
-        {/* Search Bar for #PRJ-1024 or Project/Client Name */}
-        <div className="relative min-w-[260px]">
-          <Search className="w-4 h-4 text-brand-text-mute absolute left-3.5 top-3" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by #PRJ-1024 or Name..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-brand-bg-soft/40 border border-brand-border text-xs text-white placeholder-brand-text-mute focus:outline-none focus:border-brand-blue"
-          />
+        {/* Search Bar & CEO Artist Management Buttons */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search Bar for #PRJ-1024 or Project/Client Name */}
+          <div className="relative min-w-[240px]">
+            <Search className="w-4 h-4 text-brand-text-mute absolute left-3.5 top-3" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by #PRJ-1024 or Name..."
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-brand-bg-soft/40 border border-brand-border text-xs text-white placeholder-brand-text-mute focus:outline-none focus:border-brand-blue"
+            />
+          </div>
+
+          {isCEOOrAdmin && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCredentialsModalOpen(true)}
+                className="px-3.5 py-2 rounded-xl border border-brand-border hover:border-brand-violet/50 bg-brand-bg-soft/40 text-xs font-bold text-brand-violet hover:text-white flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <KeyRound className="w-4 h-4" /> Artist Credentials
+              </button>
+
+              <button
+                onClick={() => {
+                  setArtistForm({
+                    fullName: '',
+                    email: '',
+                    password: 'xenith@123',
+                    designation: 'Graphic Designer',
+                    baseSalary: '100000',
+                    phone: '',
+                    employeeCode: `ART-${101 + artistsList.length}`
+                  });
+                  setArtistModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-blue text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 hover:opacity-90 transition-all cursor-pointer shadow-lg shadow-brand-violet/20"
+              >
+                <UserPlus className="w-4 h-4" /> Add Artist
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -445,45 +519,286 @@ export default function ArtistAssignments() {
               </div>
 
               <div className="flex gap-3 pt-2 border-t border-brand-border">
-                <button
-                  onClick={() => setPayoutProject(null)}
-                  className="flex-1 py-2 rounded-xl border border-brand-border text-xs text-brand-text-soft hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={submittingPayout}
-                  onClick={async () => {
-                    if (!payoutAmount || parseFloat(payoutAmount) <= 0) {
-                      toast.error('Enter a valid amount');
-                      return;
-                    }
+                  <button
+                    type="button"
+                    onClick={() => setPayoutProject(null)}
+                    className="flex-1 py-2 rounded-xl border border-brand-border text-xs text-brand-text-soft hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        setSubmittingPayout(true);
+                        await api.post('/payout-requests', {
+                          saleId: payoutProject.id,
+                          requestedAmountUsd: parseFloat(payoutAmount),
+                          reason: payoutReason
+                        });
+                        toast.success('Payout request submitted to CEO');
+                        setPayoutProject(null);
+                        fetchDesignerData();
+                      } catch (err) {
+                        toast.error(err.response?.data?.error || 'Failed to submit payout request');
+                      } finally {
+                        setSubmittingPayout(false);
+                      }
+                    }}
+                    disabled={submittingPayout || !payoutAmount}
+                    className="flex-1 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-blue text-white font-bold text-xs uppercase hover:opacity-90 disabled:opacity-50"
+                  >
+                    {submittingPayout ? 'Submitting...' : 'Submit Payout Request'}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* CEO Add Artist Modal */}
+        <AnimatePresence>
+          {artistModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-brand-bg-elevated border border-brand-violet/40 rounded-2xl p-6 max-w-md w-full text-left space-y-4 shadow-glow"
+              >
+                <div className="flex items-center justify-between border-b border-brand-border pb-3">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-white font-display flex items-center gap-2">
+                      <UserPlus className="w-4 h-4 text-brand-violet" /> Create Artist Account
+                    </h3>
+                    <p className="text-[10px] text-brand-text-mute">Set up portal login credentials for an Artist / Designer</p>
+                  </div>
+                  <button onClick={() => setArtistModalOpen(false)} className="text-brand-text-mute hover:text-white">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
                     try {
-                      setSubmittingPayout(true);
-                      await api.post('/payout-requests', {
-                        saleId: payoutProject.id,
-                        amount: parseFloat(payoutAmount),
-                        reason: payoutReason
+                      await api.post('/employees', {
+                        ...artistForm,
+                        role: 'Designer',
+                        isArtist: true,
+                        attendanceExempt: true
                       });
-                      toast.success('Payout request submitted to CEO!');
-                      setPayoutProject(null);
+                      toast.success(`Artist account created for ${artistForm.fullName}!`);
+                      setArtistModalOpen(false);
                       fetchDesignerData();
                     } catch (err) {
-                      toast.error(err.response?.data?.error || 'Failed to submit request');
-                    } finally {
-                      setSubmittingPayout(false);
+                      toast.error(err.response?.data?.error || 'Failed to create artist account');
                     }
                   }}
-                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-blue text-white font-bold text-xs uppercase tracking-wider hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="space-y-3"
                 >
-                  <BadgeDollarSign className="w-3.5 h-3.5" />
-                  {submittingPayout ? 'Submitting...' : 'Submit to CEO'}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Full Name *</label>
+                      <input
+                        type="text"
+                        value={artistForm.fullName}
+                        onChange={e => setArtistForm({ ...artistForm, fullName: e.target.value })}
+                        required
+                        placeholder="e.g. Zainab Malik"
+                        className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Employee Code *</label>
+                      <input
+                        type="text"
+                        value={artistForm.employeeCode}
+                        onChange={e => setArtistForm({ ...artistForm, employeeCode: e.target.value })}
+                        required
+                        placeholder="e.g. ART-101"
+                        className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Login Email *</label>
+                      <input
+                        type="email"
+                        value={artistForm.email}
+                        onChange={e => setArtistForm({ ...artistForm, email: e.target.value })}
+                        required
+                        placeholder="artist@artxenith.com"
+                        className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Portal Password *</label>
+                      <input
+                        type="text"
+                        value={artistForm.password}
+                        onChange={e => setArtistForm({ ...artistForm, password: e.target.value })}
+                        required
+                        placeholder="xenith@123"
+                        className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Designation</label>
+                      <input
+                        type="text"
+                        value={artistForm.designation}
+                        onChange={e => setArtistForm({ ...artistForm, designation: e.target.value })}
+                        placeholder="Graphic Designer / 3D Artist"
+                        className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Monthly Salary (PKR)</label>
+                      <input
+                        type="number"
+                        value={artistForm.baseSalary}
+                        onChange={e => setArtistForm({ ...artistForm, baseSalary: e.target.value })}
+                        placeholder="100000"
+                        className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2 border-t border-brand-border">
+                    <button
+                      type="button"
+                      onClick={() => setArtistModalOpen(false)}
+                      className="flex-1 py-2 rounded-xl border border-brand-border text-xs text-brand-text-soft hover:text-white"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2 rounded-xl bg-brand-violet text-white font-bold text-xs uppercase"
+                    >
+                      Create Artist Account
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* CEO Manage Artist Credentials Directory Modal */}
+        <AnimatePresence>
+          {credentialsModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-brand-bg-elevated border border-brand-violet/40 rounded-2xl p-6 max-w-2xl w-full text-left space-y-4 shadow-glow max-h-[85vh] overflow-y-auto"
+              >
+                <div className="flex items-center justify-between border-b border-brand-border pb-3">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-white font-display flex items-center gap-2">
+                      <KeyRound className="w-4 h-4 text-brand-violet" /> Artist Credentials & Portal Access Directory
+                    </h3>
+                    <p className="text-[10px] text-brand-text-mute">Manage login emails, reset passwords, or revoke portal access for Artists</p>
+                  </div>
+                  <button onClick={() => setCredentialsModalOpen(false)} className="text-brand-text-mute hover:text-white">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Artists Directory List */}
+                <div className="border border-brand-border/40 rounded-xl overflow-hidden">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-brand-bg/80 text-[9px] uppercase font-bold text-brand-text-mute border-b border-brand-border/40">
+                      <tr>
+                        <th className="p-2.5">Artist Code & Name</th>
+                        <th className="p-2.5">Login Email</th>
+                        <th className="p-2.5">Designation</th>
+                        <th className="p-2.5">Status</th>
+                        <th className="p-2.5 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-brand-border/30 text-white">
+                      {artistsList.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-4 text-center text-brand-text-mute font-sans">
+                            No artist accounts created yet. Click "Add Artist" to create one.
+                          </td>
+                        </tr>
+                      ) : (
+                        artistsList.map(art => (
+                          <tr key={art.id} className="hover:bg-brand-bg-elevated/40">
+                            <td className="p-2.5">
+                              <div className="font-bold">{art.fullName}</div>
+                              <div className="text-[9px] font-mono text-brand-cyan">{art.employeeCode}</div>
+                            </td>
+                            <td className="p-2.5 font-mono text-brand-text-soft text-[11px]">
+                              {art.user?.email || 'No email'}
+                            </td>
+                            <td className="p-2.5 text-[11px] text-brand-text-soft">
+                              {art.designation}
+                            </td>
+                            <td className="p-2.5">
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                                art.user?.isActive !== false ? 'bg-brand-green/15 text-brand-green' : 'bg-brand-red/15 text-brand-red'
+                              }`}>
+                                {art.user?.isActive !== false ? 'Active' : 'Revoked'}
+                              </span>
+                            </td>
+                            <td className="p-2.5 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={async () => {
+                                    const newPassword = prompt(`Enter new password for ${art.fullName}:`, 'xenith@123');
+                                    if (!newPassword) return;
+                                    try {
+                                      await api.patch(`/employees/${art.id}/reset-password`, { password: newPassword });
+                                      toast.success(`Password reset for ${art.fullName}!`);
+                                      fetchDesignerData();
+                                    } catch (err) {
+                                      toast.error(err.response?.data?.error || 'Failed to reset password');
+                                    }
+                                  }}
+                                  className="px-2 py-1 rounded bg-brand-violet/20 hover:bg-brand-violet/30 text-brand-violet text-[9px] font-bold uppercase flex items-center gap-1"
+                                  title="Reset Password"
+                                >
+                                  <KeyRound className="w-3 h-3" /> Password
+                                </button>
+
+                                <button
+                                  onClick={async () => {
+                                    if (!confirm(`Are you sure you want to delete Artist account for ${art.fullName}?`)) return;
+                                    try {
+                                      await api.delete(`/employees/${art.id}`);
+                                      toast.success(`Artist account for ${art.fullName} removed.`);
+                                      fetchDesignerData();
+                                    } catch (err) {
+                                      toast.error(err.response?.data?.error || 'Failed to delete artist');
+                                    }
+                                  }}
+                                  className="p-1 rounded text-brand-text-mute hover:text-brand-red"
+                                  title="Remove Artist Account"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }

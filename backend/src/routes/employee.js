@@ -14,6 +14,7 @@ router.get('/:id', requireAuth, employeeController.getEmployeeById);
 router.post('/', requireAuth, requireRole(adminRoles), employeeController.createEmployee);
 router.post('/import', requireAuth, requireRole(adminRoles), employeeController.importEmployees);
 router.put('/:id', requireAuth, employeeController.updateEmployee);
+router.patch('/:id/reset-password', requireAuth, requireRole(adminRoles), employeeController.resetEmployeeCredentials);
 router.delete('/:id', requireAuth, requireRole(adminRoles), employeeController.deleteEmployee);
 router.post('/:id/terminate', requireAuth, requireRole(adminRoles), employeeController.terminateEmployee);
 

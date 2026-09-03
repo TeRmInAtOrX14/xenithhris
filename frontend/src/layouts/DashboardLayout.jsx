@@ -114,7 +114,7 @@ export default function DashboardLayout() {
         { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Sales Executive', 'Designer', 'Employee'] },
         { label: 'Sales Sheet', path: '/dashboard/sales', icon: Table, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Sales Executive'] },
         { label: 'Project Briefs', path: '/dashboard/briefs', icon: FileCode, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Sales Executive', 'Designer'] },
-        { label: 'Designer Portal', path: '/dashboard/artist-assignments', icon: Palette, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Designer'] },
+        { label: 'Artist Portal', path: '/dashboard/artist-assignments', icon: Palette, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Designer'] },
         { label: 'Employees', path: '/dashboard/employees', icon: Users, roles: ['Admin', 'CEO', 'COO', 'Team Lead'] },
         { label: 'Attendance', path: '/dashboard/attendance', icon: CalendarCheck, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Sales Executive', 'Designer', 'Employee'] },
         { label: 'Requests', path: '/dashboard/requests', icon: FileSpreadsheet, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Sales Executive', 'Designer', 'Employee'] },
