@@ -19,25 +19,25 @@
   --color-brand-bright-lemon: var(--brand-bright-lemon);
   --color-brand-dark-lime: var(--brand-dark-lime);
 
-  /* Mapping legacy color names to Xenith Lime & Lemon palette for seamless migration */
-  --color-brand-cyan: var(--brand-lime);
-  --color-brand-blue: var(--brand-lime);
-  --color-brand-violet: var(--brand-lemon);
-  --color-brand-orange: var(--brand-lime);
-  --color-brand-amber: var(--brand-lemon);
-  --color-brand-green: var(--brand-lemon);
-  --color-brand-red: var(--brand-lemon);
-  --color-brand-copper: var(--brand-lemon);
-  --color-brand-silver: var(--brand-text-gray);
+  /* Legacy color aliases mapped with high-contrast text & backgrounds */
+  --color-brand-cyan: #D7F000;
+  --color-brand-blue: #D7F000;
+  --color-brand-violet: #E8F52A;
+  --color-brand-orange: #D7F000;
+  --color-brand-amber: #E8F52A;
+  --color-brand-green: #D7F000;
+  --color-brand-red: #E8F52A;
+  --color-brand-copper: #E8F52A;
+  --color-brand-silver: #A3A3A3;
 
   --color-brand-sidebar-bg: var(--brand-sidebar-bg);
   --color-brand-sidebar-text: var(--brand-sidebar-text);
   --color-brand-sidebar-border: var(--brand-sidebar-border);
 
-  --color-brand-success: var(--brand-success);
-  --color-brand-warning: var(--brand-warning);
-  --color-brand-danger: var(--brand-lemon);
-  --color-brand-info: var(--brand-info);
+  --color-brand-success: #D7F000;
+  --color-brand-warning: #E8F52A;
+  --color-brand-danger: #E8F52A;
+  --color-brand-info: #D7F000;
   
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Manrope', system-ui, sans-serif;
@@ -70,13 +70,13 @@
   --brand-sidebar-text: #FFFFFF;
   --brand-sidebar-border: #171717;
 
-  --brand-success: #E8F52A;
+  --brand-success: #D7F000;
   --brand-warning: #E8F52A;
   --brand-danger: #E8F52A;
   --brand-info: #D7F000;
   
-  --brand-glass-bg: rgba(23, 23, 23, 0.85);
-  --brand-glass-bg-strong: rgba(17, 17, 17, 0.95);
+  --brand-glass-bg: rgba(23, 23, 23, 0.95);
+  --brand-glass-bg-strong: rgba(17, 17, 17, 0.98);
 }
 
 [data-theme="light"] {
@@ -89,25 +89,25 @@
   --brand-border-strong: #B0B0A8;
   
   --brand-text: #000000;         /* Black */
-  --brand-text-soft: #3F3F3F;    /* Dark Gray */
-  --brand-text-gray: #737373;    /* Muted Gray */
-  --brand-text-mute: #A3A3A3;
+  --brand-text-soft: #1C1C1C;    /* Dark Gray */
+  --brand-text-gray: #555555;    /* Muted Gray */
+  --brand-text-mute: #737373;
   
-  --brand-lime: #B8D400;         /* Darker Lime for light canvas */
-  --brand-lemon: #D7E91A;        /* Darker Lemon for light canvas */
-  --brand-bright-lemon: #B8D400;
-  --brand-dark-lime: #9EB600;
+  --brand-lime: #9EB600;         /* High-contrast Lime for light canvas */
+  --brand-lemon: #8FA300;        /* High-contrast Lemon for light canvas */
+  --brand-bright-lemon: #9EB600;
+  --brand-dark-lime: #7E9100;
 
   --brand-sidebar-bg: #000000;
   --brand-sidebar-text: #FFFFFF;
   --brand-sidebar-border: #171717;
 
-  --brand-success: #2E7D32;
-  --brand-warning: #D97706;
-  --brand-danger: #DC2626;
-  --brand-info: #9EB600;
+  --brand-success: #7E9100;
+  --brand-warning: #7E9100;
+  --brand-danger: #7E9100;
+  --brand-info: #7E9100;
   
-  --brand-glass-bg: rgba(255, 255, 255, 0.92);
+  --brand-glass-bg: rgba(255, 255, 255, 0.95);
   --brand-glass-bg-strong: rgba(255, 255, 255, 0.98);
 }
 
@@ -134,9 +134,9 @@
 
   /* Electric Lime focus ring */
   input:focus, select:focus, textarea:focus {
-    border-color: var(--brand-lime) !important;
+    border-color: #D7F000 !important;
     outline: none !important;
-    box-shadow: 0 0 0 2px rgba(215, 240, 0, 0.25) !important;
+    box-shadow: 0 0 0 2px rgba(215, 240, 0, 0.3) !important;
   }
 }
 
@@ -158,20 +158,20 @@
 }
 
 .hover-glow-lime:hover {
-  border-color: var(--brand-lime) !important;
+  border-color: #D7F000 !important;
   box-shadow: 0 0 15px rgba(215, 240, 0, 0.2);
 }
 
 .hover-glow-lemon:hover {
-  border-color: var(--brand-lemon) !important;
+  border-color: #E8F52A !important;
   box-shadow: 0 0 15px rgba(232, 245, 42, 0.2);
 }
 
 /* Primary CTA Button — Electric Lime (#D7F000) default, Lemon Green (#E8F52A) hover */
 .btn-primary {
-  background-color: var(--brand-lime);
-  color: #000000;
-  font-weight: 800;
+  background-color: #D7F000 !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
   font-family: var(--font-display);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -181,16 +181,16 @@
 }
 
 .btn-primary:hover {
-  background-color: var(--brand-lemon);
-  color: #000000;
-  box-shadow: 0 0 20px rgba(215, 240, 0, 0.35);
+  background-color: #E8F52A !important;
+  color: #000000 !important;
+  box-shadow: 0 0 20px rgba(215, 240, 0, 0.4);
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background-color: var(--brand-bg-elevated);
-  color: var(--brand-text);
-  border: 1px solid var(--brand-border);
+  background-color: #111111;
+  color: #FFFFFF;
+  border: 1px solid #262626;
   font-weight: 700;
   border-radius: 0.75rem;
   padding: 0.625rem 1.25rem;
@@ -198,11 +198,11 @@
 }
 
 .btn-secondary:hover {
-  border-color: var(--brand-lime);
-  color: var(--brand-lime);
+  border-color: #D7F000;
+  color: #D7F000;
 }
 
-/* Status Badge Pills */
+/* High-Contrast Status Badge Pills (Solid black background prevents any text blending) */
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -210,32 +210,35 @@
   padding: 0.25rem 0.625rem;
   border-radius: 9999px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
+  background-color: #000000 !important;
+  border: 1px solid #262626 !important;
+  color: #D7F000 !important;
 }
 
 .status-success {
-  background-color: rgba(215, 240, 0, 0.15);
-  color: var(--brand-lime);
-  border: 1px solid rgba(215, 240, 0, 0.3);
+  background-color: #000000 !important;
+  color: #D7F000 !important;
+  border: 1px solid #262626 !important;
 }
 
 .status-warning {
-  background-color: rgba(232, 245, 42, 0.15);
-  color: var(--brand-lemon);
-  border: 1px solid rgba(232, 245, 42, 0.3);
+  background-color: #000000 !important;
+  color: #E8F52A !important;
+  border: 1px solid #262626 !important;
 }
 
 .status-danger {
-  background-color: rgba(215, 240, 0, 0.12);
-  color: var(--brand-lime);
-  border: 1px solid rgba(215, 240, 0, 0.25);
+  background-color: #000000 !important;
+  color: #E8F52A !important;
+  border: 1px solid #262626 !important;
 }
 
 .status-neutral {
-  background-color: rgba(115, 115, 115, 0.15);
-  color: var(--brand-text-gray);
-  border: 1px solid var(--brand-border);
+  background-color: #000000 !important;
+  color: #A3A3A3 !important;
+  border: 1px solid #262626 !important;
 }
 
 /* Xenith Brand Gradient */
@@ -265,5 +268,5 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-lime);
+  background: #D7F000;
 }
