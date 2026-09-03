@@ -26,6 +26,7 @@
   --color-brand-orange: var(--brand-lime);
   --color-brand-amber: var(--brand-lemon);
   --color-brand-green: var(--brand-lemon);
+  --color-brand-red: var(--brand-lemon);
   --color-brand-copper: var(--brand-lemon);
   --color-brand-silver: var(--brand-text-gray);
 
@@ -35,7 +36,7 @@
 
   --color-brand-success: var(--brand-success);
   --color-brand-warning: var(--brand-warning);
-  --color-brand-danger: var(--brand-danger);
+  --color-brand-danger: var(--brand-lemon);
   --color-brand-info: var(--brand-info);
   
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -70,8 +71,8 @@
   --brand-sidebar-border: #171717;
 
   --brand-success: #E8F52A;
-  --brand-warning: #F59E0B;
-  --brand-danger: #EF4444;
+  --brand-warning: #E8F52A;
+  --brand-danger: #E8F52A;
   --brand-info: #D7F000;
   
   --brand-glass-bg: rgba(23, 23, 23, 0.85);
@@ -220,15 +221,15 @@
 }
 
 .status-warning {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: var(--brand-warning);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background-color: rgba(232, 245, 42, 0.15);
+  color: var(--brand-lemon);
+  border: 1px solid rgba(232, 245, 42, 0.3);
 }
 
 .status-danger {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: var(--brand-danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: rgba(215, 240, 0, 0.12);
+  color: var(--brand-lime);
+  border: 1px solid rgba(215, 240, 0, 0.25);
 }
 
 .status-neutral {

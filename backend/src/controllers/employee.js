@@ -181,6 +181,7 @@ exports.createEmployee = async (req, res, next) => {
       employeeCode,
       fullName,
       designation,
+      department,
       managerId,
       birthday,
       baseSalary,

@@ -8,11 +8,11 @@ import {
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 
-const STATUS_COLORS = {
-  pending: 'bg-brand-amber/15 text-brand-amber border-brand-amber/30',
-  approved: 'bg-brand-blue/15 text-brand-cyan border-brand-blue/30',
-  rejected: 'bg-brand-red/15 text-brand-red border-brand-red/30',
-  paid: 'bg-brand-green/15 text-brand-green border-brand-green/30'
+const STATUS_STYLES = {
+  pending: 'bg-brand-lemon/15 text-brand-lemon border-brand-lemon/30',
+  approved: 'bg-brand-lime/15 text-brand-lime border-brand-lime/30',
+  paid: 'bg-brand-lime/20 text-brand-lime border-brand-lime/40',
+  rejected: 'bg-brand-lemon/10 text-brand-lemon border-brand-lemon/20',
 };
 
 const STATUS_ICONS = {
