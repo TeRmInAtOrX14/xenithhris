@@ -12,6 +12,7 @@ router.get('/sales-executive/earnings', requireAuth, employeeController.getSales
 router.get('/designer/projects', requireAuth, employeeController.getDesignerPortalData);
 router.get('/:id', requireAuth, employeeController.getEmployeeById);
 router.post('/', requireAuth, requireRole(adminRoles), employeeController.createEmployee);
+router.post('/import', requireAuth, requireRole(adminRoles), employeeController.importEmployees);
 router.put('/:id', requireAuth, employeeController.updateEmployee);
 router.delete('/:id', requireAuth, requireRole(adminRoles), employeeController.deleteEmployee);
 router.post('/:id/terminate', requireAuth, requireRole(adminRoles), employeeController.terminateEmployee);

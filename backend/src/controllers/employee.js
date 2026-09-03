@@ -720,3 +720,140 @@ exports.getDesignerPortalData = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * POST /api/employees/import
+ * Bulk import/seed employees from CSV/Excel data
+ */
+exports.importEmployees = async (req, res, next) => {
+  try {
+    if (!['Admin', 'CEO', 'COO'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Only Admin/CEO/COO can bulk import employee data.' });
+    }
+
+    const { employees: rows } = req.body;
+    if (!rows || !Array.isArray(rows) || rows.length === 0) {
+      return res.status(400).json({ error: 'Please provide an array of employee objects in "employees" field.' });
+    }
+
+    const results = {
+      total: rows.length,
+      created: 0,
+      updated: 0,
+      errors: []
+    };
+
+    const salt = await bcrypt.genSalt(10);
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const lineNum = i + 1;
+
+      try {
+        const employeeCode = (row.employeeCode || row['Employee Code'] || `EMP-${100 + i}`).trim();
+        const fullName = (row.fullName || row['Full Name'] || '').trim();
+        const email = (row.email || row['Email Address'] || '').trim().toLowerCase();
+        const password = row.password || row['Password'] || 'xenith@123';
+        const role = (row.role || row['Role'] || 'Employee').trim();
+        const designation = (row.designation || row['Designation'] || 'Employee').trim();
+        const department = (row.department || row['Department'] || 'Operations').trim();
+        const baseSalary = parseFloat(row.baseSalary || row['Basic Salary (PKR)'] || row['Basic Salary'] || 0);
+        const commissionPercentage = parseFloat(row.commissionPercentage || row['Sales Commission (%)'] || row['Commission'] || 0);
+        const phone = (row.phone || row['Phone Number'] || '').trim();
+        const bankAccount = (row.bankAccount || row['Bank Account / IBAN'] || row['Bank Account'] || '').trim();
+        const shiftStart = (row.shiftStart || row['Shift Start'] || '18:00').trim();
+        const shiftEnd = (row.shiftEnd || row['Shift End'] || '23:59').trim();
+        const joiningDateStr = row.joiningDate || row['Joining Date (YYYY-MM-DD)'] || row['Joining Date'];
+
+        if (!fullName || !email) {
+          results.errors.push({ line: lineNum, employeeCode, error: 'Missing Full Name or Email Address' });
+          continue;
+        }
+
+        const isDesigner = role === 'Designer' || designation.toLowerCase().includes('designer') || designation.toLowerCase().includes('artist');
+        const isSalesExec = role === 'Sales Executive' || designation.toLowerCase().includes('sales');
+
+        const passwordHash = await bcrypt.hash(password, salt);
+        let joiningDate = null;
+        if (joiningDateStr) {
+          const d = new Date(joiningDateStr);
+          if (!isNaN(d.getTime())) joiningDate = d;
+        }
+
+        // Check existing user by email
+        let existingUser = await prisma.user.findUnique({ where: { email } });
+        let userId = existingUser?.id;
+
+        if (existingUser) {
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: { role }
+          });
+        } else {
+          const newUser = await prisma.user.create({
+            data: {
+              email,
+              passwordHash,
+              role,
+              mustChangePassword: false
+            }
+          });
+          userId = newUser.id;
+        }
+
+        // Check existing employee by code or userId
+        let existingEmp = await prisma.employee.findFirst({
+          where: { OR: [{ employeeCode }, { userId }] }
+        });
+
+        const empData = {
+          employeeCode,
+          fullName,
+          designation,
+          department,
+          baseSalary,
+          commissionPercentage,
+          phone: phone || null,
+          bankAccount: bankAccount || null,
+          shiftStart,
+          shiftEnd,
+          joiningDate: joiningDate || new Date(),
+          isArtist: isDesigner,
+          attendanceExempt: isDesigner
+        };
+
+        if (existingEmp) {
+          await prisma.employee.update({
+            where: { id: existingEmp.id },
+            data: empData
+          });
+          results.updated++;
+        } else {
+          await prisma.employee.create({
+            data: {
+              ...empData,
+              userId
+            }
+          });
+          results.created++;
+        }
+      } catch (err) {
+        results.errors.push({ line: lineNum, error: err.message });
+      }
+    }
+
+    await logAudit(req.user.id, 'BULK_IMPORT_EMPLOYEES', 'Employee', 'bulk', {
+      total: results.total,
+      created: results.created,
+      updated: results.updated
+    });
+
+    res.json({
+      message: `Employee seed completed: ${results.created} created, ${results.updated} updated.`,
+      results
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+

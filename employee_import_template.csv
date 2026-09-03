@@ -1,5 +1,10 @@
 Employee Code,Full Name,Email Address,Password,Role (Admin/CEO/COO/Team Lead/Employee),Designation (Sales Executive/Designer/Manager/etc),Department (Sales/Design/HR/Operations),Basic Salary (PKR),Sales Commission (%),Phone Number,Bank Account / IBAN,Shift Start (e.g. 09:30),Shift End (e.g. 18:30),Joining Date (YYYY-MM-DD)
-"EMP-001","Subu Ahad","subuahad1@gmail.com","xenith@12","CEO","CEO & Founder","Executive","0","0","03001234567","PK00MEZN0000000000000000","09:30","18:30","2024-01-01"
-"EMP-002","Zain Ahmed","zain@artxenith.com","xenith@12","Employee","Sales Executive","Sales","120000","5","03019876543","PK11HABB0000000000000000","09:30","18:30","2024-02-15"
-"EMP-003","Sara Khan","sara@artxenith.com","xenith@12","Employee","Senior Graphic Designer","Design","150000","0","03215554321","PK22BAHL0000000000000000","09:30","18:30","2024-03-01"
-"EMP-004","Usman Ali","usman@artxenith.com","xenith@12","Team Lead","Sales Team Lead","Sales","180000","3","03337778899","PK33MCBB0000000000000000","09:30","18:30","2023-11-10"
+EMP-001,Subu Ahad,subuahad1@gmail.com,xenith@12,CEO,CEO & Founder,Executive,0,0,3001234567,PK00MEZN0000000000000000,9:30,18:30,1/1/2024
+EMP-002,Anas Ahmed,anasahmyd16@gmail.com,xenith@12,Employee,Team Lead,Sales,0,15,9.23342E+11,PK45UNIL0109000336976912,6:00,12:30,1/5/2024
+EMP-003,Adeen Afzal,adeenafzal16@gmail.com,xenith@12,Employee,Sales executive,Sales,0,25%,9.23129E+11,PK69MEZN0001530107153013,6:45,12:30,3/1/2024
+EMP-004,Usama Riyaz,riazusama145@gmail.com,xenith@12,Employee,Sales executive,Sales,0,20%,9.23153E+11,PK50MEZN0000300112192804,6:00,11:30,22-10-2024
+EMP-004,Ahmed Ali,ahmedali9502918@gmail.com,xenith@12,Employee,Sales executive,Sales,0,20%,9.2309E+11,-,6:00,12:30,22-10-2024
+EMP-005,Muhammad Safiullah Khan,muhsafiullahkhan@gmail.com,xenith@12,Employee,Sales executive,Sales,0,20%,9.23234E+11,-,6:00,12:30,
+EMP-006,Muhammad Umar,bunny.og2003@gmail.com,xenith@12,Employee,Sales executive,Sales,0,,9.23226E+11,-,6:00,12:30,
+EMP-007,Taha Asrar,Tahaasrar9@gmail.com,xenith@12,Employee,Sales executive,Sales,0,30%,9.23123E+11,-,6:00,12:30,
+EMP-008,Muhammad Visam Khan,visamkhan73@gmail.com,xenith@12,Employee,Sales executive,Sales,0,15%,9.23191E+11,-,6:00,12:00,

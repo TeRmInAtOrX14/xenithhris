@@ -16,7 +16,11 @@ import {
   Trash2,
   Loader2,
   Clock,
-  Pencil
+  Pencil,
+  FileSpreadsheet,
+  Upload,
+  Download,
+  CheckCircle2
 } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
@@ -44,6 +48,8 @@ export default function Employees() {
   
   // Modals
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
   const [detailEmployee, setDetailEmployee] = useState(null);
 
   const currentUser = JSON.parse(localStorage.getItem('user')) || { role: 'Employee' };
@@ -188,13 +194,23 @@ export default function Employees() {
           <p className="text-xs text-brand-text-soft mt-1">Manage personnel registry, team mapping, and shift timing properties.</p>
         </div>
         {isAdmin && (
-          <button
-            onClick={() => setAddModalOpen(true)}
-            className="px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg hover:scale-[1.02] active:scale-[0.98] font-bold font-display text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-blue/20"
-          >
-            <Plus className="w-4 h-4" />
-            Add Employee
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setImportModalOpen(true)}
+              className="px-4 py-2.5 rounded-full border border-brand-border hover:border-brand-border-strong bg-brand-bg-soft/40 font-bold font-display text-xs text-brand-text-soft hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-brand-cyan" />
+              Import CSV / Excel
+            </button>
+
+            <button
+              onClick={() => setAddModalOpen(true)}
+              className="px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg hover:scale-[1.02] active:scale-[0.98] font-bold font-display text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-blue/20"
+            >
+              <Plus className="w-4 h-4" />
+              Add Employee
+            </button>
+          </div>
         )}
       </div>
 
