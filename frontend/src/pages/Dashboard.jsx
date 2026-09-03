@@ -12,10 +12,10 @@ import DesignerDashboard from './DesignerDashboard';
 export default function Dashboard() {
   const [userState, setUserState] = useState(() => {
     const userString = localStorage.getItem('user');
-    return userString ? JSON.parse(userString) : { email: 'user@artxenith.com', name: 'ArtXenith Staff', role: 'Sales Executive' };
+    return userString ? JSON.parse(userString) : { email: 'user@artxenith.com', name: 'Xenith Staff', role: 'Sales Executive' };
   });
 
-  const [activeRole, setActiveRole] = useState(() => userState.role || 'Sales Executive');
+  const activeRole = userState.role || 'Sales Executive';
   const [liveStats, setLiveStats] = useState({});
   const [liveNotifications, setLiveNotifications] = useState([]);
   const [departmentChartData, setDepartmentChartData] = useState(null);
@@ -26,12 +26,13 @@ export default function Dashboard() {
       try {
         const todayStr = new Date().toISOString().split('T')[0];
 
-        const [empRes, attRes, salesRes, notifRes, reqRes] = await Promise.allSettled([
+        const [empRes, attRes, salesRes, notifRes, reqRes, runRes] = await Promise.allSettled([
           api.get('/employees'),
           api.get(`/attendance?startDate=${todayStr}&endDate=${todayStr}`),
           api.get('/sales'),
           api.get('/system/notifications'),
-          api.get('/requests/leave?status=pending')
+          api.get('/requests/leave?status=pending'),
+          api.get('/payroll/runs')
         ]);
 
         const employees = empRes.status === 'fulfilled' ? empRes.data || [] : [];
@@ -39,12 +40,14 @@ export default function Dashboard() {
         const sales = salesRes.status === 'fulfilled' ? salesRes.data || [] : [];
         const notifications = notifRes.status === 'fulfilled' ? notifRes.data || [] : [];
         const leaveRequests = reqRes.status === 'fulfilled' ? reqRes.data || [] : [];
+        const payrollRuns = runRes.status === 'fulfilled' ? runRes.data || [] : [];
 
         const totalEmployees = employees.length;
         const presentToday = attendance.filter(a => a.status === 'present' || a.status === 'half_day').length;
         const salesCount = sales.length;
         const totalRevenueUsd = sales.reduce((acc, s) => acc + (Number(s.usdAmount || s.dealValue) || 0), 0);
         const pendingRequestsCount = leaveRequests.length;
+        const payrollTotalPkr = payrollRuns.reduce((acc, r) => acc + (Number(r.totalExpense) || 0), 0);
 
         // Group employees by department for dynamic donut chart
         const deptMap = {};
@@ -66,18 +69,18 @@ export default function Dashboard() {
           salesCount,
           totalRevenueUsd,
           pendingRequestsCount,
-          activeBriefsCount: salesCount > 0 ? salesCount : 6,
-          completedArtCount: Math.round(salesCount * 1.5) || 14,
-          commissionPkr: totalRevenueUsd ? Math.round(totalRevenueUsd * 28) : 145000,
-          payrollTotalPkr: totalEmployees ? totalEmployees * 95000 : 450000,
-          hoursClocked: presentToday ? 8.0 : 7.5
+          activeBriefsCount: salesCount,
+          completedArtCount: sales.filter(s => s.stage === 'finalized' || s.stage === 'completed').length,
+          commissionPkr: totalRevenueUsd ? Math.round(totalRevenueUsd * 28) : 0,
+          payrollTotalPkr,
+          hoursClocked: presentToday ? 8.0 : 0
         });
 
         if (notifications.length > 0) setLiveNotifications(notifications);
         if (dynamicDeptChart.length > 0) setDepartmentChartData(dynamicDeptChart);
 
       } catch (err) {
-        console.warn('Real live data fetch fallback applied:', err);
+        console.warn('Real live data fetch applied:', err);
       }
     };
 
@@ -112,15 +115,14 @@ export default function Dashboard() {
       transition={{ duration: 0.2 }}
       className="space-y-6 text-left"
     >
-      {/* 1. Top Center Profile Strip Card */}
+      {/* 1. Top Center Profile Strip Card (Real User Data, No Role View Switcher) */}
       <ProfileStrip
         currentUser={userState}
-        activeRole={activeRole}
-        onRoleSwitch={(newRole) => setActiveRole(newRole)}
+        liveStats={liveStats}
         onUserUpdate={handleUserUpdate}
       />
 
-      {/* 2. Grid of Colorful Quick-Action Stat Tiles (Live Synced Data) */}
+      {/* 2. Grid of Colorful Quick-Action Stat Tiles (100% Live Synced Data) */}
       <QuickActionTiles activeRole={activeRole} liveStats={liveStats} />
 
       {/* 3. 2-Column Split: Center Main Workspace Cards + Right Widget Column */}

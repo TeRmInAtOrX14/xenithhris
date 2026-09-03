@@ -1,50 +1,16 @@
 import React, { useState } from 'react';
-import { User, Mail, MapPin, Calendar, Clock, DollarSign, Edit3, Shield, Sparkles, ChevronDown } from 'lucide-react';
+import { User, Mail, MapPin, Calendar, Edit3 } from 'lucide-react';
 import EditProfileModal from './EditProfileModal';
 
-export default function ProfileStrip({ currentUser, activeRole, onRoleSwitch, onActionClick, onUserUpdate }) {
+export default function ProfileStrip({ currentUser, liveStats = {}, onActionClick, onUserUpdate }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  // Diverse role avatar lookup (or user's custom uploaded picture if available)
-  const roleMeta = {
-    'Sales Executive': {
-      title: 'Sales Executive',
-      badgeBg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
-      keyStatLabel: 'Cycle Sales',
-      keyStatVal: '$4,250',
-      defaultAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-    },
-    'Team Lead': {
-      title: 'Team Lead',
-      badgeBg: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40',
-      keyStatLabel: 'Team Present',
-      keyStatVal: '92%',
-      defaultAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
-    },
-    'Designer': {
-      title: 'Senior Artist / Designer',
-      badgeBg: 'bg-purple-500/20 text-purple-400 border-purple-500/40',
-      keyStatLabel: 'Briefs Completed',
-      keyStatVal: '14 Artworks',
-      defaultAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'
-    },
-    'CEO': {
-      title: 'CEO / Chief Executive',
-      badgeBg: 'bg-[#D7F000]/20 text-[#D7F000] border-[#D7F000]/40',
-      keyStatLabel: 'Monthly Revenue',
-      keyStatVal: '$48,200',
-      defaultAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'
-    }
-  }[activeRole] || {
-    title: currentUser?.role || 'Employee',
-    badgeBg: 'bg-[#D7F000]/20 text-[#D7F000] border-[#D7F000]/40',
-    keyStatLabel: 'Shift Today',
-    keyStatVal: 'Active',
-    defaultAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
-  };
+  const roleTitle = currentUser?.role || 'Sales Executive';
+  const userName = currentUser?.name || currentUser?.email?.split('@')[0] || 'Xenith Employee';
+  const userEmail = currentUser?.email || 'user@artxenith.com';
+  const userLocation = currentUser?.location || 'Lahore HQ Studio';
 
-  const avatarUrl = currentUser?.avatarUrl || roleMeta.defaultAvatar;
-  const userName = currentUser?.name || currentUser?.email?.split('@')[0] || 'Alex Vance';
+  const avatarUrl = currentUser?.avatarUrl;
 
   const handleOpenEdit = () => {
     setIsEditOpen(true);
@@ -59,24 +25,30 @@ export default function ProfileStrip({ currentUser, activeRole, onRoleSwitch, on
           {/* Left Column: Avatar + Name + Role */}
           <div className="flex items-center gap-5">
             <div className="relative shrink-0 group cursor-pointer" onClick={handleOpenEdit}>
-              <img
-                src={avatarUrl}
-                alt={userName}
-                className="w-20 h-20 rounded-full object-cover border-2 border-[#D7F000] shadow-md group-hover:opacity-80 transition-opacity"
-              />
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={userName}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-[#D7F000] shadow-md group-hover:opacity-80 transition-opacity"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-[#D7F000]/20 border-2 border-[#D7F000] flex items-center justify-center text-[#D7F000] font-extrabold text-xl font-display shadow-md">
+                  {userName.substring(0, 2).toUpperCase()}
+                </div>
+              )}
               <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-black animate-pulse" />
             </div>
 
             <div className="space-y-1">
-              <span className={`px-2.5 py-0.5 rounded-full border text-[9px] font-extrabold uppercase font-mono tracking-wider ${roleMeta.badgeBg}`}>
-                {roleMeta.title}
+              <span className="px-2.5 py-0.5 rounded-full border border-[#D7F000]/40 bg-[#D7F000]/15 text-[#D7F000] text-[9px] font-extrabold uppercase font-mono tracking-wider">
+                {roleTitle}
               </span>
               <h2 className="text-2xl font-extrabold text-brand-text font-display tracking-tight">
                 {userName}
               </h2>
               <p className="text-xs text-brand-text-mute font-mono flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-brand-text-mute" />
-                {currentUser?.email || 'alex@bizhaven.com'}
+                {userEmail}
               </p>
             </div>
           </div>
@@ -84,49 +56,31 @@ export default function ProfileStrip({ currentUser, activeRole, onRoleSwitch, on
           {/* Center Column: Key Metrics & Info */}
           <div className="hidden sm:flex items-center gap-8 px-6 border-y sm:border-y-0 sm:border-x border-brand-border py-4 sm:py-0">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-brand-text-mute uppercase tracking-widest font-mono">Location</span>
+              <span className="text-[10px] font-bold text-brand-text-mute uppercase tracking-widest font-mono">Studio Location</span>
               <p className="text-xs font-extrabold text-brand-text flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5 text-[#D7F000]" />
-                {currentUser?.location || 'Lahore HQ Studio'}
+                {userLocation}
               </p>
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-brand-text-mute uppercase tracking-widest font-mono">Member Since</span>
+              <span className="text-[10px] font-bold text-brand-text-mute uppercase tracking-widest font-mono">Workforce Size</span>
               <p className="text-xs font-extrabold text-brand-text flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5 text-[#D7F000]" />
-                Oct 13, 2020
+                {liveStats.totalEmployees || 0} Staff
               </p>
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-brand-text-mute uppercase tracking-widest font-mono">{roleMeta.keyStatLabel}</span>
+              <span className="text-[10px] font-bold text-brand-text-mute uppercase tracking-widest font-mono">Present Today</span>
               <p className="text-sm font-extrabold text-[#D7F000] font-mono">
-                {roleMeta.keyStatVal}
+                {liveStats.presentToday || 0} Staff
               </p>
             </div>
           </div>
 
-          {/* Right Column: Demo Role Switcher & Action Controls */}
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
-            {/* Quick Role Switcher Pill */}
-            <div className="flex items-center gap-1 bg-brand-bg-surface p-1 rounded-xl border border-brand-border">
-              <span className="text-[9px] font-bold text-brand-text-mute uppercase px-2 font-mono">Role View:</span>
-              {['Sales Executive', 'Team Lead', 'Designer', 'CEO'].map((r) => (
-                <button
-                  key={r}
-                  onClick={() => onRoleSwitch && onRoleSwitch(r)}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
-                    activeRole === r
-                      ? 'bg-[#D7F000] text-black shadow'
-                      : 'text-brand-text-soft hover:text-brand-text'
-                  }`}
-                >
-                  {r.split(' ')[0]}
-                </button>
-              ))}
-            </div>
-
+          {/* Right Column: Edit Profile Action */}
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={handleOpenEdit}
               className="px-4 py-2 rounded-xl bg-[#D7F000] text-black text-xs font-extrabold uppercase tracking-wider font-display hover:bg-[#E8F52A] transition-all cursor-pointer flex items-center gap-1.5 tactile-btn shadow-md"
