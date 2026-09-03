@@ -121,8 +121,8 @@ export default function TeamLeadDashboard() {
   const absentTodayCount = Math.max(0, totalSdrs - presentTodayCount);
   const lateTodayCount = todayAttendance.filter(a => a.late > 0).length;
 
-  const monthlyShowups = campaignDashboard?.stats?.showups || 0;
-  const meetingsBooked = campaignDashboard?.stats?.meetingsBooked || 0;
+  const monthlyDeals = campaignDashboard?.stats?.showups || campaignDashboard?.stats?.dealsCount || 0;
+  const dealsClosed = campaignDashboard?.stats?.meetingsBooked || campaignDashboard?.stats?.closedDeals || 0;
   const totalTeamCommission = campaignDashboard?.stats?.commissionPaid || 0;
 
   // Requests count
@@ -135,25 +135,25 @@ export default function TeamLeadDashboard() {
   const topPerformer = leaderboard[0]?.fullName || 'None';
   
   // Averages
-  const averageShowupsPerSdr = totalSdrs > 0 ? parseFloat((monthlyShowups / totalSdrs).toFixed(1)) : 0;
+  const averageDealsPerExecutive = totalSdrs > 0 ? parseFloat((monthlyDeals / totalSdrs).toFixed(1)) : 0;
   
   // Calculate average attendance rate of team members
   const attendanceRate = totalSdrs > 0 && attendance.length > 0
     ? parseFloat(((attendance.filter(a => a.status === 'present' || a.status === 'half_day').length / attendance.length) * 100).toFixed(1))
     : 90;
 
-  // Target Progress (Assume overall team target is 100 show-ups)
+  // Target Progress (Assume overall team target is 100 deals/briefs)
   const teamTarget = 100;
-  const progressPercent = Math.min(100, (monthlyShowups / teamTarget) * 100);
+  const progressPercent = Math.min(100, (monthlyDeals / teamTarget) * 100);
 
   // ---------------------------------------------------------------------------
   // Charts Formatting
   // ---------------------------------------------------------------------------
-  // 1. Show-ups by Team Member
+  // 1. Deals by Team Member
   const showupsByMemberData = leaderboard.map(sdr => ({
     name: sdr.fullName.split(' ')[0],
-    'Show-ups': sdr.showups,
-    'Meetings Booked': sdr.meetingsBooked
+    'Deals Closed': sdr.showups || 0,
+    'Briefs Completed': sdr.meetingsBooked || 0
   }));
 
   // 2. Attendance Trend Data
@@ -234,14 +234,14 @@ export default function TeamLeadDashboard() {
           <span className="text-[8px] text-brand-text-mute mt-1 font-mono uppercase">{absentTodayCount} Staff Absent</span>
         </div>
 
-        {/* Monthly Show-ups */}
+        {/* Monthly Deals Closed */}
         <div className="p-4 rounded-xl glass-panel hover-glow-cyan flex flex-col justify-between">
           <div className="flex items-center justify-between text-brand-text-soft mb-2">
-            <span className="text-[9px] font-bold uppercase tracking-wider">Monthly Show-ups</span>
+            <span className="text-[9px] font-bold uppercase tracking-wider">Monthly Deals Closed</span>
             <TrendingUp className="w-4.5 h-4.5 text-brand-cyan" />
           </div>
-          <p className="text-2xl font-extrabold text-brand-text font-display">{monthlyShowups}</p>
-          <span className="text-[8px] text-brand-text-mute mt-1 font-mono uppercase">{meetingsBooked} Booked</span>
+          <p className="text-2xl font-extrabold text-brand-text font-display">{monthlyDeals}</p>
+          <span className="text-[8px] text-brand-text-mute mt-1 font-mono uppercase">{dealsClosed} Briefs Completed</span>
         </div>
 
         {/* Team Commission */}
@@ -258,8 +258,8 @@ export default function TeamLeadDashboard() {
       {/* Target Progress Bar */}
       <div className="p-6 rounded-2xl glass-panel border border-brand-border/40">
         <div className="flex justify-between items-center text-xs font-bold text-brand-text-soft mb-3">
-          <span className="uppercase tracking-wider">Team Campaign Progress Target</span>
-          <span className="font-mono text-brand-text">{monthlyShowups} / {teamTarget} ({progressPercent.toFixed(0)}%)</span>
+          <span className="uppercase tracking-wider">Team Art Brief Target Progress</span>
+          <span className="font-mono text-brand-text">{monthlyDeals} / {teamTarget} ({progressPercent.toFixed(0)}%)</span>
         </div>
         <div className="w-full bg-brand-bg-soft rounded-full h-3 border border-brand-border overflow-hidden">
           <div
@@ -274,9 +274,9 @@ export default function TeamLeadDashboard() {
         
         {/* Left Column: Recharts visual trends */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Show-ups by Team Member */}
+          {/* Deals by Team Member */}
           <div className="p-6 rounded-2xl glass-panel space-y-4">
-            <h3 className="text-xs font-bold text-brand-text uppercase tracking-wider font-display">Show-ups by Team Member</h3>
+            <h3 className="text-xs font-bold text-brand-text uppercase tracking-wider font-display">Completed Deals by Team Member</h3>
             <div className="h-64 w-full">
               {showupsByMemberData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -286,12 +286,12 @@ export default function TeamLeadDashboard() {
                     <YAxis stroke={strokeColor} fontSize={10} tickLine={false} />
                     <Tooltip contentStyle={{ backgroundColor: tooltipBg, borderColor: tooltipBorder, color: tooltipColor, borderRadius: 12 }} />
                     <Legend verticalAlign="top" height={36} />
-                    <Bar dataKey="Meetings Booked" fill="#3e6cf6" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Show-ups" fill="#34d399" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Briefs Completed" fill="#3e6cf6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Deals Closed" fill="#34d399" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-xs text-brand-text-mute italic py-12 text-center">No showups registered for this campaign yet</p>
+                <p className="text-xs text-brand-text-mute italic py-12 text-center">No deals registered for this campaign yet</p>
               )}
             </div>
           </div>
@@ -336,8 +336,8 @@ export default function TeamLeadDashboard() {
                 <span className="font-mono font-bold text-brand-green">{attendanceRate.toFixed(1)}%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-brand-text-soft">Average Show-ups per Executive:</span>
-                <span className="font-mono font-bold text-brand-cyan">{averageShowupsPerSdr} show-ups</span>
+                <span className="text-brand-text-soft">Average Deals per Executive:</span>
+                <span className="font-mono font-bold text-brand-cyan">{averageDealsPerExecutive} deals</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-brand-text-soft">Pending Team Requests:</span>
@@ -391,8 +391,8 @@ export default function TeamLeadDashboard() {
                 <th className="py-3 px-4">Name</th>
                 <th className="py-3 px-4">Role</th>
                 <th className="py-3 px-4">Today's Attendance</th>
-                <th className="py-3 px-4 text-center">Meetings Booked</th>
-                <th className="py-3 px-4 text-center">Monthly Show-ups</th>
+                <th className="py-3 px-4 text-center">Deals Closed</th>
+                <th className="py-3 px-4 text-center">Briefs Completed</th>
                 <th className="py-3 px-4 text-right">Commissions</th>
               </tr>
             </thead>
