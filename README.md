@@ -1,139 +1,116 @@
-# ArtXenith HRIS & Attendance System
+# ArtXenith Enterprise HRIS & Operations Platform
 
-**ArtXenith HRIS** is an enterprise-grade, full-stack Human Resource Information System built for ArtXenith. It manages employee lifecycles, org charts, request workflows, campaign & SDR performance tracking, dynamic commission slabs, spiffs, loans, direct HRIS web check-in & check-out attendance tracking, internal communications workspace, SDR dialer, and automated payroll with PDF payslips.
-
----
-
-## Architecture Overview
-
-```mermaid
-flowchart TD
-    subgraph Hosting_Cloud["Cloud Hosting (Namecheap / Vercel / VPS)"]
-        API["ArtXenith HRIS Backend API\n(Express.js Node 22+)"]
-        AuthMiddleware["JWT Authentication Middleware"]
-        DB[(Database\nPostgreSQL / Supabase)]
-        Frontend["ArtXenith HRIS Frontend\n(React / Modern Web Interface)"]
-        
-        API <--> DB
-        Frontend <--> API
-    end
-
-    User["Employees / SDRs / Staff"] -- "Web Check-In / Check-Out (Timestamp Recorded)" --> Frontend
-```
+**ArtXenith HRIS** is an enterprise-grade, full-stack Human Resource Information System and digital art agency operations management suite custom-tailored for **ArtXenith**. It manages employee lifecycles, team hierarchies, interactive 18-column sales sheets, multi-stage artwork brief assignments, installment tracking, real-time multi-tab pop-up notification engines, attendance penalties, float advances, and automated monthly payroll.
 
 ---
 
-## Key Modules & Features
+## 🎨 Xenith Brand Design Identity
 
-### 1. Authentication & Security
-- **Multi-Tenant Auth**: JWT Bearer authentication with short-lived access tokens and refresh tokens.
-- **Google SSO**: One-click Google Sign-In (`Sign in with Google`).
-- **First-Time Login Security**: Enforced password change upon initial account creation.
+The platform strictly adheres to the official **Xenith Logo & Palette Guidelines**:
 
-### 2. Employee Records & Org Chart
-- **360° Employee Profiles**: Full name, employee code (`EMP-001`), designation, phone, bank details, emergency contacts, photo, and shift parameters.
-- **Hierarchical Org Chart**: Built automatically from manager-subordinate relations.
-- **Compensation History**: Full audit trail of salary increments with effective dates and reasons.
-
-### 3. HRIS Web Check-In & Attendance Management
-- **Direct Web Check-In & Check-Out**: Staff members mark check-in/check-out directly from their HRIS dashboard portal.
-- **Timestamp Accuracy**: Exact server timestamps recorded automatically upon check-in/out.
-- **Late Minutes & Grace Period**: Automatic late minute calculation against employee shift start (`09:30`) and custom grace periods (`15 mins`).
-- **Summary Metrics**: Monthly present days, late count, total late minutes, half-days, early departures, overtime, and leave totals.
-
-### 4. Employee Self-Service & Request Workflows
-- **Leave Requests**: Annual, Sick, Casual, Unpaid leave applications with manager approval/rejection workflow.
-- **Half-Day Requests**: Single-click half-day applications.
-- **Work From Home (WFH) Requests**: Date range WFH requests with approval status tracking.
-
-### 5. SDR & Campaign Performance Tracking
-- **Campaign Management**: Active/inactive campaigns with monthly show-up targets.
-- **Team Allocation**: Assign Team Leads and SDRs to campaigns (`CampaignMember`).
-- **Performance Logging**: Monthly performance metrics per SDR (Meetings Booked, Show-ups, No-shows, Cancelled Meetings).
-
-### 6. Dynamic Commission Slabs & Spiffs
-- **Slab-Based Commissions**: Tiered show-up commission rates (e.g., 1–10 showups @ $10/ea, 11–20 @ $15/ea, 21+ @ $20/ea).
-- **Spiff Incentives**: Manager/Admin awarded one-off cash spiffs with audit reasons.
-
-### 7. Loans & Salary Advances
-- **Employee Loan Requests**: Request salary advances or loans with specified repayment target month/year.
-- **Automated Deduction Engine**: Automatically deducts approved loan repayments during monthly payroll processing.
-
-### 8. Payroll Engine & PDF Payslips
-- **Automated Monthly Payroll**: Computes base salary, pro-rated attendance deductions, late penalties, loan repayments, spiffs, and commissions.
-- **Automated PDF Payslips**: Generates downloadable PDF payslips using `PDFKit`.
-
-### 9. Excel Sales Sheet & 4-Stage Project Progression
-- **Interactive Sales Sheet**: Monthly filtered sales grid tracking Client Name, Project Name, Sale Amount, Amount Received, Remaining Balance, Installments, Payment Method, and Notes.
-- **4 Predefined Project Stages**: `Initial Sketch` → `Line Art` → `Base Color` → `Final Artwork` with stage duration logging.
-- **Stagnant Project & Missing Brief Alerts**: Automated alerts for projects stuck >5 days in the same stage or missing briefs after 2 days.
-
-### 10. Brief Management & Document Versioning
-- **Multi-Format Brief Uploads**: Store DOCX, PDF, and client guidelines linked directly to project sales.
-- **Version History**: Maintained version history (`v1`, `v2`, `v3`...) with full download access.
-
-### 11. Executive Finance & Profit / Loss Portal (Admin Only)
-- **Company Expenses Log**: Track Office Expenses, Rent, Utilities, Software/Subscriptions, Equipment, and Misc.
-- **Company Receivings**: Aggregated client payments and installment receipts.
-- **Salary Payout Manager**: Basic Salary, configurable Commission %, Bonuses, Deductions, Net Salary, Amount Paid, and Outstanding Salaries.
-- **Profit & Loss Engine**: Automatically computes `Receivings − Expenses − Salaries` with monthly/yearly breakdowns.
-
-### 12. Artist Work Assignment Board
-- **Artist Tracking**: Displays assigned artists, current project stages, days spent, progress bars, and alert badges.
+- **Core Identity Colors**:
+  - **Black** (`#000000`, `#090909`, `#111111`, `#171717`)
+  - **White** (`#FFFFFF`, `#F4F4F0`)
+  - **Electric Lime** (`#D7F000`) — Primary Identity & Highlight Accent
+  - **Lemon Green** (`#E8F52A`, `#F0FF3D`) — Secondary Highlight Accent
+- **Protected Contrast**: All logo renders sit inside solid black capsule backdrops (`.xenith-logo-container`) to eliminate background blending in both Light and Dark modes.
 
 ---
 
-## Role-Based Access Control (RBAC) Matrix
+## 🏢 Organizational Structure & Team Leadership
 
-| Feature / Module | Admin / CEO / COO | Team Lead | SDR / Regular Employee |
-| :--- | :---: | :---: | :---: |
-| **Manage Employees & Salaries** | Full Access | Read-Only | Read Self Only |
-| **View Org Chart** | Full Access | Full Access | Full Access |
-| **Approve / Reject Requests** | Full Access | Team Members Only | Self Only (Submit) |
-| **HRIS Web Attendance** | View All / Manual Override | Team Members Only | Self Only |
-| **Sales Sheet & Projects** | View All | Team Sales Only | Self Sales Only |
-| **Project Briefs & Versions** | View All | Team Briefs Only | Self Briefs Only |
-| **Executive Finance & P&L** | Full Access | No Access | No Access |
-| **Campaign & Performance Management** | Full Access | Assigned Campaigns | Self Performance |
-| **Manage Commission Slabs** | Full Access | Read-Only | No Access |
-| **Award Spiffs** | Full Access | Team Members | No Access |
-| **Payroll & Payslip Generation** | Full Access | No Access | View Own Payslip |
-| **Audit Logs & System Settings** | Full Access | No Access | No Access |
+### 1. Executive Leadership
+- **Muhammad Ahsan**: **CEO & Founder** (`ahsankhanzada1122@gmail.com`)
+  - Oversees company-wide performance, master sales sheets, artist allocations, float/advance approvals, and executive P&L.
+- **Subu Ahad**: **Admin & Sales Team Lead** (`subuahad1@gmail.com`)
+  - Manages **Team Subu**, admin system configuration, team sales, and project brief submissions.
+- **Anas Ahmed**: **Sales Team Lead** (`anasahmyd16@gmail.com`)
+  - Manages **Team Anas**, team sales, attendance verification, and brief submissions.
+
+### 2. Active Sales Teams
+
+| Team Name | Team Leader | Assigned Sales Executives & Staff |
+| :--- | :--- | :--- |
+| **Team Subu** | **Subu Ahad** | Adeen Afzal, Usama Riyaz, Muhammad Umar, Taha Asrar |
+| **Team Anas** | **Anas Ahmed** | Ahmed Ali, Muhammad Safiullah Khan, Muhammad Visam Khan |
 
 ---
 
-## Database & Supabase Deployment
+## ⚡ Core Operational Rules & Workflows
 
-The system uses **Prisma ORM** & **Supabase PostgreSQL** for type-safe, database-level secured data access.
+### 1. 📅 5th-to-5th Billing & Financial Settlement Cycle
+- Financial calculations, monthly sales sheet totals, remaining installment collections, and artist salary payouts run strictly from the **5th of previous month to 5th of current month** (e.g., Aug 5th to Sept 5th).
 
-### Environment Setup (`.env`)
-```env
-PORT=4000
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?schema=public"
-DIRECT_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?schema=public"
-NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT_REF].supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
-SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
-JWT_SECRET="your_generated_jwt_secret"
-COMPANY_NAME="ArtXenith"
-```
+### 2. ⏰ 18:20 PKT Shift Timing & Attendance Rules
+- **Shift Start**: 18:00 PKT (6:00 PM PKT).
+- **Grace Period**: **20 minutes grace time** (Late threshold at **18:20 PKT**).
+- **Adeen Afzal Override**: 45 minutes grace time (Late threshold at **18:45 PKT**).
+- **Deduction Formula**: Calculated over a 26-working-day base (`30 days − 4 Sundays`). **2 late check-ins = 1 day absence penalty** (`(Base Salary / 26) * Days Worked`).
+- **Artist Exemption**: Artists (Designers) are exempt from daily shift clock-in penalties (`attendanceExempt = true`).
 
-### Running Migrations & RLS Security
+### 3. 📊 18-Column Interactive Sales Sheet & Sub-Sheet Installments
+- **Spreadsheet Interface** ([SalesSheet.jsx](file:///c:/Users/nasir/Desktop/artxenith/frontend/src/pages/SalesSheet.jsx)): Custom monthly & yearly filterable sales sheet.
+- **Installment Sub-Sheet Drawer**: When a sale is marked with installments, a sub-drawer opens tracking payment dates, gross amounts, fee deductions, and net PKR.
+- **Remaining Payments Ledger**: Installments collected in subsequent billing months count under **Remaining Payments** without duplicating the base sales count.
+
+### 4. 🎨 4-Stage Artwork Progression & 5-Day SLA Alert Triggers
+- **Stage Progression**: `Initial Sketch` → `Line Art` → `Base Color` → `Final Artwork`.
+- **5-Day SLA Alerts**: Automated alerts and warning triggers if a project sits in a stage for more than 5 days without artwork updates.
+- **Scoped Artwork Visibility**: Team Leads can **ONLY view artwork updates for projects belonging to their team** (`Team Subu` vs `Team Anas`).
+
+### 5. 🔔 Real-Time Multi-Tab & Desktop OS Pop-Up Notification Engine
+- **In-App Pop-Up Toasts**: Styled in solid **Black + Electric Lime (`#D7F000`)** with direct action links.
+- **Desktop OS Pop-Ups**: Triggers native OS notifications (`Notification.requestPermission()`) when the user is on **another tab, another window, or has the browser minimized**.
+- **Web Audio Chime**: Synthesizes a crisp modern audio chime (`playNotificationChime()`) on every incoming alert.
+- **10-Second High-Frequency Engine**: Polls every 10 seconds across all user roles.
+
+---
+
+## 🔐 Role-Based Access Control (RBAC) Matrix
+
+| Feature / Module | CEO (Muhammad Ahsan) | Admin / TL (Subu Ahad) | Team Lead (Anas Ahmed) | Sales Executives | Artists (Designers) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Global Operations & P&L** | Full Access | Full Access | No Access | No Access | No Access |
+| **Manage Employee Accounts** | Full Access | Full Access | Read Team Only | Read Self Only | Read Self Only |
+| **Sales Sheet & Installments** | All Teams | Team Subu & All | Team Anas | Self Sales Only | Read Assigned |
+| **Project Brief Uploads** | Full Access | Full Access | Full Access | Create / Submit | Read Assigned |
+| **Brief Assignment to Artists** | Full Access | Full Access | Read Only | No Access | Read Assigned |
+| **Artwork Stage Updates** | View & Download | Team Subu Projects | Team Anas Projects | Track Owned | Upload & Update |
+| **Artist Credentials Directory** | Full Access | Full Access | Read Only | No Access | Self Credentials |
+| **Attendance & Check-In** | View All | View Team Subu | View Team Anas | Self Only | Attendance Exempt |
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+- **Frontend**: React 19, Vite, TailwindCSS (v4 @theme system), Framer Motion, Lucide Icons, Recharts, React-Hot-Toast.
+- **Backend**: Node.js 22+, Express.js, Prisma ORM (v5.22), Supabase PostgreSQL.
+- **Authentication**: JWT Bearer Tokens, Bcryptjs, Role-Based Access Control (RBAC).
+
+---
+
+## 🚀 Local Development Setup
+
 ```bash
-# Push database schema & RLS policies
+# 1. Install Backend Dependencies
+cd backend
+npm install
+
+# 2. Run Database Migrations & Seed Team Hierarchy
 npx prisma db push
+node prisma/seedEmployees.js
+
+# 3. Start Backend Development Server
+npm run dev
+
+# 4. In a new terminal, start Frontend Development Server
+cd ../frontend
+npm install
+npm run dev
 ```
 
 ---
 
-## Deploying to Vercel
+## 📜 License & Operations Notice
 
-```bash
-# Deploy production build via Vercel CLI
-npx vercel --prod
-```
-
----
-
-## License & Support
-Built for internal use at **ArtXenith**. All rights reserved.
+Built specifically for internal enterprise operations at **ArtXenith**. All rights reserved.
