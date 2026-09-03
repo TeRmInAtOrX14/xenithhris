@@ -30,6 +30,7 @@ import {
 } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../utils/themeContext';
+import CheckInWidget from '../components/CheckInWidget';
 
 const ATTENDANCE_CHART_DATA = [
   { name: 'Mon', Present: 22, Late: 1, Absent: 0 },
@@ -61,6 +62,8 @@ export default function AdminDashboard({ stats, campaigns = [] }) {
       initial="hidden"
       animate="show"
     >
+      {/* Real-time Clock-In Attendance Widget */}
+      <CheckInWidget />
       {/* Executive Welcome Banner — Xenith Controlled Maximalism */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-[#111111] p-6 rounded-2xl border border-[#262626] relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-[#D7F000]/10 to-transparent pointer-events-none" />

@@ -60,11 +60,13 @@ exports.getSales = async (req, res, next) => {
 
     const where = { ...roleFilter };
 
-    if (employeeId) {
+    const isCEOOrTL = ['Admin', 'CEO', 'COO', 'Team Lead'].includes(req.user.role);
+
+    if (employeeId && isCEOOrTL) {
       where.employeeId = employeeId;
     }
 
-    if (designerId) {
+    if (designerId && isCEOOrTL) {
       where.designerId = designerId;
     }
 

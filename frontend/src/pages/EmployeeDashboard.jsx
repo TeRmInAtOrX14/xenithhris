@@ -19,6 +19,7 @@ import {
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { useTheme } from '../utils/themeContext';
+import CheckInWidget from '../components/CheckInWidget';
 
 export default function EmployeeDashboard() {
   const { isDark } = useTheme();
@@ -50,6 +51,8 @@ export default function EmployeeDashboard() {
       initial="hidden"
       animate="show"
     >
+      {/* Real-time Clock-In Attendance Widget */}
+      <CheckInWidget />
       {/* Welcome Header */}
       <div className="p-6 rounded-2xl glass-panel border border-brand-border flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>

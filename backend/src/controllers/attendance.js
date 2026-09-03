@@ -20,8 +20,8 @@ exports.getAttendance = async (req, res, next) => {
       }
     }
 
-    if (['Employee'].includes(req.user.role)) {
-      // Regular employees and SDRs can only see their own attendance
+    if (['Employee', 'Sales Executive', 'Designer'].includes(req.user.role)) {
+      // Sales Executives, Artists, and regular employees can only see their own attendance
       if (!req.user.employee) {
         return res.status(400).json({ error: 'No employee profile linked to user.' });
       }

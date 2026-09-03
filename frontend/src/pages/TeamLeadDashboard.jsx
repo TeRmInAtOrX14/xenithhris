@@ -33,6 +33,7 @@ import {
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { useTheme } from '../utils/themeContext';
+import CheckInWidget from '../components/CheckInWidget';
 
 const COLORS = ['#3e6cf6', '#8b5cf6', '#22d3ee', '#34d399', '#f5b942', '#ef4444'];
 
@@ -200,6 +201,9 @@ export default function TeamLeadDashboard() {
       animate="show"
       className="space-y-6 text-left"
     >
+      {/* Real-time Clock-In Attendance Widget */}
+      <CheckInWidget />
+
       {/* Top Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl glass-panel relative overflow-hidden border border-brand-border/40">
         <div className="z-10">
