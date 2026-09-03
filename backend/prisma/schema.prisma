@@ -97,6 +97,7 @@ model Employee {
   
   commissionPercentage Float    @default(0)
   department           String?  @default("Operations")
+  teamName             String?  @default("Team Subu") // Team Subu or Team Anas
   joiningDate          DateTime? @default(now())
 
   createdAt        DateTime    @default(now())
@@ -167,6 +168,7 @@ model Sale {
   installmentsCount    Int               @default(1)
   installmentsReceived Int               @default(0)
   nextPaymentDate      DateTime?
+  teamName             String?           @default("Team Subu") // Team Subu or Team Anas
   
   platform             String?           @default("Direct / Website") // Outreach Platform e.g. Upwork, Fiverr, LinkedIn, Instagram, Email
   paymentMethod        String?           @default("Online/Bank Transfer") // Online/Bank Transfer, Wise, Stripe, PayPal, Crypto

@@ -5,15 +5,35 @@ const prisma = new PrismaClient();
 
 const employeesToSeed = [
   {
-    employeeCode: 'EMP-001',
-    fullName: 'Subu Ahad',
-    email: 'subuahad1@gmail.com',
+    employeeCode: 'EMP-000-CEO',
+    fullName: 'Muhammad Ahsan',
+    email: 'ahsankhanzada1122@gmail.com',
     password: 'xenith@12',
     role: 'CEO',
     designation: 'CEO & Founder',
     department: 'Executive',
+    teamName: 'Executive',
     baseSalary: 0,
     commissionPercentage: 0,
+    phone: '923000000000',
+    bankAccount: 'PK00MEZN0000000000000000',
+    shiftStart: '18:00',
+    shiftEnd: '23:59',
+    joiningDate: new Date('2024-01-01'),
+    customLateThresholdMinutes: null,
+    attendanceExempt: true
+  },
+  {
+    employeeCode: 'EMP-001',
+    fullName: 'Subu Ahad',
+    email: 'subuahad1@gmail.com',
+    password: 'xenith@12',
+    role: 'Admin',
+    designation: 'Sales Team Lead & Admin',
+    department: 'Sales',
+    teamName: 'Team Subu',
+    baseSalary: 0,
+    commissionPercentage: 15,
     phone: '3151057817',
     bankAccount: 'PK00MEZN0000000000000000',
     shiftStart: '18:00',
@@ -30,6 +50,7 @@ const employeesToSeed = [
     role: 'Team Lead',
     designation: 'Sales Team Lead',
     department: 'Sales',
+    teamName: 'Team Anas',
     baseSalary: 0,
     commissionPercentage: 15,
     phone: '923342403058',
@@ -48,6 +69,7 @@ const employeesToSeed = [
     role: 'Sales Executive',
     designation: 'Sales Executive',
     department: 'Sales',
+    teamName: 'Team Subu',
     baseSalary: 0,
     commissionPercentage: 25,
     phone: '923128890865',
@@ -66,6 +88,7 @@ const employeesToSeed = [
     role: 'Sales Executive',
     designation: 'Sales Executive',
     department: 'Sales',
+    teamName: 'Team Subu',
     baseSalary: 0,
     commissionPercentage: 20,
     phone: '923152832488',
@@ -84,6 +107,7 @@ const employeesToSeed = [
     role: 'Sales Executive',
     designation: 'Sales Executive',
     department: 'Sales',
+    teamName: 'Team Anas',
     baseSalary: 0,
     commissionPercentage: 20,
     phone: '923089502918',
@@ -102,6 +126,7 @@ const employeesToSeed = [
     role: 'Sales Executive',
     designation: 'Sales Executive',
     department: 'Sales',
+    teamName: 'Team Anas',
     baseSalary: 0,
     commissionPercentage: 20,
     phone: '923233778770',
@@ -120,6 +145,7 @@ const employeesToSeed = [
     role: 'Sales Executive',
     designation: 'Sales Executive',
     department: 'Sales',
+    teamName: 'Team Subu',
     baseSalary: 0,
     commissionPercentage: 0,
     phone: '923226358318',
@@ -138,6 +164,7 @@ const employeesToSeed = [
     role: 'Sales Executive',
     designation: 'Sales Executive',
     department: 'Sales',
+    teamName: 'Team Subu',
     baseSalary: 0,
     commissionPercentage: 30,
     phone: '923122797269',
@@ -156,6 +183,7 @@ const employeesToSeed = [
     role: 'Sales Executive',
     designation: 'Sales Executive',
     department: 'Sales',
+    teamName: 'Team Anas',
     baseSalary: 0,
     commissionPercentage: 15,
     phone: '923191073405',
@@ -169,7 +197,7 @@ const employeesToSeed = [
 ];
 
 async function seed() {
-  console.log('Updating employees in database with new phone numbers...');
+  console.log('Seeding employees with CEO Muhammad Ahsan, Admin Subu Ahad, Team Lead Anas Ahmed, and Teams...');
   const salt = await bcrypt.genSalt(10);
 
   for (const emp of employeesToSeed) {
@@ -192,45 +220,54 @@ async function seed() {
       }
     });
 
-    // Upsert Employee
-    const employee = await prisma.employee.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        employeeCode: emp.employeeCode,
-        fullName: emp.fullName,
-        designation: emp.designation,
-        department: emp.department,
-        baseSalary: emp.baseSalary,
-        commissionPercentage: emp.commissionPercentage,
-        phone: emp.phone,
-        bankAccount: emp.bankAccount,
-        shiftStart: emp.shiftStart,
-        shiftEnd: emp.shiftEnd,
-        joiningDate: emp.joiningDate,
-        customLateThresholdMinutes: emp.customLateThresholdMinutes,
-        attendanceExempt: emp.attendanceExempt
-      },
-      update: {
-        employeeCode: emp.employeeCode,
-        fullName: emp.fullName,
-        designation: emp.designation,
-        department: emp.department,
-        baseSalary: emp.baseSalary,
-        commissionPercentage: emp.commissionPercentage,
-        phone: emp.phone,
-        bankAccount: emp.bankAccount,
-        shiftStart: emp.shiftStart,
-        shiftEnd: emp.shiftEnd,
-        customLateThresholdMinutes: emp.customLateThresholdMinutes,
-        attendanceExempt: emp.attendanceExempt
-      }
-    });
+    // Check existing Employee by userId
+    const existingEmp = await prisma.employee.findUnique({ where: { userId: user.id } });
 
-    console.log(`✅ Updated: ${emp.fullName} | Phone: ${emp.phone}`);
+    if (existingEmp) {
+      await prisma.employee.update({
+        where: { id: existingEmp.id },
+        data: {
+          employeeCode: emp.employeeCode,
+          fullName: emp.fullName,
+          designation: emp.designation,
+          department: emp.department,
+          teamName: emp.teamName,
+          baseSalary: emp.baseSalary,
+          commissionPercentage: emp.commissionPercentage,
+          phone: emp.phone,
+          bankAccount: emp.bankAccount,
+          shiftStart: emp.shiftStart,
+          shiftEnd: emp.shiftEnd,
+          customLateThresholdMinutes: emp.customLateThresholdMinutes,
+          attendanceExempt: emp.attendanceExempt
+        }
+      });
+    } else {
+      await prisma.employee.create({
+        data: {
+          userId: user.id,
+          employeeCode: emp.employeeCode,
+          fullName: emp.fullName,
+          designation: emp.designation,
+          department: emp.department,
+          teamName: emp.teamName,
+          baseSalary: emp.baseSalary,
+          commissionPercentage: emp.commissionPercentage,
+          phone: emp.phone,
+          bankAccount: emp.bankAccount,
+          shiftStart: emp.shiftStart,
+          shiftEnd: emp.shiftEnd,
+          joiningDate: emp.joiningDate,
+          customLateThresholdMinutes: emp.customLateThresholdMinutes,
+          attendanceExempt: emp.attendanceExempt
+        }
+      });
+    }
+
+    console.log(`✅ ${emp.fullName} -> Role: ${emp.role} | Team: ${emp.teamName}`);
   }
 
-  console.log('🎉 Employee records successfully updated with exact phone numbers!');
+  console.log('🎉 Hierarchy seeded successfully with CEO Muhammad Ahsan & Team Lead Subu Ahad (Admin)!');
 }
 
 seed()

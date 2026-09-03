@@ -86,6 +86,7 @@ export default function Employees() {
       employeeCode: emp.employeeCode || '',
       fullName: emp.fullName || '',
       designation: emp.designation || '',
+      teamName: emp.teamName || 'Team Subu',
       teamIds: emp.campaignMembers?.map(m => m.campaign.id) || [],
       baseSalary: emp.baseSalary || 0,
       zkUserId: emp.zkUserId || '',
@@ -275,19 +276,9 @@ export default function Employees() {
                     <td className="p-4 font-bold text-brand-text">{emp.fullName}</td>
                     <td className="p-4 text-brand-text-soft">{emp.designation}</td>
                     <td className="p-4">
-                      <div className="flex flex-wrap gap-1">
-                        {emp.campaignMembers && emp.campaignMembers.length > 0 ? (
-                          emp.campaignMembers.map(m => (
-                            <span key={m.campaign.id} className="px-2 py-0.5 rounded-lg bg-brand-blue/10 text-brand-blue text-[9px] font-extrabold uppercase tracking-wide border border-brand-blue/20">
-                              {m.campaign.name}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-lg bg-brand-border text-brand-text-soft text-[9px] font-extrabold uppercase tracking-wide border border-brand-border/20">
-                            {getTeamPlaceholder(emp)}
-                          </span>
-                        )}
-                      </div>
+                      <span className="px-2.5 py-1 rounded-lg bg-black text-[#D7F000] border border-[#262626] font-mono text-[10px] font-extrabold uppercase">
+                        {emp.teamName || 'Team Subu'}
+                      </span>
                     </td>
                     <td className="p-4 font-mono text-brand-text/95 font-medium">{emp.bankAccount || '-'}</td>
                     <td className="p-4 font-medium text-brand-text-soft font-mono">{emp.shiftStart} - {emp.shiftEnd}</td>
