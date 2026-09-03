@@ -483,6 +483,126 @@ exports.uploadBrief = async (req, res, next) => {
 };
 
 /**
+ * POST /api/sales/upload-brief-text
+ * Upload brief using free-text Project Number and Project Name input boxes
+ */
+exports.uploadBriefByProjectText = async (req, res, next) => {
+  try {
+    const { projectNumber, projectName, clientName, fileName, fileUrl, fileType, designerId, notes } = req.body;
+
+    if (!projectNumber || !projectName || !fileName || !fileUrl) {
+      return res.status(400).json({ error: 'Project Number, Project Name, File Name, and Brief File URL are required.' });
+    }
+
+    const cleanPrjNum = projectNumber.trim();
+    const cleanPrjName = projectName.trim();
+    const cleanClientName = clientName ? clientName.trim() : 'Direct Client';
+
+    // Find existing sale or create a new sale entry for this project
+    let sale = await prisma.sale.findFirst({
+      where: {
+        OR: [
+          { projectNumber: { equals: cleanPrjNum, mode: 'insensitive' } },
+          { projectName: { equals: cleanPrjName, mode: 'insensitive' } }
+        ]
+      }
+    });
+
+    if (!sale) {
+      const empId = req.user.employee?.id;
+      if (!empId) {
+        return res.status(400).json({ error: 'No employee profile linked to create new project brief.' });
+      }
+
+      const formattedPrjNum = cleanPrjNum.toUpperCase().startsWith('PRJ-') ? cleanPrjNum.toUpperCase() : `PRJ-${cleanPrjNum.toUpperCase()}`;
+
+      sale = await prisma.sale.create({
+        data: {
+          projectNumber: formattedPrjNum,
+          clientName: cleanClientName,
+          projectName: cleanPrjName,
+          saleDate: new Date(),
+          employeeId: empId,
+          designerId: designerId || null,
+          saleAmount: 0,
+          upfrontAmount: 0,
+          projectStage: 'Initial Sketch',
+          briefStatus: 'Uploaded',
+          paymentStatus: 'Unpaid'
+        }
+      });
+    }
+
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const validExts = ['png', 'jpeg', 'jpg', 'webp', 'pdf', 'docx'];
+    const detectedType = fileType?.toLowerCase() || ext || 'png';
+
+    if (!validExts.includes(detectedType)) {
+      return res.status(400).json({ error: 'Accepted brief formats are: .png, .jpeg, .jpg, .webp, .pdf, .docx' });
+    }
+
+    const existingBriefs = await prisma.projectBrief.findMany({
+      where: { saleId: sale.id },
+      orderBy: { version: 'desc' }
+    });
+
+    const nextVersion = existingBriefs.length > 0 ? existingBriefs[0].version + 1 : 1;
+
+    let targetDesignerId = designerId || sale.designerId;
+    if (designerId) {
+      await prisma.sale.update({
+        where: { id: sale.id },
+        data: { designerId }
+      });
+    }
+
+    const brief = await prisma.projectBrief.create({
+      data: {
+        saleId: sale.id,
+        uploadedById: req.user.id,
+        designerId: targetDesignerId || null,
+        fileName,
+        fileUrl,
+        fileType: detectedType,
+        version: nextVersion,
+        notes: notes || null,
+        status: 'Pending'
+      }
+    });
+
+    await prisma.sale.update({
+      where: { id: sale.id },
+      data: { briefStatus: 'Uploaded' }
+    });
+
+    // Notify assigned Artist if present
+    if (targetDesignerId) {
+      const artistUser = await prisma.employee.findUnique({
+        where: { id: targetDesignerId },
+        select: { userId: true }
+      });
+      if (artistUser?.userId) {
+        await prisma.notification.create({
+          data: {
+            userId: artistUser.userId,
+            title: `🎨 New Brief Uploaded — ${sale.projectNumber}`,
+            message: `A new ${detectedType.toUpperCase()} brief ("${fileName}") was uploaded for project "${sale.projectName}".`,
+            type: 'brief_assignment',
+            link: '/dashboard/artist-assignments',
+            isRead: false
+          }
+        });
+      }
+    }
+
+    await logAudit(req.user.id, 'UPLOAD_BRIEF_TEXT', 'ProjectBrief', brief.id, { projectNumber: cleanPrjNum, fileName, version: nextVersion });
+    res.json({ brief, sale });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * PATCH /api/sales/:id/assign-artist
  * CEO / Admin / Team Lead assigns an Artist (Designer) to a project & its briefs
  */

@@ -10,6 +10,7 @@ router.post('/', requireAuth, salesController.createSale);
 router.put('/:id', requireAuth, salesController.updateSale);
 router.patch('/:id/stage', requireAuth, salesController.updateSaleStage);
 router.post('/:id/briefs', requireAuth, salesController.uploadBrief);
+router.post('/upload-brief-text', requireAuth, salesController.uploadBriefByProjectText);
 router.patch('/:id/assign-artist', requireAuth, salesController.assignArtist);
 router.patch('/briefs/:briefId/artist-update', requireAuth, salesController.updateBriefByArtist);
 

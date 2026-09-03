@@ -112,18 +112,36 @@ export default function BriefManagement() {
     reader.readAsDataURL(file);
   };
 
+  const [textProjectNumber, setTextProjectNumber] = useState('');
+  const [textProjectName, setTextProjectName] = useState('');
+  const [textClientName, setTextClientName] = useState('');
+
   const handleSaveBrief = async (e) => {
     e.preventDefault();
-    const targetSaleId = activeSale?.id || selectedSaleId;
-    if (!targetSaleId || !briefForm.fileName || !briefForm.fileUrl) {
-      return toast.error('Please select a project and a brief file.');
+    if (!briefForm.fileName || !briefForm.fileUrl) {
+      return toast.error('Please select a brief file to upload.');
+    }
+    if (!textProjectNumber || !textProjectName) {
+      return toast.error('Please enter the Project Number and Project Name.');
     }
     try {
       setUploading(true);
-      await api.post(`/sales/${targetSaleId}/briefs`, briefForm);
-      toast.success(`Brief "${briefForm.fileName}" uploaded successfully!`);
+      await api.post('/sales/upload-brief-text', {
+        projectNumber: textProjectNumber,
+        projectName: textProjectName,
+        clientName: textClientName,
+        fileName: briefForm.fileName,
+        fileUrl: briefForm.fileUrl,
+        fileType: briefForm.fileType,
+        designerId: briefForm.designerId,
+        notes: briefForm.notes
+      });
+      toast.success(`Brief "${briefForm.fileName}" uploaded for #${textProjectNumber}!`);
       setUploadModalOpen(false);
       setBriefForm({ fileName: '', fileUrl: '', fileType: 'png', designerId: '', notes: '' });
+      setTextProjectNumber('');
+      setTextProjectName('');
+      setTextClientName('');
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to upload brief file');
@@ -192,9 +210,11 @@ export default function BriefManagement() {
           {/* TOP LEVEL PROMINENT UPLOAD BRIEF BUTTON */}
           <button
             onClick={() => {
-              setActiveSale(sales[0] || null);
-              if (sales[0]) setSelectedSaleId(sales[0].id);
-              setBriefForm({ fileName: '', fileUrl: '', fileType: 'png', designerId: sales[0]?.designerId || '', notes: '' });
+              setActiveSale(null);
+              setTextProjectNumber('');
+              setTextProjectName('');
+              setTextClientName('');
+              setBriefForm({ fileName: '', fileUrl: '', fileType: 'png', designerId: '', notes: '' });
               setUploadModalOpen(true);
             }}
             className="px-4 py-2 rounded-xl bg-[#D7F000] text-black font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-[#E8F52A] transition-all shadow-md shadow-[#D7F000]/20 cursor-pointer"
@@ -361,6 +381,9 @@ export default function BriefManagement() {
                       onClick={() => {
                         setActiveSale(sale);
                         setSelectedSaleId(sale.id);
+                        setTextProjectNumber(sale.projectNumber || '');
+                        setTextProjectName(sale.projectName || '');
+                        setTextClientName(sale.clientName || '');
                         setBriefForm({ fileName: '', fileUrl: '', fileType: 'png', designerId: sale.designerId || '', notes: '' });
                         setUploadModalOpen(true);
                       }}
@@ -423,24 +446,42 @@ export default function BriefManagement() {
               </div>
 
               <form onSubmit={handleSaveBrief} className="space-y-4">
-                {/* Project Selector if opening top-level modal */}
+                {/* Free-Text Input Box for Project Number */}
                 <div>
-                  <label className="block text-[10px] font-bold text-brand-text-gray uppercase mb-1">Target Project *</label>
-                  <select
-                    value={activeSale?.id || selectedSaleId}
-                    onChange={(e) => {
-                      const found = sales.find(s => s.id === e.target.value);
-                      setActiveSale(found || null);
-                      setSelectedSaleId(e.target.value);
-                    }}
+                  <label className="block text-[10px] font-bold text-brand-text-gray uppercase mb-1">Project Number (Text Box) *</label>
+                  <input
+                    type="text"
+                    value={textProjectNumber}
+                    onChange={(e) => setTextProjectNumber(e.target.value)}
+                    placeholder="e.g. PRJ-1024"
                     required
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#262626] bg-black text-xs text-white focus:outline-none focus:border-[#D7F000] cursor-pointer"
-                  >
-                    <option value="">Select Target Project...</option>
-                    {sales.map(s => (
-                      <option key={s.id} value={s.id}>#{s.projectNumber} — {s.projectName} ({s.clientName})</option>
-                    ))}
-                  </select>
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#262626] bg-black text-xs text-white focus:outline-none focus:border-[#D7F000]"
+                  />
+                </div>
+
+                {/* Free-Text Input Box for Project Name */}
+                <div>
+                  <label className="block text-[10px] font-bold text-brand-text-gray uppercase mb-1">Project Name / Artwork Title (Text Box) *</label>
+                  <input
+                    type="text"
+                    value={textProjectName}
+                    onChange={(e) => setTextProjectName(e.target.value)}
+                    placeholder="e.g. Cyberpunk Digital Character Artwork"
+                    required
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#262626] bg-black text-xs text-white focus:outline-none focus:border-[#D7F000]"
+                  />
+                </div>
+
+                {/* Free-Text Input Box for Client Name */}
+                <div>
+                  <label className="block text-[10px] font-bold text-brand-text-gray uppercase mb-1">Client Name (Text Box)</label>
+                  <input
+                    type="text"
+                    value={textClientName}
+                    onChange={(e) => setTextClientName(e.target.value)}
+                    placeholder="e.g. Alex Rivera (Optional)"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#262626] bg-black text-xs text-white focus:outline-none focus:border-[#D7F000]"
+                  />
                 </div>
 
                 <div>
