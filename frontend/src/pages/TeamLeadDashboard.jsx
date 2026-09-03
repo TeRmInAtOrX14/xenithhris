@@ -79,18 +79,10 @@ export default function TeamLeadDashboard() {
       ]);
 
       setTeamMembers(empRes.data);
-      setCampaigns(campRes.data);
       setAttendance(attRes.data);
       setLeaves(leaveRes.data);
       setHalfdays(halfdayRes.data);
       setWfh(wfhRes.data);
-
-      // Fetch campaign dashboard (depends on knowing which campaign is active)
-      const activeCampaign = campRes.data.find(c => c.status === 'active');
-      if (activeCampaign) {
-        const dashRes = await api.get(`/campaigns/${activeCampaign.id}/dashboard?month=${currentMonth}&year=${currentYear}`);
-        setCampaignDashboard(dashRes.data);
-      }
 
     } catch (err) {
       toast.error('Failed to load Team Lead metrics');
@@ -116,10 +108,9 @@ export default function TeamLeadDashboard() {
   }
 
   // Calculations
-  const activeCampaign = campaigns.find(c => c.status === 'active');
-  const teamName = activeCampaign?.name || 'No Active Campaign';
+  const teamName = currentUser.teamName || 'Sales Team';
   
-  const sdrs = teamMembers.filter(e => e.user?.role === 'SDR');
+  const sdrs = teamMembers.filter(e => e.user?.role === 'Sales Executive' || e.user?.role === 'Employee');
   const totalSdrs = sdrs.length;
 
   // Today's attendance
