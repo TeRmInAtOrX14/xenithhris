@@ -46,10 +46,9 @@ export default function Dashboard() {
         const todayStr = new Date().toISOString().split('T')[0];
 
         // Fetch all required data in parallel
-        const [empRes, attRes, projRes, runRes] = await Promise.all([
+        const [empRes, attRes, runRes] = await Promise.all([
           api.get('/employees'),
           api.get(`/attendance?startDate=${todayStr}&endDate=${todayStr}`),
-          (isAdmin || isTeamLead) ? api.get('/campaigns') : Promise.resolve({ data: [] }),
           isAdmin ? api.get('/payroll/runs') : Promise.resolve({ data: [] })
         ]);
 

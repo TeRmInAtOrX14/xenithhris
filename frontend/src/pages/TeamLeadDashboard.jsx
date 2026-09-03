@@ -69,10 +69,9 @@ export default function TeamLeadDashboard() {
       const tenDaysAgoStr = tenDaysAgo.toISOString().split('T')[0];
       const todayStr = today.toISOString().split('T')[0];
 
-      // Fetch ALL data in parallel — employees, campaigns, attendance, and requests
-      const [empRes, campRes, attRes, leaveRes, halfdayRes, wfhRes] = await Promise.all([
+      // Fetch ALL data in parallel — employees, attendance, and requests
+      const [empRes, attRes, leaveRes, halfdayRes, wfhRes] = await Promise.all([
         api.get('/employees'),
-        api.get('/campaigns'),
         api.get(`/attendance?startDate=${tenDaysAgoStr}&endDate=${todayStr}`),
         api.get('/requests/leave?status=pending'),
         api.get('/requests/halfday?status=pending'),

@@ -236,7 +236,6 @@ export default function DashboardLayout() {
     {
       group: 'System',
       links: [
-        { label: 'Campaigns', path: '/dashboard/campaigns', icon: Briefcase, roles: ['Admin', 'CEO', 'COO', 'Team Lead'] },
         { label: 'Audit Trail', path: '/dashboard/audit', icon: ShieldAlert, roles: ['Admin', 'CEO', 'COO'] }
       ]
     }
