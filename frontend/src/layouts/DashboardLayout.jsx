@@ -611,7 +611,7 @@ export default function DashboardLayout() {
                 </div>
               )}
               <div className="hidden sm:flex flex-col text-left">
-                <span className="text-xs font-extrabold text-white truncate max-w-[110px] group-hover:text-[#D7F000] transition-colors">
+                <span className="text-xs font-extrabold text-brand-text truncate max-w-[110px] group-hover:text-[#D7F000] transition-colors">
                   {currentUser.name || currentUser.email?.split('@')[0]}
                 </span>
                 <span className="text-[9px] text-brand-text-mute font-mono uppercase">{currentUser.role}</span>

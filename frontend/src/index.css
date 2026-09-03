@@ -80,35 +80,41 @@
 }
 
 [data-theme="light"] {
-  /* LIGHT XENITH PALETTE (Accessibility Darkened Greens) */
-  --brand-bg: #F4F4F0;           /* Background */
-  --brand-bg-soft: #FFFFFF;      /* White Surface */
-  --brand-bg-surface: #EBEBE6;   /* Secondary Surface */
-  --brand-bg-elevated: #FFFFFF;
-  --brand-border: #D6D6D0;       /* Border */
-  --brand-border-strong: #B0B0A8;
+  /* LIGHT XENITH PALETTE (Warm Clean Canvas & Crisp High-Contrast Cards) */
+  --brand-bg: #F8F9FA;           /* Crisp Warm Off-White Background */
+  --brand-bg-soft: #FFFFFF;      /* Pure White Surface */
+  --brand-bg-surface: #F1F5F9;   /* Soft Secondary Surface */
+  --brand-bg-elevated: #FFFFFF;  /* Card Surfaces */
+  --brand-border: #E2E8F0;       /* Delicate Soft Border */
+  --brand-border-strong: #CBD5E1;
   
-  --brand-text: #000000;         /* Black */
-  --brand-text-soft: #1C1C1C;    /* Dark Gray */
-  --brand-text-gray: #555555;    /* Muted Gray */
-  --brand-text-mute: #737373;
+  --brand-text: #0F172A;         /* Slate 900 High-Contrast Text */
+  --brand-text-soft: #334155;    /* Slate 700 Soft Text */
+  --brand-text-gray: #64748B;    /* Muted Slate Text */
+  --brand-text-mute: #94A3B8;    /* Muted Gray */
   
-  --brand-lime: #9EB600;         /* High-contrast Lime for light canvas */
-  --brand-lemon: #8FA300;        /* High-contrast Lemon for light canvas */
-  --brand-bright-lemon: #9EB600;
-  --brand-dark-lime: #7E9100;
+  --brand-lime: #70E000;         /* Sharp Vivid Electric Lime Accent */
+  --brand-lemon: #84CC16;        /* Bright Lemon Accent */
+  --brand-bright-lemon: #A3E635;
+  --brand-dark-lime: #65A30D;
 
-  --brand-sidebar-bg: #000000;
+  --brand-sidebar-bg: #000000;   /* Permanent Obsidian Black Sidebar */
   --brand-sidebar-text: #FFFFFF;
-  --brand-sidebar-border: #171717;
+  --brand-sidebar-border: #18181B;
 
-  --brand-success: #7E9100;
-  --brand-warning: #7E9100;
-  --brand-danger: #7E9100;
-  --brand-info: #7E9100;
+  --brand-success: #10B981;
+  --brand-warning: #F59E0B;
+  --brand-danger: #EF4444;
+  --brand-info: #06B6D4;
   
   --brand-glass-bg: rgba(255, 255, 255, 0.95);
   --brand-glass-bg-strong: rgba(255, 255, 255, 0.98);
+}
+
+[data-theme="light"] .glass-panel {
+  background-color: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
 }
 
 /* Base layer overrides */
@@ -200,6 +206,43 @@
 .tile-gradient-violet {
   background: linear-gradient(135deg, #2A0E47 0%, #4C1D95 100%);
   border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+/* Light Mode Vibrant High-Contrast Tile Cards */
+[data-theme="light"] .tile-gradient-lime {
+  background: linear-gradient(135deg, #F7FEE7 0%, #ECFDF5 100%);
+  border: 1px solid #A3E635;
+  box-shadow: 0 4px 18px rgba(163, 230, 53, 0.15);
+}
+[data-theme="light"] .tile-gradient-cyan {
+  background: linear-gradient(135deg, #ECFEFF 0%, #F0FDFA 100%);
+  border: 1px solid #67E8F9;
+  box-shadow: 0 4px 18px rgba(103, 232, 249, 0.15);
+}
+[data-theme="light"] .tile-gradient-amber {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  border: 1px solid #FCD34D;
+  box-shadow: 0 4px 18px rgba(252, 211, 77, 0.15);
+}
+[data-theme="light"] .tile-gradient-emerald {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+  border: 1px solid #6EE7B7;
+  box-shadow: 0 4px 18px rgba(110, 231, 183, 0.15);
+}
+[data-theme="light"] .tile-gradient-violet {
+  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%);
+  border: 1px solid #C4B5FD;
+  box-shadow: 0 4px 18px rgba(196, 181, 253, 0.15);
+}
+
+[data-theme="light"] .tile-card-title {
+  color: #334155 !important;
+}
+[data-theme="light"] .tile-card-num {
+  color: #0F172A !important;
+}
+[data-theme="light"] .tile-card-sub {
+  color: #64748B !important;
 }
 
 /* Skeleton Loading Sweeping Glow Animation */

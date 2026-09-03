@@ -96,7 +96,7 @@ export default function WidgetColumn({ liveNotifications = [], departmentChartDa
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
-                <h4 className="text-xs font-extrabold text-white">{item.title}</h4>
+                <h4 className="text-xs font-extrabold text-brand-text">{item.title}</h4>
                 <p className="text-[10px] opacity-80 leading-normal line-clamp-2">{item.desc}</p>
                 <p className="text-[9px] font-mono opacity-60 text-right">{item.date}</p>
               </div>
@@ -148,7 +148,7 @@ export default function WidgetColumn({ liveNotifications = [], departmentChartDa
                     ? 'bg-[#D7F000] text-black font-extrabold shadow-[0_0_12px_rgba(215,240,0,0.4)]'
                     : isToday
                     ? 'border border-[#D7F000] text-[#D7F000] font-extrabold'
-                    : 'text-brand-text-soft hover:bg-brand-bg-surface hover:text-white'
+                    : 'text-brand-text-soft hover:bg-brand-bg-surface hover:text-brand-text'
                 }`}
               >
                 {d}

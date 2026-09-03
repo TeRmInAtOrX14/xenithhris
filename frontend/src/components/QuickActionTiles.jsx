@@ -222,7 +222,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive", liveS
             className={`p-5 rounded-2xl ${tile.gradient} flex flex-col justify-between space-y-3 cursor-pointer tactile-btn group relative overflow-hidden`}
           >
             <div className="flex items-center justify-between z-10">
-              <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest font-mono">
+              <span className="text-[10px] font-bold text-white/80 tile-card-title uppercase tracking-widest font-mono">
                 {tile.label}
               </span>
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${tile.iconBg} border border-white/10 shrink-0`}>
@@ -231,7 +231,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive", liveS
             </div>
 
             <div className="z-10">
-              <p className="text-3xl font-extrabold text-white font-display font-mono tracking-tight">
+              <p className="text-3xl font-extrabold text-white tile-card-num font-display font-mono tracking-tight">
                 <CountUpNumber
                   end={tile.count}
                   prefix={tile.prefix}
@@ -239,9 +239,9 @@ export default function QuickActionTiles({ activeRole = "Sales Executive", liveS
                   decimals={tile.decimals || 0}
                 />
               </p>
-              <p className="text-[10px] text-white/70 mt-1 font-mono flex items-center justify-between">
+              <p className="text-[10px] text-white/70 tile-card-sub mt-1 font-mono flex items-center justify-between">
                 <span>{tile.subtext}</span>
-                <ArrowRight className="w-3.5 h-3.5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
               </p>
             </div>
           </div>
