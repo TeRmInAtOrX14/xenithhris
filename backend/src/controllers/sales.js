@@ -390,10 +390,18 @@ exports.updateSaleStage = async (req, res, next) => {
 exports.uploadBrief = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { fileName, fileUrl, fileType, notes } = req.body;
+    const { fileName, fileUrl, fileType, designerId, notes } = req.body;
 
     if (!fileName || !fileUrl) {
       return res.status(400).json({ error: 'File Name and File Content URL are required.' });
+    }
+
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const validExts = ['png', 'jpeg', 'jpg', 'webp', 'pdf', 'docx'];
+    const detectedType = fileType?.toLowerCase() || ext || 'png';
+
+    if (!validExts.includes(detectedType)) {
+      return res.status(400).json({ error: 'Accepted brief formats are: .png, .jpeg, .jpg, .webp, .pdf, .docx' });
     }
 
     const existingBriefs = await prisma.projectBrief.findMany({
@@ -403,15 +411,29 @@ exports.uploadBrief = async (req, res, next) => {
 
     const nextVersion = existingBriefs.length > 0 ? existingBriefs[0].version + 1 : 1;
 
+    // If designerId passed, update parent sale designer assignment
+    let targetDesignerId = designerId;
+    if (designerId) {
+      await prisma.sale.update({
+        where: { id },
+        data: { designerId }
+      });
+    } else {
+      const parentSale = await prisma.sale.findUnique({ where: { id }, select: { designerId: true } });
+      targetDesignerId = parentSale?.designerId;
+    }
+
     const brief = await prisma.projectBrief.create({
       data: {
         saleId: id,
         uploadedById: req.user.id,
+        designerId: targetDesignerId || null,
         fileName,
         fileUrl,
-        fileType: fileType || 'docx',
+        fileType: detectedType,
         version: nextVersion,
-        notes
+        notes: notes || null,
+        status: 'Pending'
       }
     });
 
@@ -420,12 +442,138 @@ exports.uploadBrief = async (req, res, next) => {
       data: { briefStatus: 'Uploaded' }
     });
 
-    await logAudit(req.user.id, 'UPLOAD_BRIEF', 'ProjectBrief', brief.id, { fileName, version: nextVersion });
+    // Notify assigned Artist if present
+    if (targetDesignerId) {
+      const artistUser = await prisma.employee.findUnique({
+        where: { id: targetDesignerId },
+        select: { userId: true, fullName: true }
+      });
+      if (artistUser?.userId) {
+        await prisma.notification.create({
+          data: {
+            userId: artistUser.userId,
+            title: `🎨 New Brief Uploaded & Assigned`,
+            message: `A new ${detectedType.toUpperCase()} brief ("${fileName}") was assigned to you for project.`,
+            type: 'brief_assignment',
+            link: '/dashboard/artist-assignments',
+            isRead: false
+          }
+        });
+      }
+    }
+
+    await logAudit(req.user.id, 'UPLOAD_BRIEF', 'ProjectBrief', brief.id, { fileName, version: nextVersion, designerId: targetDesignerId });
     res.json(brief);
   } catch (err) {
     next(err);
   }
 };
+
+/**
+ * PATCH /api/sales/:id/assign-artist
+ * CEO / Admin / Team Lead assigns an Artist (Designer) to a project & its briefs
+ */
+exports.assignArtist = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { designerId } = req.body;
+
+    const isCEOOrAdmin = ['Admin', 'CEO', 'COO'].includes(req.user.role);
+    const isTL = req.user.role === 'Team Lead';
+
+    if (!isCEOOrAdmin && !isTL) {
+      return res.status(403).json({ error: 'Only CEO/Admin and Team Leads can assign artists to projects.' });
+    }
+
+    const sale = await prisma.sale.findUnique({ where: { id } });
+    if (!sale) return res.status(404).json({ error: 'Project not found.' });
+
+    const updatedSale = await prisma.sale.update({
+      where: { id },
+      data: { designerId: designerId || null },
+      include: {
+        designer: { select: { id: true, fullName: true, employeeCode: true, userId: true } }
+      }
+    });
+
+    // Update all briefs under this sale
+    await prisma.projectBrief.updateMany({
+      where: { saleId: id },
+      data: { designerId: designerId || null }
+    });
+
+    // Send notification to artist if assigned
+    if (updatedSale.designer?.userId) {
+      await prisma.notification.create({
+        data: {
+          userId: updatedSale.designer.userId,
+          title: `🎨 Assigned to Project #${sale.projectNumber}`,
+          message: `You have been assigned as the Artist for "${sale.projectName}" (${sale.clientName}).`,
+          type: 'project_assignment',
+          link: '/dashboard/artist-assignments',
+          isRead: false
+        }
+      });
+    }
+
+    await logAudit(req.user.id, 'ASSIGN_ARTIST', 'Sale', id, { designerId, designerName: updatedSale.designer?.fullName });
+    res.json(updatedSale);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * PATCH /api/sales/briefs/:briefId/artist-update
+ * Artist puts status update / progress notes on an assigned brief
+ */
+exports.updateBriefByArtist = async (req, res, next) => {
+  try {
+    const { briefId } = req.params;
+    const { status, artistUpdate } = req.body;
+
+    const brief = await prisma.projectBrief.findUnique({
+      where: { id: briefId },
+      include: { sale: { select: { id: true, projectNumber: true, projectName: true, clientName: true } } }
+    });
+
+    if (!brief) return res.status(404).json({ error: 'Brief record not found.' });
+
+    const updated = await prisma.projectBrief.update({
+      where: { id: briefId },
+      data: {
+        status: status || brief.status,
+        artistUpdate: artistUpdate !== undefined ? artistUpdate : brief.artistUpdate
+      }
+    });
+
+    // Notify CEO & Team Leads
+    const senderName = req.user.employee?.fullName || 'Artist';
+    const ceoAdmins = await prisma.user.findMany({
+      where: { role: { in: ['Admin', 'CEO', 'COO', 'Team Lead'] }, isActive: true },
+      select: { id: true }
+    });
+
+    if (ceoAdmins.length > 0) {
+      await prisma.notification.createMany({
+        data: ceoAdmins.map(u => ({
+          userId: u.id,
+          title: `📝 Artist Update on Brief — #${brief.sale?.projectNumber}`,
+          message: `${senderName} updated brief "${brief.fileName}" status to [${status || brief.status}]: "${artistUpdate || 'Progress update'}"`,
+          type: 'brief_update',
+          link: '/dashboard/briefs',
+          isRead: false
+        }))
+      });
+    }
+
+    await logAudit(req.user.id, 'UPDATE_BRIEF_ARTIST', 'ProjectBrief', briefId, { status, artistUpdate });
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 exports.logPayment = async (req, res, next) => {
   try {

@@ -193,11 +193,15 @@ model ProjectBrief {
   saleId       String
   sale         Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
   uploadedById String
+  designerId   String?  // Target Artist assigned to this brief
   fileName     String
-  fileUrl      String   // Data URL or file URL
-  fileType     String   @default("docx")
+  fileUrl      String   // Data URL or file URL (png, jpeg, webp, pdf, docx)
+  fileType     String   @default("png")
   version      Int      @default(1)
   notes        String?
+  status       String   @default("Pending") // Pending | In Progress | Feedback | Approved
+  artistUpdate String?  // Updates/notes put by the Artist
+  updatedAt    DateTime @updatedAt @default(now())
   createdAt    DateTime @default(now())
 }
 
