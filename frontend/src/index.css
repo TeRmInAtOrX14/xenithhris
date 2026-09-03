@@ -3,17 +3,31 @@
 @theme {
   --color-brand-bg: var(--brand-bg);
   --color-brand-bg-soft: var(--brand-bg-soft);
+  --color-brand-bg-surface: var(--brand-bg-surface);
   --color-brand-bg-elevated: var(--brand-bg-elevated);
   --color-brand-border: var(--brand-border);
   --color-brand-border-strong: var(--brand-border-strong);
   
   --color-brand-text: var(--brand-text);
   --color-brand-text-soft: var(--brand-text-soft);
+  --color-brand-text-gray: var(--brand-text-gray);
   --color-brand-text-mute: var(--brand-text-mute);
   
-  --color-brand-orange: var(--brand-orange);
-  --color-brand-copper: var(--brand-copper);
-  --color-brand-silver: var(--brand-silver);
+  /* XENITH COLOR SYSTEM — LIME & LEMON */
+  --color-brand-lime: var(--brand-lime);
+  --color-brand-lemon: var(--brand-lemon);
+  --color-brand-bright-lemon: var(--brand-bright-lemon);
+  --color-brand-dark-lime: var(--brand-dark-lime);
+
+  /* Mapping legacy color names to Xenith Lime & Lemon palette for seamless migration */
+  --color-brand-cyan: var(--brand-lime);
+  --color-brand-blue: var(--brand-lime);
+  --color-brand-violet: var(--brand-lemon);
+  --color-brand-orange: var(--brand-lime);
+  --color-brand-amber: var(--brand-lemon);
+  --color-brand-green: var(--brand-lemon);
+  --color-brand-copper: var(--brand-lemon);
+  --color-brand-silver: var(--brand-text-gray);
 
   --color-brand-sidebar-bg: var(--brand-sidebar-bg);
   --color-brand-sidebar-text: var(--brand-sidebar-text);
@@ -29,64 +43,70 @@
 }
 
 /* ----------------------------------------------------------------------
- * ArtXenith / Kinetic HR Enterprise Design Tokens
+ * XENITH COLOR SYSTEM — BLACK + WHITE + ELECTRIC LIME + LEMON GREEN
  * ---------------------------------------------------------------------- */
 :root {
-  /* Default Dark Enterprise Theme (Hero Experience) */
-  --brand-bg: #0b0b0b;
-  --brand-bg-soft: #111111;
-  --brand-bg-elevated: #181818;
-  --brand-border: #2b2b2b;
+  /* DARK XENITH IDENTITY (Primary Core Experience) */
+  --brand-bg: #000000;            /* Black */
+  --brand-bg-soft: #090909;       /* Deep Black */
+  --brand-bg-surface: #111111;    /* Dark Surface */
+  --brand-bg-elevated: #171717;   /* Elevated Surface */
+  --brand-border: #262626;        /* Border */
   --brand-border-strong: #383838;
   
-  --brand-text: #e8e8e8;
-  --brand-text-soft: #a0a0a0;
-  --brand-text-mute: #707070;
+  --brand-text: #FFFFFF;         /* White */
+  --brand-text-soft: #F4F4F0;    /* Soft White */
+  --brand-text-gray: #A3A3A3;    /* Gray */
+  --brand-text-mute: #737373;    /* Muted Gray */
   
-  --brand-orange: #b76522;
-  --brand-copper: #d17a32;
-  --brand-silver: #b8b8b8;
+  /* BRAND ACCENTS */
+  --brand-lime: #D7F000;         /* Electric Lime Primary Identity */
+  --brand-lemon: #E8F52A;        /* Lemon Green Secondary Accent */
+  --brand-bright-lemon: #F0FF3D; /* Bright Lemon */
+  --brand-dark-lime: #B8D400;    /* Dark Lime */
 
-  --brand-sidebar-bg: #111111;
-  --brand-sidebar-text: #e8e8e8;
-  --brand-sidebar-border: #222222;
+  --brand-sidebar-bg: #000000;
+  --brand-sidebar-text: #FFFFFF;
+  --brand-sidebar-border: #171717;
 
-  --brand-success: #3a8f5b;
-  --brand-warning: #c98a2e;
-  --brand-danger: #c94a4a;
-  --brand-info: #4b7bb5;
+  --brand-success: #E8F52A;
+  --brand-warning: #F59E0B;
+  --brand-danger: #EF4444;
+  --brand-info: #D7F000;
   
-  --brand-glass-bg: rgba(24, 24, 24, 0.75);
-  --brand-glass-bg-strong: rgba(32, 32, 32, 0.95);
+  --brand-glass-bg: rgba(23, 23, 23, 0.85);
+  --brand-glass-bg-strong: rgba(17, 17, 17, 0.95);
 }
 
 [data-theme="light"] {
-  /* Light Enterprise Theme (Warm White Canvas with Dark Sidebar) */
-  --brand-bg: #f5f3ef;
-  --brand-bg-soft: #ffffff;
-  --brand-bg-elevated: #ffffff;
-  --brand-border: #e2e0dc;
-  --brand-border-strong: #cccccc;
+  /* LIGHT XENITH PALETTE (Accessibility Darkened Greens) */
+  --brand-bg: #F4F4F0;           /* Background */
+  --brand-bg-soft: #FFFFFF;      /* White Surface */
+  --brand-bg-surface: #EBEBE6;   /* Secondary Surface */
+  --brand-bg-elevated: #FFFFFF;
+  --brand-border: #D6D6D0;       /* Border */
+  --brand-border-strong: #B0B0A8;
   
-  --brand-text: #1c1c1c;
-  --brand-text-soft: #555555;
-  --brand-text-mute: #777777;
+  --brand-text: #000000;         /* Black */
+  --brand-text-soft: #3F3F3F;    /* Dark Gray */
+  --brand-text-gray: #737373;    /* Muted Gray */
+  --brand-text-mute: #A3A3A3;
   
-  --brand-orange: #b76522;
-  --brand-copper: #d17a32;
-  --brand-silver: #555555;
+  --brand-lime: #B8D400;         /* Darker Lime for light canvas */
+  --brand-lemon: #D7E91A;        /* Darker Lemon for light canvas */
+  --brand-bright-lemon: #B8D400;
+  --brand-dark-lime: #9EB600;
 
-  /* Sidebar remains dark #111111 in Light mode to preserve ArtXenith metallic identity */
-  --brand-sidebar-bg: #111111;
-  --brand-sidebar-text: #e8e8e8;
-  --brand-sidebar-border: #222222;
+  --brand-sidebar-bg: #000000;
+  --brand-sidebar-text: #FFFFFF;
+  --brand-sidebar-border: #171717;
 
-  --brand-success: #2e7d32;
-  --brand-warning: #b45309;
-  --brand-danger: #c2410c;
-  --brand-info: #1d4ed8;
+  --brand-success: #2E7D32;
+  --brand-warning: #D97706;
+  --brand-danger: #DC2626;
+  --brand-info: #9EB600;
   
-  --brand-glass-bg: rgba(255, 255, 255, 0.9);
+  --brand-glass-bg: rgba(255, 255, 255, 0.92);
   --brand-glass-bg-strong: rgba(255, 255, 255, 0.98);
 }
 
@@ -100,24 +120,22 @@
     overflow-x: hidden;
   }
 
-  /* Smooth transition timings for dark/light theme switching */
   body, header, main, .glass-panel, input, select, textarea, table, tr, td {
     transition: background-color 0.15s ease,
                 border-color 0.15s ease,
                 color 0.15s ease;
   }
 
-  /* Dropdown Option readability in both themes */
   option {
     background-color: var(--brand-bg-elevated);
     color: var(--brand-text);
   }
 
-  /* Focus ring overrides for brand orange */
+  /* Electric Lime focus ring */
   input:focus, select:focus, textarea:focus {
-    border-color: var(--brand-orange) !important;
+    border-color: var(--brand-lime) !important;
     outline: none !important;
-    box-shadow: 0 0 0 2px rgba(183, 101, 34, 0.25) !important;
+    box-shadow: 0 0 0 2px rgba(215, 240, 0, 0.25) !important;
   }
 }
 
@@ -127,72 +145,96 @@
   border: 1px solid var(--brand-border);
 }
 
-.hover-glow-orange:hover {
-  border-color: var(--brand-orange) !important;
-  box-shadow: 0 0 15px rgba(183, 101, 34, 0.15);
+.hover-glow-lime:hover {
+  border-color: var(--brand-lime) !important;
+  box-shadow: 0 0 15px rgba(215, 240, 0, 0.2);
 }
 
-/* Button System */
+.hover-glow-lemon:hover {
+  border-color: var(--brand-lemon) !important;
+  box-shadow: 0 0 15px rgba(232, 245, 42, 0.2);
+}
+
+/* Primary CTA Button — Electric Lime (#D7F000) default, Lemon Green (#E8F52A) hover */
 .btn-primary {
-  background-color: var(--brand-orange);
-  color: #ffffff;
-  font-weight: 700;
+  background-color: var(--brand-lime);
+  color: #000000;
+  font-weight: 800;
   font-family: var(--font-display);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   transition: all 0.15s ease;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
 }
 
 .btn-primary:hover {
-  background-color: var(--brand-copper);
+  background-color: var(--brand-lemon);
+  color: #000000;
+  box-shadow: 0 0 20px rgba(215, 240, 0, 0.35);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
   background-color: var(--brand-bg-elevated);
   color: var(--brand-text);
   border: 1px solid var(--brand-border);
-  font-weight: 600;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
   transition: all 0.15s ease;
 }
 
 .btn-secondary:hover {
-  border-color: var(--brand-border-strong);
-  color: #ffffff;
+  border-color: var(--brand-lime);
+  color: var(--brand-lime);
 }
 
 /* Status Badge Pills */
 .status-pill {
   display: inline-flex;
-  items-center: center;
+  align-items: center;
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
   border-radius: 9999px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .status-success {
-  background-color: rgba(58, 143, 91, 0.15);
-  color: var(--brand-success);
-  border: 1px solid rgba(58, 143, 91, 0.3);
+  background-color: rgba(215, 240, 0, 0.15);
+  color: var(--brand-lime);
+  border: 1px solid rgba(215, 240, 0, 0.3);
 }
 
 .status-warning {
-  background-color: rgba(201, 138, 46, 0.15);
+  background-color: rgba(245, 158, 11, 0.15);
   color: var(--brand-warning);
-  border: 1px solid rgba(201, 138, 46, 0.3);
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .status-danger {
-  background-color: rgba(201, 74, 74, 0.15);
+  background-color: rgba(239, 68, 68, 0.15);
   color: var(--brand-danger);
-  border: 1px solid rgba(201, 74, 74, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .status-neutral {
-  background-color: rgba(112, 112, 112, 0.15);
-  color: var(--brand-text-soft);
+  background-color: rgba(115, 115, 115, 0.15);
+  color: var(--brand-text-gray);
   border: 1px solid var(--brand-border);
+}
+
+/* Xenith Brand Gradient */
+.brand-gradient {
+  background: linear-gradient(135deg, #D7F000 0%, #E8F52A 100%);
+}
+
+.brand-gradient-text {
+  background: linear-gradient(135deg, #D7F000 0%, #E8F52A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Custom Scrollbar */
@@ -211,5 +253,5 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-orange);
+  background: var(--brand-lime);
 }

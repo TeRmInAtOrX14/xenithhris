@@ -170,7 +170,7 @@ export default function DashboardLayout() {
           {!collapsed ? (
             <div className="flex items-center gap-2 py-1 overflow-hidden">
               <img src="/logo.png" alt="ArtXenith Logo" className="w-[155px] h-10 object-contain aspect-auto" />
-              <span className="px-1.5 py-0.5 text-[8px] font-extrabold uppercase bg-brand-orange text-white rounded font-mono shrink-0">
+              <span className="px-1.5 py-0.5 text-[8px] font-extrabold uppercase bg-[#D7F000] text-black rounded font-mono shrink-0">
                 HRIS
               </span>
             </div>
@@ -225,16 +225,16 @@ export default function DashboardLayout() {
                     <Link
                       key={link.path}
                       to={link.path}
-                      className={`relative flex items-center gap-3.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
-                        collapsed ? 'justify-center p-3' : 'px-3.5 py-2.5'
+                      className={`group relative flex items-center gap-3.5 text-xs font-semibold transition-all duration-150 ${
+                        collapsed ? 'justify-center p-3 rounded-xl' : 'px-3.5 py-2.5 rounded-r-xl'
                       } ${
                         active
-                          ? 'bg-brand-bg-elevated text-white font-bold border-l-2 border-brand-orange shadow-sm'
-                          : 'text-brand-text-soft hover:text-white hover:bg-brand-bg-elevated/50'
+                          ? 'bg-[#111111] text-white font-extrabold border-l-4 border-[#D7F000] shadow-sm'
+                          : 'text-brand-text-soft hover:text-white hover:bg-[#111111]/70'
                       }`}
                       title={collapsed ? link.label : ''}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-brand-orange' : 'text-brand-text-mute'}`} />
+                      <Icon className={`w-4 h-4 shrink-0 transition-colors ${active ? 'text-[#D7F000]' : 'text-brand-text-mute group-hover:text-[#E8F52A]'}`} />
                       {!collapsed && <span>{link.label}</span>}
                     </Link>
                   );

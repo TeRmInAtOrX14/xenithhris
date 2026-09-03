@@ -40,19 +40,19 @@ const ATTENDANCE_CHART_DATA = [
 ];
 
 const WORKFORCE_DATA = [
-  { name: 'Operations', value: 8, color: '#b76522' },
-  { name: 'Sales Execs', value: 6, color: '#d17a32' },
-  { name: 'Designers', value: 5, color: '#b8b8b8' },
-  { name: 'Management', value: 4, color: '#3a8f5b' }
+  { name: 'Operations', value: 8, color: '#D7F000' },
+  { name: 'Sales Execs', value: 6, color: '#E8F52A' },
+  { name: 'Artists', value: 5, color: '#F0FF3D' },
+  { name: 'Management', value: 4, color: '#FFFFFF' }
 ];
 
 export default function AdminDashboard({ stats, campaigns = [] }) {
   const { isDark } = useTheme();
   const [period, setPeriod] = useState('Today');
 
-  const tooltipBg = isDark ? '#181818' : '#ffffff';
-  const tooltipBorder = isDark ? '#2b2b2b' : '#e2e0dc';
-  const textColor = isDark ? '#e8e8e8' : '#1c1c1c';
+  const tooltipBg = isDark ? '#111111' : '#ffffff';
+  const tooltipBorder = isDark ? '#262626' : '#d6d6d0';
+  const textColor = isDark ? '#ffffff' : '#000000';
 
   return (
     <motion.div
@@ -61,27 +61,28 @@ export default function AdminDashboard({ stats, campaigns = [] }) {
       initial="hidden"
       animate="show"
     >
-      {/* Executive Welcome Banner */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-brand-bg-elevated p-6 rounded-2xl border border-brand-border">
-        <div>
-          <span className="px-2.5 py-0.5 rounded-full bg-brand-orange/15 text-brand-orange text-[10px] font-mono font-bold uppercase tracking-wider">
+      {/* Executive Welcome Banner — Xenith Controlled Maximalism */}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-[#111111] p-6 rounded-2xl border border-[#262626] relative overflow-hidden">
+        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-[#D7F000]/10 to-transparent pointer-events-none" />
+        <div className="relative z-10">
+          <span className="px-3 py-1 rounded-full bg-[#D7F000] text-black text-[10px] font-mono font-extrabold uppercase tracking-wider">
             Executive Control Center
           </span>
-          <h2 className="text-2xl font-extrabold text-white font-display tracking-tight mt-1.5">
+          <h2 className="text-2xl font-extrabold text-white font-display tracking-tight mt-2">
             Good morning, Executive
           </h2>
-          <p className="text-xs text-brand-text-soft mt-0.5">
-            Here's what's happening across your organization today.
+          <p className="text-xs text-brand-text-gray mt-0.5">
+            Your workforce is moving. Here is today's real-time executive operations summary.
           </p>
         </div>
 
         {/* Period Selector */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative z-10">
           <Filter className="w-3.5 h-3.5 text-brand-text-mute" />
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
-            className="px-3.5 py-2 rounded-xl bg-brand-bg border border-brand-border text-xs text-white cursor-pointer focus:outline-none focus:border-brand-orange"
+            className="px-3.5 py-2 rounded-xl bg-black border border-[#262626] text-xs text-white cursor-pointer focus:outline-none focus:border-[#D7F000]"
           >
             <option value="Today">Today</option>
             <option value="This Week">This Week</option>
