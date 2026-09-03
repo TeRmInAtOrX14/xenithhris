@@ -580,25 +580,46 @@ exports.getSalesExecutiveEarnings = async (req, res, next) => {
     const qMonth = month ? parseInt(month) : curDate.getUTCMonth() + 1;
     const qYear = year ? parseInt(year) : curDate.getUTCFullYear();
 
-    const startOfMonth = new Date(Date.UTC(qYear, qMonth - 1, 1));
-    const endOfMonth = new Date(Date.UTC(qYear, qMonth, 0, 23, 59, 59));
+    const prevMonth = qMonth === 1 ? 12 : qMonth - 1;
+    const prevYear = qMonth === 1 ? qYear - 1 : qYear;
+    const startOfCycle = new Date(Date.UTC(prevYear, prevMonth - 1, 5, 0, 0, 0, 0));
+    const endOfCycle = new Date(Date.UTC(qYear, qMonth - 1, 5, 23, 59, 59, 999));
 
     // Fetch active exchange rate
     const rateSetting = await prisma.systemSetting.findUnique({ where: { key: 'usdToPkrRate' } });
     const usdToPkrRate = rateSetting ? (parseFloat(rateSetting.value) || 280) : 280;
 
-    // Fetch sales for this month
-    const sales = await prisma.sale.findMany({
+    // 1. Current Sales (Deals closed in this 5th-to-5th cycle)
+    const salesInCycle = await prisma.sale.findMany({
       where: {
         employeeId: targetEmpId,
-        saleDate: { gte: startOfMonth, lte: endOfMonth }
+        saleDate: { gte: startOfCycle, lte: endOfCycle }
       }
     });
 
-    const totalSalesUsd = sales.reduce((sum, s) => sum + s.saleAmount, 0);
-    const totalReceivingsUsd = sales.reduce((sum, s) => sum + s.amountReceived, 0);
-    const totalRemainingReceivingsUsd = sales.reduce((sum, s) => sum + s.remainingAmount, 0);
-    const totalCommissionEarnedUsd = sales.reduce((sum, s) => sum + s.salesCommissionUsd, 0);
+    const totalSalesUsd = salesInCycle.reduce((sum, s) => sum + (s.saleAmount || 0), 0);
+    const totalCommissionEarnedUsd = salesInCycle.reduce((sum, s) => sum + (s.salesCommissionUsd || 0), 0);
+
+    // 2. Cash Received in this 5th-to-5th cycle (Installments cleared in cycle)
+    const paymentsInCycle = await prisma.salePayment.findMany({
+      where: {
+        sale: { employeeId: targetEmpId },
+        paymentDate: { gte: startOfCycle, lte: endOfCycle },
+        status: 'received'
+      }
+    });
+
+    const totalReceivingsUsd = paymentsInCycle.reduce((sum, p) => sum + (p.netAmount || p.amount || p.grossAmount || 0), 0);
+
+    // 3. Remaining Balance (Running balance across all open sales)
+    const openSales = await prisma.sale.findMany({
+      where: {
+        employeeId: targetEmpId,
+        remainingAmount: { gt: 0 }
+      }
+    });
+
+    const totalRemainingReceivingsUsd = openSales.reduce((sum, s) => sum + (s.remainingAmount || 0), 0);
 
     const baseSalaryPkr = emp.baseSalary; // Always PKR
     const commissionPkr = totalCommissionEarnedUsd * usdToPkrRate;

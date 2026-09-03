@@ -147,8 +147,20 @@ export default function SalesSheet() {
     }
   };
 
+  const [salesMetrics, setSalesMetrics] = useState(null);
+
+  const fetchSalesMetrics = async () => {
+    try {
+      const res = await api.get(`/sales/metrics?month=${month}&year=${year}&employeeId=${selectedEmployee}`);
+      setSalesMetrics(res.data);
+    } catch (e) {
+      console.error('Failed to load 5th-to-5th sales metrics');
+    }
+  };
+
   useEffect(() => {
     fetchSales();
+    fetchSalesMetrics();
   }, [month, year, search, selectedStage, selectedEmployee]);
 
   useEffect(() => {
@@ -414,6 +426,63 @@ export default function SalesSheet() {
           ))}
         </div>
       )}
+
+      {/* 5th-to-5th Billing Cycle Metric Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Card 1: Current Sales */}
+        <div className="p-5 rounded-2xl bg-[#111111] border border-[#262626] flex items-center justify-between shadow-lg">
+          <div>
+            <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-brand-text-soft">
+              Current Sales (Closed Cycle)
+            </span>
+            <h3 className="text-2xl font-extrabold text-[#D7F000] font-mono tracking-tight mt-1">
+              ${(salesMetrics?.currentSalesAmount || 0).toLocaleString()}
+            </h3>
+            <p className="text-[11px] text-brand-text-gray mt-0.5 font-medium">
+              {salesMetrics?.currentSalesCount || 0} deals closed in 5th-5th cycle
+            </p>
+          </div>
+          <div className="p-3 rounded-xl bg-[#D7F000]/10 border border-[#D7F000]/20 text-[#D7F000]">
+            <FileSpreadsheet className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* Card 2: Cash Received */}
+        <div className="p-5 rounded-2xl bg-[#111111] border border-[#262626] flex items-center justify-between shadow-lg">
+          <div>
+            <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-brand-text-soft">
+              Cash Received (This Cycle)
+            </span>
+            <h3 className="text-2xl font-extrabold text-[#E8F52A] font-mono tracking-tight mt-1">
+              ${(salesMetrics?.receivedThisCycle || 0).toLocaleString()}
+            </h3>
+            <p className="text-[11px] text-brand-text-gray mt-0.5 font-medium">
+              Actual cash landed in hand this cycle
+            </p>
+          </div>
+          <div className="p-3 rounded-xl bg-[#E8F52A]/10 border border-[#E8F52A]/20 text-[#E8F52A]">
+            <DollarSign className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* Card 3: Remaining Balance */}
+        <div className="p-5 rounded-2xl bg-[#111111] border border-[#262626] flex items-center justify-between shadow-lg">
+          <div>
+            <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-brand-text-soft">
+              Remaining Balance (Open Deals)
+            </span>
+            <h3 className="text-2xl font-extrabold text-white font-mono tracking-tight mt-1">
+              ${(salesMetrics?.remainingTotal || 0).toLocaleString()}
+            </h3>
+            <p className="text-[11px] text-brand-text-gray mt-0.5 font-medium">
+              Running uncollected balance across deals
+            </p>
+          </div>
+          <div className="p-3 rounded-xl bg-white/10 border border-white/20 text-white">
+            <Clock className="w-6 h-6" />
+          </div>
+        </div>
+      </div>
 
       {/* Filters Toolbar */}
       <div className="p-4 rounded-2xl border border-brand-border bg-brand-bg-soft/40 flex flex-wrap gap-4 items-center justify-between">

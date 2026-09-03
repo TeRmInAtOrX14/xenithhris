@@ -5,6 +5,7 @@ const projectAssetController = require('../controllers/projectAsset');
 const { requireAuth } = require('../middlewares/auth');
 
 router.get('/', requireAuth, salesController.getSales);
+router.get('/metrics', requireAuth, salesController.getSalesMetrics);
 router.post('/', requireAuth, salesController.createSale);
 router.put('/:id', requireAuth, salesController.updateSale);
 router.patch('/:id/stage', requireAuth, salesController.updateSaleStage);

@@ -23,6 +23,18 @@ async function generateProjectNumber() {
   return `PRJ-${1000 + count + 1}`;
 }
 
+// Helper to compute 5th-to-5th cycle date range
+function get5to5CycleDateRange(year, month) {
+  const y = parseInt(year);
+  const m = parseInt(month);
+  const prevMonth = m === 1 ? 12 : m - 1;
+  const prevYear = m === 1 ? y - 1 : y;
+
+  const startDate = new Date(Date.UTC(prevYear, prevMonth - 1, 5, 0, 0, 0, 0));
+  const endDate = new Date(Date.UTC(y, m - 1, 5, 23, 59, 59, 999));
+  return { startDate, endDate };
+}
+
 // Helper to determine RBAC filters for sales
 async function getSalesFilter(user) {
   const isCEOOrAdmin = ['Admin', 'CEO', 'COO'].includes(user.role);
@@ -79,9 +91,8 @@ exports.getSales = async (req, res, next) => {
     }
 
     if (month && year) {
-      const startOfMonth = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, 1));
-      const endOfMonth = new Date(Date.UTC(parseInt(year), parseInt(month), 0, 23, 59, 59));
-      where.saleDate = { gte: startOfMonth, lte: endOfMonth };
+      const { startDate, endDate } = get5to5CycleDateRange(year, month);
+      where.saleDate = { gte: startDate, lte: endDate };
     }
 
     if (search) {
@@ -634,13 +645,86 @@ exports.logPayment = async (req, res, next) => {
         amountReceived: totalReceivedNet,
         remainingAmount: newRemaining,
         installmentsReceived: allPayments.filter(p => p.status === 'received').length,
-        paymentStatus: newPaymentStatus,
-        fallInMonth: computedFallMonth
+        paymentStatus: newPaymentStatus
       }
     });
 
     await logAudit(req.user.id, 'LOG_SALE_PAYMENT', 'SalePayment', payment.id, { gross, net, fee });
     res.json({ payment, sale: updatedSale });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/sales/metrics
+ * Returns Current Sales (closed in 5th-to-5th cycle), Received Cash (installments cleared in cycle), and Remaining Total Balance
+ */
+exports.getSalesMetrics = async (req, res, next) => {
+  try {
+    const { month, year, employeeId } = req.query;
+    const curDate = new Date();
+    const qMonth = month ? parseInt(month) : curDate.getUTCMonth() + 1;
+    const qYear = year ? parseInt(year) : curDate.getUTCFullYear();
+
+    const { startDate, endDate } = get5to5CycleDateRange(qYear, qMonth);
+    const roleFilter = await getSalesFilter(req.user);
+
+    const baseWhere = { ...roleFilter };
+    if (employeeId && ['Admin', 'CEO', 'COO', 'Team Lead'].includes(req.user.role)) {
+      baseWhere.employeeId = employeeId;
+    }
+
+    // 1. Current Sales (Closed in this 5th-to-5th cycle)
+    const cycleSales = await prisma.sale.findMany({
+      where: {
+        ...baseWhere,
+        saleDate: { gte: startDate, lte: endDate }
+      },
+      select: { id: true, saleAmount: true, upfrontAmount: true }
+    });
+
+    const currentSalesCount = cycleSales.length;
+    const currentSalesAmount = cycleSales.reduce((sum, s) => sum + (s.saleAmount || 0), 0);
+
+    // 2. Cash Received this cycle (All installments logged in this 5th-to-5th cycle)
+    let paymentWhere = {};
+    if (baseWhere.employeeId) {
+      paymentWhere = { sale: { employeeId: baseWhere.employeeId } };
+    }
+
+    const cyclePayments = await prisma.salePayment.findMany({
+      where: {
+        ...paymentWhere,
+        paymentDate: { gte: startDate, lte: endDate },
+        status: 'received'
+      },
+      select: { netAmount: true, amount: true, grossAmount: true }
+    });
+
+    const receivedThisCycle = cyclePayments.reduce((sum, p) => sum + (p.netAmount || p.amount || p.grossAmount || 0), 0);
+
+    // 3. Remaining Total Balance (Running balance across all open sales)
+    const openSales = await prisma.sale.findMany({
+      where: {
+        ...baseWhere,
+        remainingAmount: { gt: 0 }
+      },
+      select: { remainingAmount: true }
+    });
+
+    const remainingTotal = openSales.reduce((sum, s) => sum + (s.remainingAmount || 0), 0);
+
+    res.json({
+      cycleMonth: qMonth,
+      cycleYear: qYear,
+      startDate,
+      endDate,
+      currentSalesCount,
+      currentSalesAmount,
+      receivedThisCycle,
+      remainingTotal
+    });
   } catch (err) {
     next(err);
   }
