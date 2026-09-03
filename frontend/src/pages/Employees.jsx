@@ -530,7 +530,7 @@ export default function Employees() {
                     <input
                       type="text"
                       {...register('designation', { required: true })}
-                      placeholder="e.g. SDR Outbound Campaigner"
+                      placeholder="e.g. Senior Sales Executive"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text focus:outline-none focus:border-brand-blue"
                     />
                   </div>
@@ -751,7 +751,7 @@ export default function Employees() {
                       type="text"
                       {...registerEdit('designation', { required: true })}
                       disabled={!isAdmin}
-                      placeholder="e.g. SDR Outbound Campaigner"
+                      placeholder="e.g. Senior Sales Executive"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text focus:outline-none focus:border-brand-blue disabled:opacity-50"
                     />
                   </div>

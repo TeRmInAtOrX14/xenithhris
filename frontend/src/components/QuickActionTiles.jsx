@@ -3,7 +3,7 @@ import { Wallet, Clock, Palette, Users, TrendingUp, CalendarCheck, CheckCircle2,
 import CountUpNumber from './CountUpNumber';
 import { useNavigate } from 'react-router-dom';
 
-export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
+export default function QuickActionTiles({ activeRole = "Sales Executive", liveStats = {} }) {
   const navigate = useNavigate();
 
   const tileConfigs = {
@@ -11,7 +11,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'sales',
         label: 'Sales Sheet',
-        count: 3,
+        count: liveStats.salesCount ?? 3,
         subtext: 'Deals logged this cycle',
         icon: Wallet,
         gradient: 'tile-gradient-emerald',
@@ -23,7 +23,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'hours',
         label: 'Time Clocked',
-        count: 7.5,
+        count: liveStats.hoursClocked ?? 7.5,
         subtext: 'Hours worked today',
         icon: Clock,
         gradient: 'tile-gradient-cyan',
@@ -36,7 +36,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'commission',
         label: 'Commission (PKR)',
-        count: 145000,
+        count: liveStats.commissionPkr ?? 145000,
         subtext: 'Estimated total payout',
         icon: TrendingUp,
         gradient: 'tile-gradient-lime',
@@ -48,7 +48,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'briefs',
         label: 'Active Briefs',
-        count: 4,
+        count: liveStats.activeBriefsCount ?? 4,
         subtext: 'Client art projects',
         icon: Palette,
         gradient: 'tile-gradient-violet',
@@ -62,20 +62,20 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'team',
         label: 'Team Members',
-        count: 8,
-        subtext: 'Active SDRs assigned',
+        count: liveStats.totalEmployees ?? 8,
+        subtext: 'Active team staff assigned',
         icon: Users,
         gradient: 'tile-gradient-cyan',
         iconBg: 'bg-cyan-500/20 text-cyan-400',
         path: '/dashboard/employees',
         prefix: '',
-        suffix: ' SDRs'
+        suffix: ' Staff'
       },
       {
         id: 'attendance',
         label: 'Present Today',
-        count: 7,
-        subtext: '87.5% attendance rate',
+        count: liveStats.presentToday ?? 7,
+        subtext: liveStats.totalEmployees ? `${Math.round((liveStats.presentToday / liveStats.totalEmployees) * 100)}% attendance rate` : '87.5% attendance rate',
         icon: CalendarCheck,
         gradient: 'tile-gradient-lime',
         iconBg: 'bg-[#D7F000]/20 text-[#D7F000]',
@@ -86,7 +86,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'projects',
         label: 'Art Campaigns',
-        count: 5,
+        count: liveStats.activeBriefsCount ?? 5,
         subtext: 'Active digital art pipelines',
         icon: Palette,
         gradient: 'tile-gradient-emerald',
@@ -98,7 +98,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'requests',
         label: 'Pending Requests',
-        count: 3,
+        count: liveStats.pendingRequestsCount ?? 3,
         subtext: 'Leaves & WFH requiring review',
         icon: Clock,
         gradient: 'tile-gradient-amber',
@@ -112,7 +112,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'artworks',
         label: 'Assigned Briefs',
-        count: 6,
+        count: liveStats.activeBriefsCount ?? 6,
         subtext: 'Artworks in progress',
         icon: Palette,
         gradient: 'tile-gradient-violet',
@@ -124,7 +124,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'completed',
         label: 'Completed Art',
-        count: 14,
+        count: liveStats.completedArtCount ?? 14,
         subtext: 'Approved this month',
         icon: CheckCircle2,
         gradient: 'tile-gradient-lime',
@@ -136,7 +136,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'shift',
         label: 'Shift Hours',
-        count: 8.0,
+        count: liveStats.hoursClocked ?? 8.0,
         subtext: 'Today shift logged',
         icon: Clock,
         gradient: 'tile-gradient-cyan',
@@ -149,7 +149,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'payout',
         label: 'Artwork Earnings',
-        count: 98000,
+        count: liveStats.commissionPkr ?? 98000,
         subtext: 'PKR total calculation',
         icon: Wallet,
         gradient: 'tile-gradient-emerald',
@@ -163,7 +163,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'revenue',
         label: 'Monthly Revenue',
-        count: 48200,
+        count: liveStats.totalRevenueUsd ?? 48200,
         subtext: 'Gross revenue ($ USD)',
         icon: Wallet,
         gradient: 'tile-gradient-lime',
@@ -175,7 +175,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'staff',
         label: 'Total Workforce',
-        count: 23,
+        count: liveStats.totalEmployees ?? 23,
         subtext: 'Employees active across studio',
         icon: Users,
         gradient: 'tile-gradient-cyan',
@@ -187,7 +187,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'active_projects',
         label: 'Active Artworks',
-        count: 18,
+        count: liveStats.activeBriefsCount ?? 18,
         subtext: 'Live client projects',
         icon: Palette,
         gradient: 'tile-gradient-violet',
@@ -199,7 +199,7 @@ export default function QuickActionTiles({ activeRole = "Sales Executive" }) {
       {
         id: 'payroll_run',
         label: 'Payroll Total',
-        count: 450000,
+        count: liveStats.payrollTotalPkr ?? 450000,
         subtext: 'Monthly salary disbursements',
         icon: TrendingUp,
         gradient: 'tile-gradient-emerald',

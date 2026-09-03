@@ -201,7 +201,7 @@ export default function TeamLeadDashboard() {
             <Users className="w-6 h-6 text-brand-cyan" />
             Team Lead Hub
           </h2>
-          <p className="text-xs text-brand-text-soft mt-1">Management center for active outreach SDR campaigns.</p>
+          <p className="text-xs text-brand-text-soft mt-1">Management center for active sales & digital art campaigns.</p>
         </div>
         <div className="z-10 text-right">
           <span className="text-[9px] font-bold text-brand-text-mute uppercase tracking-widest block">Campaign Assigned</span>
@@ -214,10 +214,10 @@ export default function TeamLeadDashboard() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {/* Total SDRs */}
+        {/* Total Staff */}
         <div className="p-4 rounded-xl glass-panel hover-glow-blue flex flex-col justify-between">
           <div className="flex items-center justify-between text-brand-text-soft mb-2">
-            <span className="text-[9px] font-bold uppercase tracking-wider">Total SDRs</span>
+            <span className="text-[9px] font-bold uppercase tracking-wider">Total Team Staff</span>
             <Users className="w-4.5 h-4.5 text-brand-blue" />
           </div>
           <p className="text-2xl font-extrabold text-brand-text font-display">{totalSdrs}</p>
@@ -231,7 +231,7 @@ export default function TeamLeadDashboard() {
             <UserCheck className="w-4.5 h-4.5 text-brand-green" />
           </div>
           <p className="text-2xl font-extrabold text-brand-green font-display">{presentTodayCount}</p>
-          <span className="text-[8px] text-brand-text-mute mt-1 font-mono uppercase">{absentTodayCount} SDRs Absent</span>
+          <span className="text-[8px] text-brand-text-mute mt-1 font-mono uppercase">{absentTodayCount} Staff Absent</span>
         </div>
 
         {/* Monthly Show-ups */}
@@ -336,7 +336,7 @@ export default function TeamLeadDashboard() {
                 <span className="font-mono font-bold text-brand-green">{attendanceRate.toFixed(1)}%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-brand-text-soft">Average Show-ups per SDR:</span>
+                <span className="text-brand-text-soft">Average Show-ups per Executive:</span>
                 <span className="font-mono font-bold text-brand-cyan">{averageShowupsPerSdr} show-ups</span>
               </div>
               <div className="flex justify-between">
@@ -435,7 +435,7 @@ export default function TeamLeadDashboard() {
               })}
               {sdrs.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-brand-text-mute italic">No SDR outreach employees assigned to your team</td>
+                  <td colSpan={6} className="py-8 text-center text-brand-text-mute italic">No sales executive employees assigned to your team</td>
                 </tr>
               )}
             </tbody>

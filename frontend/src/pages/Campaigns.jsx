@@ -361,7 +361,7 @@ export default function Campaigns() {
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-extrabold tracking-tight text-white font-display uppercase">Campaigns & Commissions</h2>
-          <p className="text-xs text-brand-text-soft mt-1">Manage sales campaigns, SDR success tiers, dynamic slabs, and TL override rules.</p>
+          <p className="text-xs text-brand-text-soft mt-1">Manage sales campaigns, executive success tiers, dynamic slabs, and TL override rules.</p>
         </div>
         {isAdmin && (
           <button
@@ -526,7 +526,7 @@ export default function Campaigns() {
                             <span className="font-extrabold text-white">{teamLead ? teamLead.employee.fullName : 'None'}</span>
                           </div>
                           <div className="flex justify-between text-brand-text-mute">
-                            <span>SDR Staff size:</span>
+                            <span>Executive Staff size:</span>
                             <span className="font-extrabold text-white font-mono">{sdrs.length}</span>
                           </div>
                         </div>
@@ -632,7 +632,7 @@ export default function Campaigns() {
                       </div>
                       <p className="text-[10px] text-brand-text-soft font-bold uppercase tracking-widest font-display">Est. Commissions Paid</p>
                       <h3 className="text-2xl font-extrabold text-brand-green mt-2 font-mono">PKR {dashboardData.stats.commissionPaid.toLocaleString()}</h3>
-                      <p className="text-[9px] text-brand-text-mute mt-2 font-bold">Includes SDR & TL override override</p>
+                      <p className="text-[9px] text-brand-text-mute mt-2 font-bold">Includes Executive & TL override</p>
                     </div>
                   </div>
 
@@ -641,7 +641,7 @@ export default function Campaigns() {
                     <div className="flex justify-between items-center pb-2 border-b border-brand-border/40">
                       <h3 className="text-sm font-extrabold text-white uppercase font-display flex items-center gap-2">
                         <Award className="w-4 h-4 text-brand-cyan" />
-                        Campaign Leaderboard (SDR Rankings)
+                        Campaign Leaderboard (Sales Executive Rankings)
                       </h3>
                       <span className="text-[10px] text-brand-text-soft font-bold uppercase">Active Lead: {dashboardData.campaign.teamLead}</span>
                     </div>
@@ -963,7 +963,7 @@ export default function Campaigns() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1.5">Assign SDRs (Check to Add)</label>
+                <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1.5">Assign Sales Executives (Check to Add)</label>
                 <div className="max-h-40 overflow-y-auto p-3 rounded-xl border border-brand-border bg-brand-bg/40 space-y-2">
                   {employees.map(e => (
                     <label key={e.id} className="flex items-center gap-2 text-xs text-white cursor-pointer hover:text-brand-cyan">
@@ -1056,7 +1056,7 @@ export default function Campaigns() {
                   onChange={(e) => setAssignRole(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-brand-bg border border-brand-border text-xs text-white focus:outline-none cursor-pointer"
                 >
-                  <option value="sdr">SDR (Outreach Agent)</option>
+                  <option value="sdr">Sales Executive</option>
                   <option value="team_lead">Team Lead (Operational Lead)</option>
                 </select>
               </div>

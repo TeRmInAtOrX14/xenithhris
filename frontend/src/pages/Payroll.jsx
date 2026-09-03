@@ -385,7 +385,7 @@ export default function Payroll() {
 
               {/* Performance fields */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold text-brand-text uppercase tracking-widest font-display">Input SDR Campaign Metrics</h4>
+                <h4 className="text-xs font-bold text-brand-text uppercase tracking-widest font-display">Input Sales Campaign Metrics</h4>
                 <div className="space-y-3.5 max-h-80 overflow-y-auto pr-2">
                   {fields.map((field, index) => (
                     <div key={field.id} className="p-4 rounded-xl border border-brand-border bg-brand-bg/40 space-y-4">

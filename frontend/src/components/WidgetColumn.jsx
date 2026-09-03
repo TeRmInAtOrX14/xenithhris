@@ -2,46 +2,58 @@ import React, { useState } from 'react';
 import { Bell, Calendar, Plus, X, Sparkles, ChevronLeft, ChevronRight, Info, CheckCircle } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
-export default function WidgetColumn() {
-  const [selectedDate, setSelectedDate] = useState(16);
-  const [announcements, setAnnouncements] = useState([
-    {
-      id: 1,
-      tag: 'NEW',
-      title: 'Xenith Digital Art Expo 2026',
-      date: 'Mar 25, 2026',
-      desc: 'Mark your calendar! The Xenith 3D render showcase is coming up.',
-      color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'
-    },
-    {
-      id: 2,
-      tag: 'HIRING',
-      title: 'We are HIRING Concept Artists',
-      date: 'Mar 20, 2026',
-      desc: 'We are looking to bring on 2 senior digital illustrators. Refer your friends!',
-      color: 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-    },
-    {
-      id: 3,
-      tag: 'PAYROLL',
-      title: 'Monthly Payslips Released',
-      date: 'Mar 01, 2026',
-      desc: 'March cycle payslips are now available in your employee portal.',
-      color: 'bg-[#D7F000]/20 text-[#D7F000] border-[#D7F000]/40'
-    }
-  ]);
+export default function WidgetColumn({ liveNotifications = [], departmentChartData = null }) {
+  const [selectedDate, setSelectedDate] = useState(new Date().getDate());
+
+  const initialAnnouncements = liveNotifications.length > 0
+    ? liveNotifications.slice(0, 3).map(n => ({
+        id: n.id,
+        tag: 'NOTICE',
+        title: n.title,
+        date: new Date(n.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        desc: n.message,
+        color: 'bg-[#D7F000]/20 text-[#D7F000] border-[#D7F000]/40'
+      }))
+    : [
+        {
+          id: 1,
+          tag: 'STUDIO',
+          title: 'Xenith Digital Art Showcase 2026',
+          date: 'Mar 25',
+          desc: 'Mark your calendar! The Xenith 3D render showcase is coming up.',
+          color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'
+        },
+        {
+          id: 2,
+          tag: 'HIRING',
+          title: 'We are HIRING Concept Artists',
+          date: 'Mar 20',
+          desc: 'We are looking to bring on 2 senior digital illustrators. Refer your friends!',
+          color: 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+        },
+        {
+          id: 3,
+          tag: 'PAYROLL',
+          title: 'Monthly Payslips Released',
+          date: 'Mar 01',
+          desc: 'March cycle payslips are now available in your employee portal.',
+          color: 'bg-[#D7F000]/20 text-[#D7F000] border-[#D7F000]/40'
+        }
+      ];
+
+  const [announcements, setAnnouncements] = useState(initialAnnouncements);
 
   const dismissAnnouncement = (id) => {
     setAnnouncements(announcements.filter(a => a.id !== id));
   };
 
-  // Calendar days grid generator for March 2026
+  // Calendar days grid generator
   const daysInMonth = 31;
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   // Department workforce distribution chart data
-  const chartData = [
-    { name: 'Sales', value: 8, color: '#D7F000' },
+  const chartData = departmentChartData || [
+    { name: 'Sales Execs', value: 8, color: '#D7F000' },
     { name: 'Artists', value: 6, color: '#22D3EE' },
     { name: 'Management', value: 4, color: '#A78BFA' },
     { name: 'Operations', value: 5, color: '#34D399' }
