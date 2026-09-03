@@ -140,7 +140,7 @@
   }
 }
 
-/* Custom Component Utility Classes */
+/* Custom Component Utility & Tactile Animation Classes */
 .xenith-logo-container {
   display: inline-flex;
   align-items: center;
@@ -155,16 +155,63 @@
 .glass-panel {
   background-color: var(--brand-bg-elevated);
   border: 1px solid var(--brand-border);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Tactile micro-interactions for buttons & cards */
+.tactile-btn {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.tactile-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+.tactile-btn:active {
+  transform: translateY(1px) scale(0.98);
 }
 
 .hover-glow-lime:hover {
   border-color: #D7F000 !important;
-  box-shadow: 0 0 15px rgba(215, 240, 0, 0.2);
+  box-shadow: 0 0 18px rgba(215, 240, 0, 0.25);
 }
 
 .hover-glow-lemon:hover {
   border-color: #E8F52A !important;
-  box-shadow: 0 0 15px rgba(232, 245, 42, 0.2);
+  box-shadow: 0 0 18px rgba(232, 245, 42, 0.25);
+}
+
+/* Vibrant Quick-Action Tile Gradients */
+.tile-gradient-lime {
+  background: linear-gradient(135deg, #182600 0%, #2A3F00 100%);
+  border: 1px solid rgba(215, 240, 0, 0.3);
+}
+.tile-gradient-cyan {
+  background: linear-gradient(135deg, #022C3A 0%, #064E63 100%);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+}
+.tile-gradient-amber {
+  background: linear-gradient(135deg, #381E04 0%, #613407 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.tile-gradient-emerald {
+  background: linear-gradient(135deg, #022E1F 0%, #064E3B 100%);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+.tile-gradient-violet {
+  background: linear-gradient(135deg, #2A0E47 0%, #4C1D95 100%);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+/* Skeleton Loading Sweeping Glow Animation */
+@keyframes skeleton-sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-pulse {
+  background: linear-gradient(90deg, var(--brand-border) 25%, var(--brand-border-strong) 50%, var(--brand-border) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.5s infinite ease-in-out;
+  border-radius: 0.75rem;
 }
 
 /* Primary CTA Button — Electric Lime (#D7F000) default, Lemon Green (#E8F52A) hover */
@@ -184,13 +231,17 @@
   background-color: #E8F52A !important;
   color: #000000 !important;
   box-shadow: 0 0 20px rgba(215, 240, 0, 0.4);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(1px) scale(0.98);
 }
 
 .btn-secondary {
-  background-color: #111111;
-  color: #FFFFFF;
-  border: 1px solid #262626;
+  background-color: var(--brand-bg-surface);
+  color: var(--brand-text);
+  border: 1px solid var(--brand-border);
   font-weight: 700;
   border-radius: 0.75rem;
   padding: 0.625rem 1.25rem;
@@ -200,9 +251,14 @@
 .btn-secondary:hover {
   border-color: #D7F000;
   color: #D7F000;
+  transform: translateY(-2px);
 }
 
-/* High-Contrast Status Badge Pills (Solid black background prevents any text blending) */
+.btn-secondary:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* High-Contrast Status Badge Pills */
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -231,7 +287,7 @@
 
 .status-danger {
   background-color: #000000 !important;
-  color: #E8F52A !important;
+  color: #EF4444 !important;
   border: 1px solid #262626 !important;
 }
 
@@ -271,3 +327,4 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #D7F000;
 }
+

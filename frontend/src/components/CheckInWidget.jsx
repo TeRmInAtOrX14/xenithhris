@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Clock, LogIn, LogOut, CheckCircle2, AlertCircle, Calendar, ShieldCheck, Loader2 } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import SlideToConfirm from './SlideToConfirm';
+import VisualStatusIndicator from './VisualStatusIndicator';
 
 export default function CheckInWidget({ onStatusChange }) {
   const [time, setTime] = useState(new Date());
@@ -36,8 +38,11 @@ export default function CheckInWidget({ onStatusChange }) {
     try {
       setActionLoading(true);
       const res = await api.post('/attendance/check-in');
-      const timeStr = new Date(res.data.record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      toast.success(`Check-In recorded at ${timeStr}`);
+      const timeStr = new Date(res.data.record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      toast.success(`Check-In recorded at ${timeStr}`, {
+        icon: '✅',
+        style: { borderRadius: '14px', background: '#111', color: '#D7F000', border: '1px solid #D7F000' }
+      });
       fetchStatus();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Check-In failed');
@@ -50,8 +55,11 @@ export default function CheckInWidget({ onStatusChange }) {
     try {
       setActionLoading(true);
       const res = await api.post('/attendance/check-out');
-      const timeStr = new Date(res.data.record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      toast.success(`Check-Out recorded at ${timeStr}`);
+      const timeStr = new Date(res.data.record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      toast.success(`Check-Out recorded at ${timeStr}`, {
+        icon: '🏁',
+        style: { borderRadius: '14px', background: '#111', color: '#22D3EE', border: '1px solid #22D3EE' }
+      });
       fetchStatus();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Check-Out failed');
@@ -62,24 +70,24 @@ export default function CheckInWidget({ onStatusChange }) {
 
   const formatTimeStr = (dateStr) => {
     if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const formattedCurrentTime = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const formattedCurrentDate = time.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="p-6 rounded-2xl glass-panel border border-brand-border/60 relative overflow-hidden text-left shadow-lg">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+    <div className="p-6 rounded-2xl glass-panel border border-brand-border relative overflow-hidden text-left shadow-lg">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
         
         {/* Clock & Date Header */}
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-brand-cyan text-xs font-bold font-display uppercase tracking-widest">
-            <Clock className="w-4 h-4 animate-pulse text-brand-cyan" />
-            HRIS Attendance Portal
+          <div className="flex items-center gap-2 text-[#D7F000] text-xs font-bold font-display uppercase tracking-widest">
+            <Clock className="w-4 h-4 animate-pulse text-[#D7F000]" />
+            Shift Attendance Portal
           </div>
           <div className="flex items-baseline gap-3">
-            <h3 className="text-3xl font-extrabold text-white font-mono tracking-tight">{formattedCurrentTime}</h3>
+            <h3 className="text-3xl font-extrabold text-brand-text font-mono tracking-tight">{formattedCurrentTime}</h3>
             <span className="text-xs text-brand-text-soft font-medium flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5 text-brand-text-mute" />
               {formattedCurrentDate}
@@ -88,67 +96,59 @@ export default function CheckInWidget({ onStatusChange }) {
         </div>
 
         {/* Action Controls & Real-time Status */}
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
           {loading ? (
             <div className="flex items-center gap-2 text-xs text-brand-text-soft px-4 py-2">
-              <Loader2 className="w-4 h-4 animate-spin text-brand-cyan" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#D7F000]" />
               Fetching status...
             </div>
           ) : (
             <>
-              {/* Status Badge */}
-              <div className="flex flex-col text-right">
-                <span className="text-[9px] font-bold text-brand-text-mute uppercase tracking-widest">Status Today</span>
-                {status.checkedOut ? (
-                  <span className="text-xs font-extrabold text-brand-blue uppercase font-mono mt-0.5 flex items-center gap-1.5 justify-end">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-brand-blue" />
-                    Completed Shift
-                  </span>
-                ) : status.checkedIn ? (
-                  <span className="text-xs font-extrabold text-brand-green uppercase font-mono mt-0.5 flex items-center gap-1.5 justify-end">
-                    <ShieldCheck className="w-3.5 h-3.5 text-brand-green" />
-                    Checked In ({formatTimeStr(status.record?.checkIn)})
-                  </span>
+              {/* Visual Status Indicator Ring */}
+              <VisualStatusIndicator
+                value={status.checkedOut ? 100 : status.checkedIn ? 65 : 0}
+                status={status.checkedOut ? "cyan" : status.checkedIn ? "lime" : "amber"}
+                label={status.checkedOut ? "Completed" : status.checkedIn ? "Checked In" : "Not Checked In"}
+                sublabel={
+                  status.checkedIn
+                    ? `In: ${formatTimeStr(status.record?.checkIn)}`
+                    : "Slide handle to mark shift"
+                }
+              />
+
+              {/* Slide To Confirm Gesture Control */}
+              <div className="w-64 shrink-0">
+                {!status.checkedIn ? (
+                  <SlideToConfirm
+                    onConfirm={handleCheckIn}
+                    label="SLIDE TO CHECK IN →"
+                    successLabel="CHECKED IN!"
+                    disabled={actionLoading}
+                    color="lime"
+                  />
+                ) : !status.checkedOut ? (
+                  <SlideToConfirm
+                    onConfirm={handleCheckOut}
+                    label="SLIDE TO CHECK OUT →"
+                    successLabel="CHECKED OUT!"
+                    disabled={actionLoading}
+                    color="emerald"
+                  />
                 ) : (
-                  <span className="text-xs font-extrabold text-brand-amber uppercase font-mono mt-0.5 flex items-center gap-1.5 justify-end">
-                    <AlertCircle className="w-3.5 h-3.5 text-brand-amber" />
-                    Not Checked In
-                  </span>
+                  <div className="px-4 py-3 rounded-2xl border border-[#D7F000]/30 bg-[#D7F000]/10 text-xs font-mono font-bold text-brand-text flex items-center justify-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#D7F000]" />
+                    Shift Logged ({formatTimeStr(status.record?.checkIn)} - {formatTimeStr(status.record?.checkOut)})
+                  </div>
                 )}
               </div>
-
-              {/* Primary Check-In / Check-Out Action Button */}
-              {!status.checkedIn ? (
-                <button
-                  onClick={handleCheckIn}
-                  disabled={actionLoading}
-                  className="px-6 py-3 rounded-full bg-gradient-to-r from-brand-green via-emerald-400 to-teal-500 text-brand-bg font-extrabold text-xs uppercase tracking-wider font-display shadow-lg shadow-brand-green/20 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
-                  <span>Mark Check-In</span>
-                </button>
-              ) : !status.checkedOut ? (
-                <button
-                  onClick={handleCheckOut}
-                  disabled={actionLoading}
-                  className="px-6 py-3 rounded-full bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg font-extrabold text-xs uppercase tracking-wider font-display shadow-lg shadow-brand-blue/20 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
-                  <span>Mark Check-Out</span>
-                </button>
-              ) : (
-                <div className="px-5 py-2.5 rounded-full border border-brand-blue/30 bg-brand-blue/10 text-xs font-mono font-bold text-white flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-brand-blue" />
-                  In: {formatTimeStr(status.record?.checkIn)} | Out: {formatTimeStr(status.record?.checkOut)}
-                </div>
-              )}
             </>
           )}
         </div>
 
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/5 via-transparent to-brand-cyan/5 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#D7F000]/5 via-transparent to-cyan-500/5 pointer-events-none" />
     </div>
   );
 }
+

@@ -35,6 +35,7 @@ import {
 import toast from 'react-hot-toast';
 import api from '../utils/api';
 import { useTheme } from '../utils/themeContext';
+import SplashAnimation from '../components/SplashAnimation';
 
 export default function DashboardLayout() {
   const { theme, isDark, toggleTheme } = useTheme();
