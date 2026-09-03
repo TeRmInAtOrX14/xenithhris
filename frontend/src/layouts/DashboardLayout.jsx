@@ -36,6 +36,7 @@ import toast from 'react-hot-toast';
 import api from '../utils/api';
 import { useTheme } from '../utils/themeContext';
 import SplashAnimation from '../components/SplashAnimation';
+import EditProfileModal from '../components/EditProfileModal';
 
 export default function DashboardLayout() {
   const { theme, isDark, toggleTheme } = useTheme();
@@ -45,13 +46,15 @@ export default function DashboardLayout() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifLoading, setNotifLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(() => {
+    const userString = localStorage.getItem('user');
+    return userString ? JSON.parse(userString) : { email: 'alex@bizhaven.com', name: 'Alex Vance', role: 'Sales Executive' };
+  });
   
   const searchInputRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-
-  const userString = localStorage.getItem('user');
-  const currentUser = userString ? JSON.parse(userString) : { email: 'User', role: 'Employee' };
 
   // Global Ctrl + K / Cmd + K keyboard shortcut to focus search bar
   useEffect(() => {
@@ -591,17 +594,41 @@ export default function DashboardLayout() {
             </div>
 
             {/* Header User Avatar Badge */}
-            <div className="flex items-center gap-2 pl-2 border-l border-brand-border">
-              <div className="w-8 h-8 rounded-full bg-brand-orange/20 flex items-center justify-center border border-brand-orange/30">
-                <User className="w-4 h-4 text-brand-orange" />
-              </div>
+            <div
+              onClick={() => setEditProfileOpen(true)}
+              className="flex items-center gap-2 pl-2 border-l border-brand-border cursor-pointer group"
+              title="Click to edit profile & password"
+            >
+              {currentUser.avatarUrl ? (
+                <img
+                  src={currentUser.avatarUrl}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full object-cover border border-[#D7F000] group-hover:scale-105 transition-transform"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[#D7F000]/20 flex items-center justify-center border border-[#D7F000]/40 group-hover:scale-105 transition-transform">
+                  <User className="w-4 h-4 text-[#D7F000]" />
+                </div>
+              )}
               <div className="hidden sm:flex flex-col text-left">
-                <span className="text-xs font-bold text-white truncate max-w-[100px]">{currentUser.email?.split('@')[0]}</span>
+                <span className="text-xs font-extrabold text-white truncate max-w-[110px] group-hover:text-[#D7F000] transition-colors">
+                  {currentUser.name || currentUser.email?.split('@')[0]}
+                </span>
                 <span className="text-[9px] text-brand-text-mute font-mono uppercase">{currentUser.role}</span>
               </div>
             </div>
           </div>
         </header>
+
+        {/* Global Edit Profile Modal */}
+        <EditProfileModal
+          isOpen={editProfileOpen}
+          onClose={() => setEditProfileOpen(false)}
+          currentUser={currentUser}
+          onSave={(updated) => {
+            setCurrentUser(updated);
+          }}
+        />
 
         {/* Dynamic Nested Content Workspace */}
         <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-brand-bg">

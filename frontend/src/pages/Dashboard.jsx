@@ -9,13 +9,19 @@ import AdminDashboard from './AdminDashboard';
 import DesignerDashboard from './DesignerDashboard';
 
 export default function Dashboard() {
-  const userString = localStorage.getItem('user');
-  const currentUser = userString ? JSON.parse(userString) : { email: 'mary@bizhaven.com', name: 'Mary W. Jackson', role: 'Sales Executive' };
+  const [userState, setUserState] = useState(() => {
+    const userString = localStorage.getItem('user');
+    return userString ? JSON.parse(userString) : { email: 'alex@bizhaven.com', name: 'Alex Vance', role: 'Sales Executive' };
+  });
 
   // State to support live interactive role switching across Sales Executive, Team Lead, Designer, CEO
   const [activeRole, setActiveRole] = useState(() => {
-    return currentUser.role || 'Sales Executive';
+    return userState.role || 'Sales Executive';
   });
+
+  const handleUserUpdate = (updated) => {
+    setUserState(updated);
+  };
 
   const renderRoleCenterContent = () => {
     switch (activeRole) {
@@ -43,9 +49,10 @@ export default function Dashboard() {
     >
       {/* 1. Top Center Profile Strip Card (Reference UI Format) */}
       <ProfileStrip
-        currentUser={currentUser}
+        currentUser={userState}
         activeRole={activeRole}
         onRoleSwitch={(newRole) => setActiveRole(newRole)}
+        onUserUpdate={handleUserUpdate}
       />
 
       {/* 2. Grid of Colorful Quick-Action Stat Tiles */}
@@ -66,4 +73,5 @@ export default function Dashboard() {
     </motion.div>
   );
 }
+
 
