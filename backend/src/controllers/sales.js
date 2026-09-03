@@ -114,6 +114,10 @@ exports.getSales = async (req, res, next) => {
 
 exports.createSale = async (req, res, next) => {
   try {
+    if (req.user.role === 'Designer') {
+      return res.status(403).json({ error: 'Designers cannot add sales entries. Only Sales Executives, Team Leads, and Management can add sales.' });
+    }
+
     const {
       clientName,
       clientEmail,

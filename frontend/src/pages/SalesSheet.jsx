@@ -115,6 +115,7 @@ export default function SalesSheet() {
   const currentUser = JSON.parse(localStorage.getItem('user')) || { role: 'Employee' };
   const isCEOOrAdmin = ['Admin', 'CEO', 'COO'].includes(currentUser.role);
   const isTL = currentUser.role === 'Team Lead';
+  const isDesigner = currentUser.role === 'Designer';
 
   const fetchSales = async () => {
     try {
@@ -376,13 +377,15 @@ export default function SalesSheet() {
             Export Excel (CSV)
           </button>
 
-          <button
-            onClick={() => { setSaleForm(emptySaleForm); setNewSaleModalOpen(true); }}
-            className="px-5 py-2 rounded-xl bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg hover:scale-[1.02] transition-all font-bold font-display text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-blue/20"
-          >
-            <Plus className="w-4 h-4" />
-            New Entry
-          </button>
+          {!isDesigner && (
+            <button
+              onClick={() => { setSaleForm(emptySaleForm); setNewSaleModalOpen(true); }}
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg hover:scale-[1.02] transition-all font-bold font-display text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-blue/20"
+            >
+              <Plus className="w-4 h-4" />
+              New Entry
+            </button>
+          )}
         </div>
       </div>
 
@@ -898,6 +901,22 @@ export default function SalesSheet() {
                     />
                   </div>
                 </div>
+
+                {(isCEOOrAdmin || isTL) && !editSaleModalOpen && (
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Sales Executive (Agent) *</label>
+                    <select
+                      value={saleForm.employeeId}
+                      onChange={e => setSaleForm({ ...saleForm, employeeId: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none cursor-pointer"
+                    >
+                      <option value="">Select Sales Executive (Default: Yourself)</option>
+                      {employees.map(emp => (
+                        <option key={emp.id} value={emp.id}>{emp.fullName} ({emp.designation})</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
