@@ -1,0 +1,80 @@
+hey so I want you to write me down the whole system and structure!
+
+
+
+so the structure is about a company named xenith! the xenith is basically a company who provide digital art services like it provide arts in digital medium! so basically there is some hiearchy structure!
+
+
+
+roles:
+
+so first of comes the sales executive: there are different sales executives who are basically sales person like what their job is now? their job is to reach different people, talkj with them and then when sales are closed the sales are saved in their excel sheet so basically now we're swithng to a website so I want there to be similar things like rather than updating excels they could manage the sheet in the website where we gives them proper columns and everything there like names and they fill that like add column and update the info there as sales comes! this would be for different months and years not a fixed one ofc! so basically the sale sheet is for their own understandings like they could easily track their sales and amount! but there's one issue that sometimes payments are in installments and then if you update sheet with xyz amounts and after a interval it's added so for that I want some other system like in finance section how about if someone select payment plan as installments then there's another table below which appears and show's about that specific sale and he/she can update the installments there alongside the dates, so basically this keeps tracks and like this each table would be there for every sale under the main sheet and while the table clearly calculate and tells the amount of every sale of their month! the month won't be going like 1-30 but that would be going from 5 to 5 like the month is started at 5 and ended at 5th of month, so like this for every sale there's a table which updates that professionanlly and keep track of every payment and according to that payment it updates the dashboard and that ampunt is there but it won't occur like example if the ale was of 200 and we rec 100 in aug and 100 in sept so it won't be like sale also counted in sept but it would be added as a remianing where would be one more table of remaining so the tracks of remaining payments and current sales are there so basically there would be 3 payments but installment would lie under the remaining payment since it's already a remaining aprt of that so we can edit that on it's behalf and in the dashboard of every employee it shows down the track of current sales, remaining and both their amounts and sales number not the remaining sales number! so that keeps the track and every sales executive is able to track their own sales and see everything and also edit if something wrong is put there!
+
+
+
+one more thing a sales executive does is managing projects so basically every sales executive job is to track the management of projects and that's biggest issue! so there it's an art companyt and every sales executive would update the stages of an artwork which is alongside the project number and project number would be assigned by the teamlead and ceo only or they could be also entered by the employee himself so he enters that after asking the leaders! so here it goes like some mismanegment could occur so we need a strick rule there like there sould be a deadline and alert messages set for that like popups and different things since its a servere case like for example there's 3 stages of an artwork each having a 5 day gap! the stages are initial sketch, lineart, finalarwork and these stages would be counted and in these stages the work goes like sales executive has to keep tracks and manage its projects and remind teamleads and ceo if any projects isn't send yet like updates haven't send to clients so the projects keep in loop!
+
+
+
+after this they would be able able to see their finances like according to their commissions what they're earned and what is deducted according to the system like 2 late = 1 off and the finances goes like a month has 30 days out of which offuice is officially off on sundays so a month has 4 sundays and makes it 26 days wo whatsoever the aount he earns woiuld be divided by 26 and then that specific for a day would be multiplied by his leaves and that amount would be shown to the employee but there's also some things like 1 day off for sick leave and on any leave it would be done by using clockin so if a slaes executive has taken more l;eaves or even one so he has to enter a reason why he took leave so the finances would be according to that what his salary would be in usd! and also the charts would be like finances would include his score like the total sale amount and recieved anmount lkike what has been recieved till now!
+
+
+
+there would also be a option where the team lead, ceo and sale executive himself would mark when he would get his salary as a record and it would be saved in the database like this month salary has been there alongside the invoice which would be generated by the ceo and the amount there once it's recieved so the sales executive could see his own sales and things and amount he has recoeved!
+
+
+
+then comes the teamlead!
+
+the teamleads have few duties like they would be also managing sheets like they would make their own sheet where they can make sheets for eveyery person like in their sheet would be data f every employee and sales and evrything like slaes executive could only make for himself but teamlead could do for all of his employees under! so basically he can create his own thing like excel and everything goes by same rule for remaining as wel but he also has an option where he can click and see the sheets of his empoyess and edit that as well if he finds anything miswritten! the aim of sheets are that each keep record and slaes are recorded at every interval!
+
+
+
+then he would be also managing the projects and now here comes one more responsibility like he is the one who would assign the briefs like he has job to collect briefs from sales executive or make himself which is a personal thing like however he works but the goal is he would have a portal of submitting brief which would be submitted to ceo alongside the project name which would be later forwaded and assigned by ceo to the deisgners! and the deisgners woyuld be the one who has only link with ceo which we would discuss later! so also for the updates he would be managing that like exact that 5 day gaps for works and everything he has to update there and alert messages if things have gone past 5 days! a note that brief which would be asisgned would be in pdf form so a teamlead could create a project name there and he would add the pdf there which would be viewd bvy ceo and then he would assign to the deisgners
+
+
+
+then he would be also able to see his own commission and his own record like what he has earned according to the commission and basic salary set and it could be anything cuz everyone has its own which ceo manage but the data would be there for his own visualization set into system! he can also see the things like what is the attendence of his sales executives and where they stand in team charts and what are their sales amount and everything else like what's the score of teama nd what is reciebved in teams
+
+
+
+also there would be an option for teamlead to amrk the slary has been delieved to teamlead to verify its been send form their end and has sale executive recieved that? and for track records there would be also invoice added which would be a picture in any format!
+
+
+
+team leads would have another option for projects like the pictures of updates updated by deisgners would be down to the teamleads like if there's a project 1 and project 2 and porject 3 but there's what deisgner updated all three and it would show a picture to both team leads but they can't each others but only own like if a teamlead has a project named abc then he could only see the things updated there in abc projects by deisgner and if the project is xyz and belongs to other teamlead then teamlead 1 cann't see the art uploaded there like xyz could be seen by teamlead 2 only but all projecyts would be able to seen by ceo and deisgner would upload normally cuz he is just a person who is assigned task he won't be the only amrking to leads but marking as a deisgner to all thing but its systen job to share the right projects to right teamleads like abc to the one who has this project name and xyz to the one who has that specific project!
+
+
+
+now comes the deisgner:
+
+the deisgner is someone who works on the projects like sales executives are the ones who bring clients and designers are the artist who works and create that art! so what their job would be is only limited like they won't have any attendence or clockin or anything like sales executives but their login would work like when an deisgner login and then they would be able to see what projects are assigned to them like they could see the brief and project numbers which they would downbload and then startworking on that and just like sales executives there would be also deadline set for that like 3 stages where they need to update and not only update but they would have to upload a picture there of update in stages like initial sketch, lineart, finalartwork and out of thet thing ceo would be able to download the artwork and teamleads could also download that but make sure the projects are shared on the basis of project name and is shared to the right teamlead only and ofc there would highly popups for notification that new work has bene tehre or whatsoever
+
+
+
+other than this deisgner would have a finance thing where he could see what is been paid and what's his salary going like iuts project based but we don't go like on specific it goes like from date 5-5 and at the end of month a specific amount is assigned to them transfered and then on thet amount they could mark as recieved when they got that! also they could required for early payments there and it would be alerted in ceo pannel for that and if artist has given monet before 5 then it must be there in records and must be adjusted by systems and ceo would have written all data about this
+
+
+
+ceo:
+
+the ceo is the main person of firm who would be able to see everyone data like personal things and also teams and specific executives things like he can make his own sheet like the one where he would be enerting data about every sales executive and another sheet where he would be enetring data about every deisgner so this goes like this and personal sheets for every month would be automatically created and could be added in sale sheets so every empolyee detals would bethere and he could see the month tracks of every single and for the whole company and for the whole team as well! 
+
+
+
+ceo would be the one who is managing artist and everything like he would be the one who will asisgn the project to the artsit and get the things there like he would have things like different artist and he would assign project there and artist would get the brief there but the brief is already there uploaded by the teamleads and ofc the updates could be marked there with picture which could be seen and downloaded by both ceo and teamleads!
+
+
+
+alongside this ceo would also get notifaction trigger warning and everything about things if any project has passed its limits
+
+
+
+ceo can also approve request for money and if even any artist has given advance payment or any sales executive has given that advance moneyt that would be updaded by the ceo and approve the req according to system and thenthis would be recorded in system and it would be deducyted on the time of salary from that specific person!
+
+
+
+other than this the artist has only connection with ceo asisgn and evrything but projects updates could be seen by respective teamleads as well!
+
+
+

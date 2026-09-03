@@ -201,7 +201,7 @@ exports.checkIn = async (req, res, next) => {
     const shiftStartTotalMins = SHIFT_START_HOUR * 60 + SHIFT_START_MIN;
     const thresholdMins = emp?.customLateThresholdMinutes !== null && emp?.customLateThresholdMinutes !== undefined
       ? emp.customLateThresholdMinutes
-      : 15; // system default: 15 min grace = 18:15
+      : 20; // Xenith system default: 20 min grace = 18:20 PKT late threshold
 
     const lateThresholdMins = shiftStartTotalMins + thresholdMins;
 
