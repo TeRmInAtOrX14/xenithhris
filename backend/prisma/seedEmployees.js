@@ -14,7 +14,7 @@ const employeesToSeed = [
     department: 'Executive',
     baseSalary: 0,
     commissionPercentage: 0,
-    phone: '3001234567',
+    phone: '3151057817',
     bankAccount: 'PK00MEZN0000000000000000',
     shiftStart: '18:00',
     shiftEnd: '23:59',
@@ -32,7 +32,7 @@ const employeesToSeed = [
     department: 'Sales',
     baseSalary: 0,
     commissionPercentage: 15,
-    phone: '+923342000000',
+    phone: '923342403058',
     bankAccount: 'PK45UNIL0109000336976912',
     shiftStart: '18:00',
     shiftEnd: '00:30',
@@ -50,7 +50,7 @@ const employeesToSeed = [
     department: 'Sales',
     baseSalary: 0,
     commissionPercentage: 25,
-    phone: '+923129000000',
+    phone: '923128890865',
     bankAccount: 'PK69MEZN0001530107153013',
     shiftStart: '18:00',
     shiftEnd: '00:30',
@@ -68,7 +68,7 @@ const employeesToSeed = [
     department: 'Sales',
     baseSalary: 0,
     commissionPercentage: 20,
-    phone: '+923153000000',
+    phone: '923152832488',
     bankAccount: 'PK50MEZN0000300112192804',
     shiftStart: '18:00',
     shiftEnd: '23:30',
@@ -86,7 +86,7 @@ const employeesToSeed = [
     department: 'Sales',
     baseSalary: 0,
     commissionPercentage: 20,
-    phone: '+923090000000',
+    phone: '923089502918',
     bankAccount: null,
     shiftStart: '18:00',
     shiftEnd: '00:30',
@@ -104,7 +104,7 @@ const employeesToSeed = [
     department: 'Sales',
     baseSalary: 0,
     commissionPercentage: 20,
-    phone: '+923234000000',
+    phone: '923233778770',
     bankAccount: null,
     shiftStart: '18:00',
     shiftEnd: '00:30',
@@ -122,7 +122,7 @@ const employeesToSeed = [
     department: 'Sales',
     baseSalary: 0,
     commissionPercentage: 0,
-    phone: '+923226000000',
+    phone: '923226358318',
     bankAccount: null,
     shiftStart: '18:00',
     shiftEnd: '00:30',
@@ -140,7 +140,7 @@ const employeesToSeed = [
     department: 'Sales',
     baseSalary: 0,
     commissionPercentage: 30,
-    phone: '+923123000000',
+    phone: '923122797269',
     bankAccount: null,
     shiftStart: '18:00',
     shiftEnd: '00:30',
@@ -158,7 +158,7 @@ const employeesToSeed = [
     department: 'Sales',
     baseSalary: 0,
     commissionPercentage: 15,
-    phone: '+923191000000',
+    phone: '923191073405',
     bankAccount: null,
     shiftStart: '18:00',
     shiftEnd: '00:00',
@@ -169,7 +169,7 @@ const employeesToSeed = [
 ];
 
 async function seed() {
-  console.log('Seeding employees into database...');
+  console.log('Updating employees in database with new phone numbers...');
   const salt = await bcrypt.genSalt(10);
 
   for (const emp of employeesToSeed) {
@@ -227,10 +227,10 @@ async function seed() {
       }
     });
 
-    console.log(`✅ Seeded: ${emp.fullName} (${emp.email}) - Role: ${emp.role}`);
+    console.log(`✅ Updated: ${emp.fullName} | Phone: ${emp.phone}`);
   }
 
-  console.log('🎉 Employee seeding complete!');
+  console.log('🎉 Employee records successfully updated with exact phone numbers!');
 }
 
 seed()

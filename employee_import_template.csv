@@ -1,10 +1,10 @@
 Employee Code,Full Name,Email Address,Password,Role (Admin/CEO/COO/Team Lead/Employee),Designation (Sales Executive/Designer/Manager/etc),Department (Sales/Design/HR/Operations),Basic Salary (PKR),Sales Commission (%),Phone Number,Bank Account / IBAN,Shift Start (e.g. 09:30),Shift End (e.g. 18:30),Joining Date (YYYY-MM-DD)
-EMP-001,Subu Ahad,subuahad1@gmail.com,xenith@12,CEO,CEO & Founder,Executive,0,0,3001234567,PK00MEZN0000000000000000,9:30,18:30,1/1/2024
-EMP-002,Anas Ahmed,anasahmyd16@gmail.com,xenith@12,Employee,Team Lead,Sales,0,15,9.23342E+11,PK45UNIL0109000336976912,6:00,12:30,1/5/2024
-EMP-003,Adeen Afzal,adeenafzal16@gmail.com,xenith@12,Employee,Sales executive,Sales,0,25%,9.23129E+11,PK69MEZN0001530107153013,6:45,12:30,3/1/2024
-EMP-004,Usama Riyaz,riazusama145@gmail.com,xenith@12,Employee,Sales executive,Sales,0,20%,9.23153E+11,PK50MEZN0000300112192804,6:00,11:30,22-10-2024
-EMP-004,Ahmed Ali,ahmedali9502918@gmail.com,xenith@12,Employee,Sales executive,Sales,0,20%,9.2309E+11,-,6:00,12:30,22-10-2024
-EMP-005,Muhammad Safiullah Khan,muhsafiullahkhan@gmail.com,xenith@12,Employee,Sales executive,Sales,0,20%,9.23234E+11,-,6:00,12:30,
-EMP-006,Muhammad Umar,bunny.og2003@gmail.com,xenith@12,Employee,Sales executive,Sales,0,,9.23226E+11,-,6:00,12:30,
-EMP-007,Taha Asrar,Tahaasrar9@gmail.com,xenith@12,Employee,Sales executive,Sales,0,30%,9.23123E+11,-,6:00,12:30,
-EMP-008,Muhammad Visam Khan,visamkhan73@gmail.com,xenith@12,Employee,Sales executive,Sales,0,15%,9.23191E+11,-,6:00,12:00,
+EMP-001,Subu Ahad,subuahad1@gmail.com,xenith@12,CEO,CEO & Founder,Executive,0,0,3151057817,PK00MEZN0000000000000000,9:30,18:30,1/1/2024
+EMP-002,Anas Ahmed,anasahmyd16@gmail.com,xenith@12,Employee,Team Lead,Sales,0,15,923342403058,PK45UNIL0109000336976912,6:00,12:30,1/5/2024
+EMP-003,Adeen Afzal,adeenafzal16@gmail.com,xenith@12,Employee,Sales executive,Sales,0,25%,923128890865,PK69MEZN0001530107153013,6:45,12:30,3/1/2024
+EMP-004,Usama Riyaz,riazusama145@gmail.com,xenith@12,Employee,Sales executive,Sales,0,20%,923152832488,PK50MEZN0000300112192804,6:00,11:30,22-10-2024
+EMP-004,Ahmed Ali,ahmedali9502918@gmail.com,xenith@12,Employee,Sales executive,Sales,0,20%,923089502918,-,6:00,12:30,22-10-2024
+EMP-005,Muhammad Safiullah Khan,muhsafiullahkhan@gmail.com,xenith@12,Employee,Sales executive,Sales,0,20%,923233778770,-,6:00,12:30,
+EMP-006,Muhammad Umar,bunny.og2003@gmail.com,xenith@12,Employee,Sales executive,Sales,0,,923226358318,-,6:00,12:30,
+EMP-007,Taha Asrar,Tahaasrar9@gmail.com,xenith@12,Employee,Sales executive,Sales,0,30%,923122797269,-,6:00,12:30,
+EMP-008,Muhammad Visam Khan,visamkhan73@gmail.com,xenith@12,Employee,Sales executive,Sales,0,15%,923191073405,-,6:00,12:00,
