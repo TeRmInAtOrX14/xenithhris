@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const payrollController = require('../controllers/payroll');
+const payslipOverrideController = require('../controllers/payslipOverride');
 const { requireAuth, requireRole } = require('../middlewares/auth');
 
 const adminRoles = ['Admin', 'CEO', 'COO'];
@@ -12,5 +13,9 @@ router.put('/runs/:id/finalize', requireAuth, requireRole(adminRoles), payrollCo
 router.get('/my-payslips', requireAuth, payrollController.getMyPayslips);
 router.get('/payslips/:id/pdf', requireAuth, payrollController.getPayslipPdfFile);
 router.post('/generate-manual-pdf', requireAuth, requireRole(adminRoles), payrollController.generateManualPdf);
+
+// CEO Payslip Override routes — adjust net pay without altering time logs
+router.post('/payslips/:payslipId/override', requireAuth, requireRole(adminRoles), payslipOverrideController.createPayslipOverride);
+router.get('/payslips/:payslipId/overrides', requireAuth, payslipOverrideController.getPayslipOverrides);
 
 module.exports = router;

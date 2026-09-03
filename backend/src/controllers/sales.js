@@ -116,18 +116,26 @@ exports.createSale = async (req, res, next) => {
   try {
     const {
       clientName,
+      clientEmail,
       projectName,
       saleAmount,
+      upfrontAmount,
+      tipAmount,
       saleDate,
       employeeId,
       designerId,
       designerFee,
       installmentsCount,
-      notes,
-      paymentMethod
+      platform,
+      paymentMethod,
+      completionDate,
+      fallInMonth,
+      workDetails,
+      extraInfo,
+      notes
     } = req.body;
 
-    if (!clientName || !projectName || !saleAmount) {
+    if (!clientName || !projectName || (saleAmount === undefined && upfrontAmount === undefined)) {
       return res.status(400).json({ error: 'Client Name, Project Name, and Sale Amount ($) are required.' });
     }
 
@@ -142,40 +150,77 @@ exports.createSale = async (req, res, next) => {
       select: { commissionPercentage: true }
     });
 
-    const totalAmount = parseFloat(saleAmount);
+    const grossAmount = parseFloat(saleAmount || 0);
+    const upfront = parseFloat(upfrontAmount || 0);
+    const tip = parseFloat(tipAmount || 0);
+    const totalSale = grossAmount + tip;
     const commPct = salesExec?.commissionPercentage || 0;
-    const calculatedCommissionUsd = (totalAmount * commPct) / 100;
+    const calculatedCommissionUsd = (grossAmount * commPct) / 100;
     const instCount = parseInt(installmentsCount || 1);
     const prjNum = await generateProjectNumber();
+
+    const initialReceived = upfront;
+    const remaining = Math.max(0, totalSale - initialReceived);
+    const paymentStatus = remaining === 0 ? 'Paid' : (initialReceived > 0 ? 'Partial' : 'Unpaid');
+
+    const sDate = saleDate ? new Date(saleDate) : new Date();
+    const defaultFallMonth = fallInMonth || `${sDate.toLocaleString('default', { month: 'short' })} ${sDate.getFullYear()}`;
 
     const sale = await prisma.sale.create({
       data: {
         projectNumber: prjNum,
         clientName,
+        clientEmail: clientEmail || null,
         projectName,
-        saleDate: saleDate ? new Date(saleDate) : new Date(),
+        saleDate: sDate,
         employeeId: targetEmpId,
         designerId: designerId || null,
-        saleAmount: totalAmount,
+        saleAmount: grossAmount,
+        upfrontAmount: upfront,
+        tipAmount: tip,
         designerFee: designerFee ? parseFloat(designerFee) : 0,
         amountPaidToDesigner: 0,
         salesCommissionUsd: calculatedCommissionUsd,
         projectStage: 'Initial Sketch',
         stageUpdatedAt: new Date(),
         briefStatus: 'Pending',
-        paymentStatus: 'Unpaid',
-        amountReceived: 0,
-        remainingAmount: totalAmount,
+        paymentStatus,
+        amountReceived: initialReceived,
+        remainingAmount: remaining,
         installmentsCount: instCount,
-        installmentsReceived: 0,
+        installmentsReceived: upfront > 0 ? 1 : 0,
+        platform: platform || 'Direct / Website',
         paymentMethod: paymentMethod || 'Online/Bank Transfer',
-        notes
+        completionDate: completionDate ? new Date(completionDate) : null,
+        fallInMonth: defaultFallMonth,
+        workDetails: workDetails || null,
+        extraInfo: extraInfo || null,
+        notes: notes || null
       },
       include: {
         employee: { select: { id: true, fullName: true, employeeCode: true } },
         designer: { select: { id: true, fullName: true, employeeCode: true } }
       }
     });
+
+    // If upfront payment was provided, create 1st installment entry automatically
+    if (upfront > 0) {
+      await prisma.salePayment.create({
+        data: {
+          saleId: sale.id,
+          installmentNumber: 1,
+          paymentDate: sDate,
+          grossAmount: upfront,
+          feeDeducted: 0,
+          netAmount: upfront,
+          amount: upfront,
+          paymentMethod: paymentMethod || 'Online/Bank Transfer',
+          status: 'received',
+          fallInMonth: defaultFallMonth,
+          notes: 'Upfront Payment'
+        }
+      });
+    }
 
     // Create initial stage log
     await prisma.projectStageLog.create({
@@ -188,7 +233,7 @@ exports.createSale = async (req, res, next) => {
       }
     });
 
-    await logAudit(req.user.id, 'CREATE_SALE', 'Sale', sale.id, { projectNumber: prjNum, clientName, saleAmount: totalAmount });
+    await logAudit(req.user.id, 'CREATE_SALE', 'Sale', sale.id, { projectNumber: prjNum, clientName, saleAmount: grossAmount });
     res.json(sale);
   } catch (err) {
     next(err);
@@ -200,13 +245,24 @@ exports.updateSale = async (req, res, next) => {
     const { id } = req.params;
     const {
       clientName,
+      clientEmail,
       projectName,
       saleAmount,
+      upfrontAmount,
+      tipAmount,
       designerId,
       designerFee,
       amountPaidToDesigner,
+      installmentsCount,
+      platform,
       paymentMethod,
-      notes
+      completionDate,
+      fallInMonth,
+      workDetails,
+      extraInfo,
+      notes,
+      projectStage,
+      briefStatus
     } = req.body;
 
     const existing = await prisma.sale.findUnique({ where: { id }, include: { employee: true } });
@@ -222,19 +278,39 @@ exports.updateSale = async (req, res, next) => {
     }
 
     const updates = {};
-    if (clientName) updates.clientName = clientName;
-    if (projectName) updates.projectName = projectName;
+    if (clientName !== undefined) updates.clientName = clientName;
+    if (clientEmail !== undefined) updates.clientEmail = clientEmail || null;
+    if (projectName !== undefined) updates.projectName = projectName;
     if (designerId !== undefined) updates.designerId = designerId || null;
-    if (paymentMethod) updates.paymentMethod = paymentMethod;
+    if (platform !== undefined) updates.platform = platform;
+    if (paymentMethod !== undefined) updates.paymentMethod = paymentMethod;
+    if (completionDate !== undefined) updates.completionDate = completionDate ? new Date(completionDate) : null;
+    if (fallInMonth !== undefined) updates.fallInMonth = fallInMonth;
+    if (workDetails !== undefined) updates.workDetails = workDetails;
+    if (extraInfo !== undefined) updates.extraInfo = extraInfo;
     if (notes !== undefined) updates.notes = notes;
+    if (installmentsCount !== undefined) updates.installmentsCount = parseInt(installmentsCount) || 1;
+    if (projectStage !== undefined) updates.projectStage = projectStage;
+    if (briefStatus !== undefined) updates.briefStatus = briefStatus;
 
-    if (saleAmount !== undefined) {
-      const newAmount = parseFloat(saleAmount);
-      updates.saleAmount = newAmount;
-      updates.remainingAmount = Math.max(0, newAmount - existing.amountReceived);
+    if (saleAmount !== undefined || tipAmount !== undefined || upfrontAmount !== undefined) {
+      const newGross = saleAmount !== undefined ? parseFloat(saleAmount) : existing.saleAmount;
+      const newTip = tipAmount !== undefined ? parseFloat(tipAmount) : existing.tipAmount;
+      const newUpfront = upfrontAmount !== undefined ? parseFloat(upfrontAmount) : existing.upfrontAmount;
+
+      updates.saleAmount = newGross;
+      updates.tipAmount = newTip;
+      updates.upfrontAmount = newUpfront;
+
+      const totalSale = newGross + newTip;
+      const currentReceived = existing.amountReceived;
+      const newRemaining = Math.max(0, totalSale - currentReceived);
+      
+      updates.remainingAmount = newRemaining;
+      updates.paymentStatus = newRemaining === 0 ? 'Paid' : (currentReceived > 0 ? 'Partial' : 'Unpaid');
       
       const commPct = existing.employee?.commissionPercentage || 0;
-      updates.salesCommissionUsd = (newAmount * commPct) / 100;
+      updates.salesCommissionUsd = (newGross * commPct) / 100;
     }
 
     if (designerFee !== undefined) {
@@ -250,7 +326,8 @@ exports.updateSale = async (req, res, next) => {
       data: updates,
       include: {
         employee: { select: { id: true, fullName: true, employeeCode: true } },
-        designer: { select: { id: true, fullName: true, employeeCode: true } }
+        designer: { select: { id: true, fullName: true, employeeCode: true } },
+        payments: true
       }
     });
 
@@ -349,49 +426,262 @@ exports.uploadBrief = async (req, res, next) => {
 exports.logPayment = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { amount, paymentMethod, paymentDate, notes } = req.body;
+    const { amount, grossAmount, feeDeducted, paymentMethod, paymentDate, dueDate, status, exchangeRate, pkrAmount, fallInMonth, notes } = req.body;
 
-    const payAmount = parseFloat(amount);
-    if (isNaN(payAmount) || payAmount <= 0) {
-      return res.status(400).json({ error: 'Valid payment amount is required.' });
+    const gross = parseFloat(grossAmount || amount || 0);
+    const fee = parseFloat(feeDeducted || 0);
+    const net = Math.max(0, gross - fee);
+
+    if (isNaN(gross) || gross <= 0) {
+      return res.status(400).json({ error: 'Valid payment gross amount is required.' });
     }
 
-    const sale = await prisma.sale.findUnique({ where: { id } });
+    const sale = await prisma.sale.findUnique({
+      where: { id },
+      include: { payments: true }
+    });
     if (!sale) {
       return res.status(404).json({ error: 'Sale record not found.' });
     }
 
-    const newAmountReceived = sale.amountReceived + payAmount;
-    const newRemainingAmount = Math.max(0, sale.saleAmount - newAmountReceived);
-    const newInstReceived = sale.installmentsReceived + 1;
-    const newPaymentStatus = newRemainingAmount === 0 ? 'Paid' : 'Partial';
+    const instNum = sale.payments.length + 1;
+    const pDate = paymentDate ? new Date(paymentDate) : new Date();
+    const computedFallMonth = fallInMonth || `${pDate.toLocaleString('default', { month: 'short' })} ${pDate.getFullYear()}`;
 
     const payment = await prisma.salePayment.create({
       data: {
         saleId: id,
-        amount: payAmount,
-        paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
+        installmentNumber: instNum,
+        paymentDate: pDate,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        grossAmount: gross,
+        feeDeducted: fee,
+        netAmount: net,
+        amount: net,
+        exchangeRate: exchangeRate ? parseFloat(exchangeRate) : null,
+        pkrAmount: pkrAmount ? parseFloat(pkrAmount) : null,
         paymentMethod: paymentMethod || 'Online/Bank Transfer',
+        status: status || 'received',
+        fallInMonth: computedFallMonth,
         notes
       }
     });
 
+    // Recalculate sale totals
+    const allPayments = await prisma.salePayment.findMany({ where: { saleId: id } });
+    const totalReceivedNet = allPayments.reduce((sum, p) => sum + (p.netAmount || p.amount || 0), 0);
+    const totalSaleValue = (sale.saleAmount || 0) + (sale.tipAmount || 0);
+    const newRemaining = Math.max(0, totalSaleValue - totalReceivedNet);
+    const newPaymentStatus = newRemaining === 0 ? 'Paid' : (totalReceivedNet > 0 ? 'Partial' : 'Unpaid');
+
     const updatedSale = await prisma.sale.update({
       where: { id },
       data: {
-        amountReceived: newAmountReceived,
-        remainingAmount: newRemainingAmount,
-        installmentsReceived: newInstReceived,
-        paymentStatus: newPaymentStatus
+        amountReceived: totalReceivedNet,
+        remainingAmount: newRemaining,
+        installmentsReceived: allPayments.filter(p => p.status === 'received').length,
+        paymentStatus: newPaymentStatus,
+        fallInMonth: computedFallMonth
       }
     });
 
-    await logAudit(req.user.id, 'LOG_SALE_PAYMENT', 'SalePayment', payment.id, { amount: payAmount });
+    await logAudit(req.user.id, 'LOG_SALE_PAYMENT', 'SalePayment', payment.id, { gross, net, fee });
     res.json({ payment, sale: updatedSale });
   } catch (err) {
     next(err);
   }
 };
+
+/**
+ * GET /api/sales/:id/installments
+ * Fetch all sub-sheet installment ledger entries for a sale
+ */
+exports.getInstallments = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const installments = await prisma.salePayment.findMany({
+      where: { saleId: id },
+      orderBy: [{ installmentNumber: 'asc' }, { paymentDate: 'asc' }]
+    });
+
+    const sale = await prisma.sale.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        projectNumber: true,
+        projectName: true,
+        clientName: true,
+        saleAmount: true,
+        upfrontAmount: true,
+        tipAmount: true,
+        amountReceived: true,
+        remainingAmount: true,
+        installmentsCount: true,
+        installmentsReceived: true,
+        paymentStatus: true
+      }
+    });
+
+    const totalGross = installments.reduce((s, i) => s + (i.grossAmount || 0), 0);
+    const totalFees = installments.reduce((s, i) => s + (i.feeDeducted || 0), 0);
+    const totalNet = installments.reduce((s, i) => s + (i.netAmount || i.amount || 0), 0);
+
+    res.json({
+      sale,
+      summary: { totalGross, totalFees, totalNet },
+      installments
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * PUT /api/sales/:id/installments/:paymentId
+ * Edit installment entry (reconcile gross vs net, date, month, status)
+ */
+exports.updateInstallment = async (req, res, next) => {
+  try {
+    const { id, paymentId } = req.params;
+    const { grossAmount, feeDeducted, paymentDate, dueDate, paymentMethod, status, exchangeRate, pkrAmount, fallInMonth, notes, ceoNotes } = req.body;
+
+    const existingInst = await prisma.salePayment.findUnique({ where: { id: paymentId } });
+    if (!existingInst) return res.status(404).json({ error: 'Installment entry not found.' });
+
+    const updates = {};
+    if (grossAmount !== undefined || feeDeducted !== undefined) {
+      const gross = grossAmount !== undefined ? parseFloat(grossAmount) : existingInst.grossAmount;
+      const fee = feeDeducted !== undefined ? parseFloat(feeDeducted) : existingInst.feeDeducted;
+      const net = Math.max(0, gross - fee);
+
+      updates.grossAmount = gross;
+      updates.feeDeducted = fee;
+      updates.netAmount = net;
+      updates.amount = net;
+    }
+
+    if (paymentDate !== undefined) updates.paymentDate = new Date(paymentDate);
+    if (dueDate !== undefined) updates.dueDate = dueDate ? new Date(dueDate) : null;
+    if (paymentMethod !== undefined) updates.paymentMethod = paymentMethod;
+    if (status !== undefined) updates.status = status;
+    if (exchangeRate !== undefined) updates.exchangeRate = exchangeRate ? parseFloat(exchangeRate) : null;
+    if (pkrAmount !== undefined) updates.pkrAmount = pkrAmount ? parseFloat(pkrAmount) : null;
+    if (fallInMonth !== undefined) updates.fallInMonth = fallInMonth;
+    if (notes !== undefined) updates.notes = notes;
+    if (ceoNotes !== undefined) updates.ceoNotes = ceoNotes;
+
+    const updatedInst = await prisma.salePayment.update({
+      where: { id: paymentId },
+      data: updates
+    });
+
+    // Recalculate parent sale
+    const allPayments = await prisma.salePayment.findMany({ where: { saleId: id } });
+    const sale = await prisma.sale.findUnique({ where: { id } });
+    const totalReceivedNet = allPayments.reduce((sum, p) => sum + (p.netAmount || p.amount || 0), 0);
+    const totalSaleValue = (sale.saleAmount || 0) + (sale.tipAmount || 0);
+    const newRemaining = Math.max(0, totalSaleValue - totalReceivedNet);
+    const newPaymentStatus = newRemaining === 0 ? 'Paid' : (totalReceivedNet > 0 ? 'Partial' : 'Unpaid');
+
+    await prisma.sale.update({
+      where: { id },
+      data: {
+        amountReceived: totalReceivedNet,
+        remainingAmount: newRemaining,
+        installmentsReceived: allPayments.filter(p => p.status === 'received').length,
+        paymentStatus: newPaymentStatus
+      }
+    });
+
+    await logAudit(req.user.id, 'UPDATE_INSTALLMENT', 'SalePayment', paymentId, updates);
+    res.json(updatedInst);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * DELETE /api/sales/:id/installments/:paymentId
+ * Remove installment entry & update parent sale
+ */
+exports.deleteInstallment = async (req, res, next) => {
+  try {
+    const { id, paymentId } = req.params;
+    await prisma.salePayment.delete({ where: { id: paymentId } });
+
+    // Recalculate parent sale
+    const allPayments = await prisma.salePayment.findMany({ where: { saleId: id } });
+    const sale = await prisma.sale.findUnique({ where: { id } });
+    const totalReceivedNet = allPayments.reduce((sum, p) => sum + (p.netAmount || p.amount || 0), 0);
+    const totalSaleValue = (sale?.saleAmount || 0) + (sale?.tipAmount || 0);
+    const newRemaining = Math.max(0, totalSaleValue - totalReceivedNet);
+    const newPaymentStatus = newRemaining === 0 ? 'Paid' : (totalReceivedNet > 0 ? 'Partial' : 'Unpaid');
+
+    await prisma.sale.update({
+      where: { id },
+      data: {
+        amountReceived: totalReceivedNet,
+        remainingAmount: newRemaining,
+        installmentsReceived: allPayments.filter(p => p.status === 'received').length,
+        paymentStatus: newPaymentStatus
+      }
+    });
+
+    await logAudit(req.user.id, 'DELETE_INSTALLMENT', 'SalePayment', paymentId, { saleId: id });
+    res.json({ message: 'Installment deleted successfully.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /api/sales/:id/override
+ * CEO & Team Lead official reconciled layer
+ */
+exports.saveSaleOverride = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const isCEOOrAdmin = ['Admin', 'CEO', 'COO'].includes(req.user.role);
+    const isTL = req.user.role === 'Team Lead';
+
+    if (!isCEOOrAdmin && !isTL) {
+      return res.status(403).json({ error: 'Only CEO/Admin and Team Leads can save financial reconciliation overrides.' });
+    }
+
+    const { verifiedSaleAmount, verifiedUpfront, verifiedRemaining, verifiedNetReceivedUsd, totalFeesDeductedUsd, verifiedPkrReceived, overrideNotes } = req.body;
+
+    const override = await prisma.saleOverride.upsert({
+      where: { id: (await prisma.saleOverride.findFirst({ where: { saleId: id } }))?.id || 'new-override-id' },
+      create: {
+        saleId: id,
+        verifiedSaleAmount: verifiedSaleAmount ? parseFloat(verifiedSaleAmount) : null,
+        verifiedUpfront: verifiedUpfront ? parseFloat(verifiedUpfront) : null,
+        verifiedRemaining: verifiedRemaining ? parseFloat(verifiedRemaining) : null,
+        verifiedNetReceivedUsd: verifiedNetReceivedUsd ? parseFloat(verifiedNetReceivedUsd) : null,
+        totalFeesDeductedUsd: totalFeesDeductedUsd ? parseFloat(totalFeesDeductedUsd) : null,
+        verifiedPkrReceived: verifiedPkrReceived ? parseFloat(verifiedPkrReceived) : null,
+        overrideNotes: overrideNotes || null,
+        updatedById: req.user.id
+      },
+      update: {
+        verifiedSaleAmount: verifiedSaleAmount !== undefined ? (verifiedSaleAmount ? parseFloat(verifiedSaleAmount) : null) : undefined,
+        verifiedUpfront: verifiedUpfront !== undefined ? (verifiedUpfront ? parseFloat(verifiedUpfront) : null) : undefined,
+        verifiedRemaining: verifiedRemaining !== undefined ? (verifiedRemaining ? parseFloat(verifiedRemaining) : null) : undefined,
+        verifiedNetReceivedUsd: verifiedNetReceivedUsd !== undefined ? (verifiedNetReceivedUsd ? parseFloat(verifiedNetReceivedUsd) : null) : undefined,
+        totalFeesDeductedUsd: totalFeesDeductedUsd !== undefined ? (totalFeesDeductedUsd ? parseFloat(totalFeesDeductedUsd) : null) : undefined,
+        verifiedPkrReceived: verifiedPkrReceived !== undefined ? (verifiedPkrReceived ? parseFloat(verifiedPkrReceived) : null) : undefined,
+        overrideNotes: overrideNotes !== undefined ? overrideNotes : undefined,
+        updatedById: req.user.id
+      }
+    });
+
+    await logAudit(req.user.id, 'SAVE_SALE_OVERRIDE', 'SaleOverride', override.id, { saleId: id });
+    res.json(override);
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 exports.getAlerts = async (req, res, next) => {
   try {
@@ -406,12 +696,39 @@ exports.getAlerts = async (req, res, next) => {
     const now = new Date();
     const alerts = [];
 
-    sales.forEach(sale => {
+    // Helper: push a notification to CEO/TL users (fire and forget)
+    async function pushNotification(title, message, type, link) {
+      try {
+        const targetUsers = await prisma.user.findMany({
+          where: { role: { in: ['Admin', 'CEO', 'COO', 'Team Lead'] }, isActive: true },
+          select: { id: true }
+        });
+        // Only create notification if not already sent in last 24h (deduplicate by title+message)
+        for (const u of targetUsers) {
+          const existing = await prisma.notification.findFirst({
+            where: {
+              userId: u.id,
+              title,
+              createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+            }
+          });
+          if (!existing) {
+            await prisma.notification.create({
+              data: { userId: u.id, title, message, type, link, isRead: false }
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('[pushNotification] Failed:', e.message);
+      }
+    }
+
+    for (const sale of sales) {
       // 1. Check >5 days stagnant stage alert
       if (sale.projectStage !== 'Final Artwork') {
         const daysInStage = (now - new Date(sale.stageUpdatedAt)) / (1000 * 60 * 60 * 24);
         if (daysInStage > 5) {
-          alerts.push({
+          const alert = {
             id: `stagnant-${sale.id}`,
             type: 'stagnant_project',
             severity: 'warning',
@@ -420,7 +737,9 @@ exports.getAlerts = async (req, res, next) => {
             saleId: sale.id,
             employeeName: sale.employee?.fullName,
             days: Math.floor(daysInStage)
-          });
+          };
+          alerts.push(alert);
+          await pushNotification(alert.title, alert.message, 'sla_alert', `/dashboard/artist-assignments`);
         }
       }
 
@@ -428,7 +747,7 @@ exports.getAlerts = async (req, res, next) => {
       if (sale.briefStatus === 'Pending') {
         const daysSinceSale = (now - new Date(sale.saleDate)) / (1000 * 60 * 60 * 24);
         if (daysSinceSale > 2) {
-          alerts.push({
+          const alert = {
             id: `brief-${sale.id}`,
             type: 'missing_brief',
             severity: 'alert',
@@ -437,10 +756,48 @@ exports.getAlerts = async (req, res, next) => {
             saleId: sale.id,
             employeeName: sale.employee?.fullName,
             days: Math.floor(daysSinceSale)
-          });
+          };
+          alerts.push(alert);
+          await pushNotification(alert.title, alert.message, 'sla_alert', `/dashboard/sales`);
         }
       }
-    });
+
+      // 3. Check payment overdue (nextPaymentDate has passed and not fully paid)
+      if (sale.nextPaymentDate && sale.paymentStatus !== 'Paid') {
+        const daysOverdue = (now - new Date(sale.nextPaymentDate)) / (1000 * 60 * 60 * 24);
+        if (daysOverdue > 0) {
+          const alert = {
+            id: `overdue-${sale.id}`,
+            type: 'payment_overdue',
+            severity: 'critical',
+            title: `Client Payment Overdue`,
+            message: `Project #${sale.projectNumber} (${sale.clientName}) — installment was due ${Math.floor(daysOverdue)} days ago. Remaining: $${sale.remainingAmount.toFixed(2)}.`,
+            saleId: sale.id,
+            employeeName: sale.employee?.fullName,
+            days: Math.floor(daysOverdue)
+          };
+          alerts.push(alert);
+          await pushNotification(alert.title, alert.message, 'sla_alert', `/dashboard/sales`);
+        }
+      }
+
+      // 4. Float exposure alert: amountPaidToDesigner > amountReceived from client
+      if (sale.amountPaidToDesigner > sale.amountReceived) {
+        const floatGap = sale.amountPaidToDesigner - sale.amountReceived;
+        const alert = {
+          id: `float-${sale.id}`,
+          type: 'float_exposure',
+          severity: 'warning',
+          title: `Float Exposure Alert`,
+          message: `Project #${sale.projectNumber}: Designer has been paid $${sale.amountPaidToDesigner} but only $${sale.amountReceived} received from client. Float gap: $${floatGap.toFixed(2)}.`,
+          saleId: sale.id,
+          employeeName: sale.employee?.fullName,
+          floatGap
+        };
+        alerts.push(alert);
+        await pushNotification(alert.title, alert.message, 'float_alert', `/dashboard/finance`);
+      }
+    }
 
     res.json(alerts);
   } catch (err) {

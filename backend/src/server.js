@@ -63,6 +63,11 @@ const documentRoutes = require('./routes/document');
 const systemRoutes = require('./routes/system');
 const salesRoutes = require('./routes/sales');
 const financeRoutes = require('./routes/finance');
+const payoutRequestRoutes = require('./routes/payoutRequest');
+const floatRoutes = require('./routes/float');
+const vaultRoutes = require('./routes/vault');
+const cronRoutes = require('./routes/cron');
+const artistAdvanceRoutes = require('./routes/artistAdvance');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
@@ -75,6 +80,11 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/finance', financeRoutes);
+app.use('/api/payout-requests', payoutRequestRoutes);
+app.use('/api/float', floatRoutes);
+app.use('/api/vault', vaultRoutes);
+app.use('/api/cron', cronRoutes);
+app.use('/api/artist-advances', artistAdvanceRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

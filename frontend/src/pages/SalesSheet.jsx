@@ -16,12 +16,22 @@ import {
   X,
   Upload,
   User,
-  CreditCard
+  CreditCard,
+  Layers,
+  Edit3,
+  CheckCircle2,
+  AlertCircle,
+  HelpCircle,
+  FileSpreadsheet,
+  RefreshCw,
+  ShieldCheck
 } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 const STAGES = ['Initial Sketch', 'Line Art', 'Base Color', 'Final Artwork'];
+const PLATFORMS = ['Direct / Website', 'Upwork', 'Fiverr', 'LinkedIn', 'Instagram', 'Cold Email', 'Referral', 'Other'];
+const PAYMENT_METHODS = ['Online/Bank Transfer', 'Wise', 'Stripe', 'PayPal', 'Payoneer', 'Cash', 'Crypto'];
 
 export default function SalesSheet() {
   const [sales, setSales] = useState([]);
@@ -35,46 +45,82 @@ export default function SalesSheet() {
   const [search, setSearch] = useState('');
   const [selectedStage, setSelectedStage] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [showCeoView, setShowCeoView] = useState(false);
 
-  // Modals
+  // Modals & Drawers
   const [newSaleModalOpen, setNewSaleModalOpen] = useState(false);
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [editSaleModalOpen, setEditSaleModalOpen] = useState(false);
+  const [installmentDrawerOpen, setInstallmentDrawerOpen] = useState(false);
   const [briefModalOpen, setBriefModalOpen] = useState(false);
-  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [overrideModalOpen, setOverrideModalOpen] = useState(false);
+
+  // Active Selected Sale for Drawer/Modal
   const [activeSale, setActiveSale] = useState(null);
+  const [activeInstallments, setActiveInstallments] = useState([]);
+  const [installmentSummary, setInstallmentSummary] = useState(null);
 
   // Form states
-  const [newSaleData, setNewSaleData] = useState({
+  const emptySaleForm = {
     clientName: '',
+    clientEmail: '',
     projectName: '',
     saleAmount: '',
+    upfrontAmount: '',
+    tipAmount: '',
     saleDate: new Date().toISOString().split('T')[0],
     employeeId: '',
+    designerId: '',
+    designerFee: '',
     installmentsCount: 1,
+    platform: 'Direct / Website',
     paymentMethod: 'Online/Bank Transfer',
+    completionDate: '',
+    fallInMonth: '',
+    workDetails: '',
+    extraInfo: '',
+    notes: ''
+  };
+  const [saleForm, setSaleForm] = useState(emptySaleForm);
+
+  // New Installment Drawer Form State
+  const [newInstallmentData, setNewInstallmentData] = useState({
+    grossAmount: '',
+    feeDeducted: '0',
+    paymentDate: new Date().toISOString().split('T')[0],
+    dueDate: '',
+    paymentMethod: 'Online/Bank Transfer',
+    exchangeRate: '278.5',
+    pkrAmount: '',
+    fallInMonth: '',
     notes: ''
   });
 
-  const [paymentData, setPaymentData] = useState({
-    amount: '',
-    paymentMethod: 'Online/Bank Transfer',
-    notes: ''
-  });
-
+  // Brief Form State
   const [briefData, setBriefData] = useState({
     fileName: '',
     fileUrl: '',
     notes: ''
   });
 
+  // Override Form State
+  const [overrideData, setOverrideData] = useState({
+    verifiedSaleAmount: '',
+    verifiedUpfront: '',
+    verifiedNetReceivedUsd: '',
+    totalFeesDeductedUsd: '',
+    verifiedPkrReceived: '',
+    overrideNotes: ''
+  });
+
   const currentUser = JSON.parse(localStorage.getItem('user')) || { role: 'Employee' };
-  const isAdmin = ['Admin', 'CEO', 'COO'].includes(currentUser.role);
+  const isCEOOrAdmin = ['Admin', 'CEO', 'COO'].includes(currentUser.role);
+  const isTL = currentUser.role === 'Team Lead';
 
   const fetchSales = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/sales?month=${month}&year=${year}&search=${search}&stage=${selectedStage}&employeeId=${selectedEmployee}`);
-      setSales(res.data);
+      const res = await api.get(`/sales?month=${month}&year=${year}&search=${encodeURIComponent(search)}&stage=${selectedStage}&employeeId=${selectedEmployee}`);
+      setSales(res.data || []);
     } catch (e) {
       toast.error('Failed to load sales sheet data');
     } finally {
@@ -85,7 +131,7 @@ export default function SalesSheet() {
   const fetchAlerts = async () => {
     try {
       const res = await api.get('/sales/alerts');
-      setAlerts(res.data);
+      setAlerts(res.data || []);
     } catch (e) {
       console.error('Failed to load sales alerts');
     }
@@ -94,7 +140,7 @@ export default function SalesSheet() {
   const fetchEmployees = async () => {
     try {
       const res = await api.get('/employees');
-      setEmployees(res.data);
+      setEmployees(res.data || []);
     } catch (e) {
       console.error('Failed to load employees');
     }
@@ -109,22 +155,26 @@ export default function SalesSheet() {
     fetchEmployees();
   }, []);
 
+  // Fetch Installment Drawer Data
+  const openInstallmentDrawer = async (sale) => {
+    setActiveSale(sale);
+    setInstallmentDrawerOpen(true);
+    try {
+      const res = await api.get(`/sales/${sale.id}/installments`);
+      setActiveInstallments(res.data.installments || []);
+      setInstallmentSummary(res.data.summary || null);
+    } catch (err) {
+      toast.error('Failed to load installment sub-sheet');
+    }
+  };
+
   const handleCreateSale = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/sales', newSaleData);
-      toast.success('Sale created successfully');
+      await api.post('/sales', saleForm);
+      toast.success('Sale entry added to spreadsheet');
       setNewSaleModalOpen(false);
-      setNewSaleData({
-        clientName: '',
-        projectName: '',
-        saleAmount: '',
-        saleDate: new Date().toISOString().split('T')[0],
-        employeeId: '',
-        installmentsCount: 1,
-        paymentMethod: 'Online/Bank Transfer',
-        notes: ''
-      });
+      setSaleForm(emptySaleForm);
       fetchSales();
       fetchAlerts();
     } catch (err) {
@@ -132,28 +182,92 @@ export default function SalesSheet() {
     }
   };
 
+  const handleUpdateSale = async (e) => {
+    e.preventDefault();
+    if (!activeSale) return;
+    try {
+      await api.put(`/sales/${activeSale.id}`, saleForm);
+      toast.success('Sale entry updated');
+      setEditSaleModalOpen(false);
+      fetchSales();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update sale');
+    }
+  };
+
+  const openEditModal = (sale) => {
+    setActiveSale(sale);
+    setSaleForm({
+      clientName: sale.clientName || '',
+      clientEmail: sale.clientEmail || '',
+      projectName: sale.projectName || '',
+      saleAmount: sale.saleAmount || '',
+      upfrontAmount: sale.upfrontAmount || '',
+      tipAmount: sale.tipAmount || '',
+      saleDate: sale.saleDate ? new Date(sale.saleDate).toISOString().split('T')[0] : '',
+      employeeId: sale.employeeId || '',
+      designerId: sale.designerId || '',
+      designerFee: sale.designerFee || '',
+      installmentsCount: sale.installmentsCount || 1,
+      platform: sale.platform || 'Direct / Website',
+      paymentMethod: sale.paymentMethod || 'Online/Bank Transfer',
+      completionDate: sale.completionDate ? new Date(sale.completionDate).toISOString().split('T')[0] : '',
+      fallInMonth: sale.fallInMonth || '',
+      workDetails: sale.workDetails || '',
+      extraInfo: sale.extraInfo || '',
+      notes: sale.notes || ''
+    });
+    setEditSaleModalOpen(true);
+  };
+
+  const handleLogInstallment = async (e) => {
+    e.preventDefault();
+    if (!activeSale) return;
+    try {
+      const gross = parseFloat(newInstallmentData.grossAmount);
+      if (isNaN(gross) || gross <= 0) {
+        return toast.error('Enter a valid gross amount');
+      }
+      await api.post(`/sales/${activeSale.id}/payments`, newInstallmentData);
+      toast.success('Installment logged & parent sale updated');
+      setNewInstallmentData({
+        grossAmount: '',
+        feeDeducted: '0',
+        paymentDate: new Date().toISOString().split('T')[0],
+        dueDate: '',
+        paymentMethod: 'Online/Bank Transfer',
+        exchangeRate: '278.5',
+        pkrAmount: '',
+        fallInMonth: '',
+        notes: ''
+      });
+      openInstallmentDrawer(activeSale);
+      fetchSales();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to log installment');
+    }
+  };
+
+  const handleDeleteInstallment = async (paymentId) => {
+    if (!activeSale) return;
+    try {
+      await api.delete(`/sales/${activeSale.id}/installments/${paymentId}`);
+      toast.success('Installment entry deleted');
+      openInstallmentDrawer(activeSale);
+      fetchSales();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete installment');
+    }
+  };
+
   const handleStageChange = async (saleId, newStage) => {
     try {
-      await api.patch(`/sales/${saleId}/stage`, { newStage, notes: 'Updated stage from sales grid' });
+      await api.patch(`/sales/${saleId}/stage`, { newStage, notes: 'Updated stage from spreadsheet grid' });
       toast.success(`Stage updated to ${newStage}`);
       fetchSales();
       fetchAlerts();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to update stage');
-    }
-  };
-
-  const handleLogPayment = async (e) => {
-    e.preventDefault();
-    if (!activeSale) return;
-    try {
-      await api.post(`/sales/${activeSale.id}/payments`, paymentData);
-      toast.success('Payment logged successfully');
-      setPaymentModalOpen(false);
-      setPaymentData({ amount: '', paymentMethod: 'Online/Bank Transfer', notes: '' });
-      fetchSales();
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to log payment');
     }
   };
 
@@ -172,41 +286,49 @@ export default function SalesSheet() {
     }
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      setBriefData({
-        ...briefData,
-        fileName: file.name,
-        fileUrl: evt.target.result
-      });
-    };
-    reader.readAsDataURL(file);
+  const handleSaveOverride = async (e) => {
+    e.preventDefault();
+    if (!activeSale) return;
+    try {
+      await api.post(`/sales/${activeSale.id}/override`, overrideData);
+      toast.success('Official CEO/TL financial reconciliation saved');
+      setOverrideModalOpen(false);
+      fetchSales();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to save override');
+    }
   };
 
   const exportCSV = () => {
     if (sales.length === 0) return toast.error('No sales data to export');
-    const headers = ['Client Name,Project Name,Sale Date,Sales Person,Sale Amount,Received,Remaining,Installments,Stage,Brief Status,Payment Status'];
+    const headers = [
+      'Sale Number,Date,Project Name,Upfront ($),Remaining ($),Tip ($),Total Sale ($),Installments,Work Stage,Payment Status,Platform,Client Name,Client Email,Sales Exec,Payment Method,Completion Date,Fall In Month,Extra Info'
+    ];
     const rows = sales.map(s => [
-      `"${s.clientName}"`,
+      `"${s.projectNumber}"`,
+      `"${new Date(s.saleDate).toLocaleDateString()}"`,
       `"${s.projectName}"`,
-      new Date(s.saleDate).toLocaleDateString(),
-      `"${s.employee?.fullName || ''}"`,
-      s.saleAmount,
-      s.amountReceived,
-      s.remainingAmount,
+      s.upfrontAmount || 0,
+      s.remainingAmount || 0,
+      s.tipAmount || 0,
+      (s.saleAmount || 0) + (s.tipAmount || 0),
       `"${s.installmentsReceived}/${s.installmentsCount}"`,
       `"${s.projectStage}"`,
-      `"${s.briefStatus}"`,
-      `"${s.paymentStatus}"`
+      `"${s.paymentStatus}"`,
+      `"${s.platform || 'Direct'}"`,
+      `"${s.clientName}"`,
+      `"${s.clientEmail || ''}"`,
+      `"${s.employee?.fullName || ''}"`,
+      `"${s.paymentMethod || 'Online/Bank Transfer'}"`,
+      s.completionDate ? `"${new Date(s.completionDate).toLocaleDateString()}"` : '""',
+      `"${s.fallInMonth || ''}"`,
+      `"${s.extraInfo || s.notes || ''}"`
     ].join(','));
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Sales_Sheet_${month}_${year}.csv`);
+    link.setAttribute('download', `ArtXenith_Sales_Sheet_${month}_${year}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -219,52 +341,70 @@ export default function SalesSheet() {
 
   return (
     <div className="space-y-6 text-left">
-      {/* Top Header & Export Controls */}
+      {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-extrabold tracking-tight text-brand-text font-display uppercase flex items-center gap-2">
+          <h2 className="text-xl font-extrabold tracking-tight text-white font-display uppercase flex items-center gap-2">
             <Table className="w-5 h-5 text-brand-cyan" />
-            Excel Sales Sheet & Pipeline
+            Excel Sales Sheet & Installment Engine
           </h2>
-          <p className="text-xs text-brand-text-soft mt-1">Manage sales, client payments, 4-stage project progress, and versioned briefs.</p>
+          <p className="text-xs text-brand-text-soft mt-1">
+            Complete 18-column sales grid with sub-sheet installment tracking & CEO tax reconciliation.
+          </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 items-center">
+          {(isCEOOrAdmin || isTL) && (
+            <button
+              onClick={() => setShowCeoView(!showCeoView)}
+              className={`px-3.5 py-2 rounded-xl border text-xs font-bold font-display uppercase flex items-center gap-1.5 transition-all cursor-pointer ${
+                showCeoView
+                  ? 'bg-brand-violet/20 border-brand-violet text-brand-violet shadow-glow'
+                  : 'bg-brand-bg-soft/40 border-brand-border text-brand-text-soft hover:text-white'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-brand-violet" />
+              {showCeoView ? 'CEO Reconciled Layer Active' : 'Show CEO Tax Layer'}
+            </button>
+          )}
+
           <button
             onClick={exportCSV}
-            className="px-4 py-2.5 rounded-full border border-brand-border hover:border-brand-border-strong bg-brand-bg-soft/40 text-xs font-bold uppercase tracking-wider font-display text-brand-text-soft hover:text-brand-text transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="px-4 py-2 rounded-xl border border-brand-border hover:border-brand-border-strong bg-brand-bg-soft/40 text-xs font-bold uppercase tracking-wider font-display text-brand-text-soft hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Download className="w-4 h-4 text-brand-cyan" />
-            Export CSV
+            Export Excel (CSV)
           </button>
 
           <button
-            onClick={() => setNewSaleModalOpen(true)}
-            className="px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg hover:scale-[1.02] transition-all font-bold font-display text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-blue/20"
+            onClick={() => { setSaleForm(emptySaleForm); setNewSaleModalOpen(true); }}
+            className="px-5 py-2 rounded-xl bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg hover:scale-[1.02] transition-all font-bold font-display text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-blue/20"
           >
             <Plus className="w-4 h-4" />
-            New Sale / Entry
+            New Entry
           </button>
         </div>
       </div>
 
-      {/* Automatic Alert Banner */}
+      {/* Automatic SLA Alert Banners */}
       {alerts.length > 0 && (
         <div className="space-y-2">
           {alerts.map(alert => (
             <div
               key={alert.id}
-              className={`p-4 rounded-xl border flex items-center justify-between gap-3 text-xs ${
+              className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs ${
                 alert.type === 'stagnant_project'
                   ? 'border-brand-amber/30 bg-brand-amber/10 text-brand-amber'
-                  : 'border-red-500/30 bg-red-500/10 text-red-400'
+                  : alert.type === 'payment_overdue'
+                  ? 'border-brand-red/40 bg-brand-red/10 text-brand-red'
+                  : 'border-brand-blue/30 bg-brand-blue/10 text-brand-cyan'
               }`}
             >
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-4 h-4 shrink-0 animate-pulse" />
                 <div>
                   <strong className="font-bold uppercase tracking-wider">{alert.title}: </strong>
-                  <span>{alert.message} ({alert.employeeName})</span>
+                  <span>{alert.message}</span>
                 </div>
               </div>
             </div>
@@ -275,13 +415,13 @@ export default function SalesSheet() {
       {/* Filters Toolbar */}
       <div className="p-4 rounded-2xl border border-brand-border bg-brand-bg-soft/40 flex flex-wrap gap-4 items-center justify-between">
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          {/* Month Selector */}
+          {/* Month & Year */}
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-brand-text-mute" />
             <select
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
-              className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text appearance-none cursor-pointer focus:outline-none"
+              className="px-3 py-1.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white cursor-pointer focus:outline-none"
             >
               {[...Array(12)].map((_, i) => (
                 <option key={i + 1} value={i + 1}>
@@ -292,7 +432,7 @@ export default function SalesSheet() {
             <select
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text appearance-none cursor-pointer focus:outline-none"
+              className="px-3 py-1.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white cursor-pointer focus:outline-none"
             >
               <option value={2026}>2026</option>
               <option value={2025}>2025</option>
@@ -300,37 +440,35 @@ export default function SalesSheet() {
           </div>
 
           {/* Search Box */}
-          <div className="relative flex-1 md:w-56">
-            <Search className="w-4 h-4 text-brand-text-mute absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="relative flex-1 md:w-60">
+            <Search className="w-3.5 h-3.5 text-brand-text-mute absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Search Client or Project..."
+              placeholder="Search #PRJ, Client, Project..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text placeholder-brand-text-mute focus:outline-none focus:border-brand-blue"
+              className="w-full pl-9 pr-4 py-1.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white placeholder-brand-text-mute focus:outline-none focus:border-brand-blue"
             />
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Stage Filter */}
           <select
             value={selectedStage}
             onChange={(e) => setSelectedStage(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text appearance-none cursor-pointer focus:outline-none"
+            className="px-3 py-1.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white cursor-pointer focus:outline-none"
           >
-            <option value="">All Project Stages</option>
+            <option value="">All Stages</option>
             {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          {/* Employee Filter for Admin/TL */}
-          {isAdmin && (
+          {isCEOOrAdmin && (
             <select
               value={selectedEmployee}
               onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-brand-text appearance-none cursor-pointer focus:outline-none"
+              className="px-3 py-1.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white cursor-pointer focus:outline-none"
             >
-              <option value="">All Employees</option>
+              <option value="">All Sales Execs</option>
               {employees.map(emp => (
                 <option key={emp.id} value={emp.id}>{emp.fullName} ({emp.employeeCode})</option>
               ))}
@@ -339,67 +477,106 @@ export default function SalesSheet() {
         </div>
       </div>
 
-      {/* Excel Data Grid Table */}
+      {/* Complete 18-Column Interactive Excel Table */}
       <div className="border border-brand-border rounded-2xl bg-brand-bg-soft/40 overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
+          <table className="w-full text-left border-collapse min-w-[1500px] text-xs">
             <thead>
-              <tr className="border-b border-brand-border bg-brand-bg-elevated/60 text-[9px] uppercase font-extrabold tracking-widest text-brand-text-soft">
-                <th className="p-3.5">Client & Project</th>
-                <th className="p-3.5">Date & Staff</th>
-                <th className="p-3.5 text-right">Sale Amount</th>
-                <th className="p-3.5 text-right">Received / Rem.</th>
-                <th className="p-3.5">Installments</th>
-                <th className="p-3.5">Project Stage (4-Step)</th>
-                <th className="p-3.5">Brief Status</th>
-                <th className="p-3.5">Payment</th>
-                <th className="p-3.5 text-center">Actions</th>
+              <tr className="border-b border-brand-border bg-brand-bg-elevated/80 text-[9px] uppercase font-extrabold tracking-wider text-brand-text-soft">
+                <th className="p-3 border-r border-brand-border/40">Sale #</th>
+                <th className="p-3 border-r border-brand-border/40">Date</th>
+                <th className="p-3 border-r border-brand-border/40">Name (Project)</th>
+                <th className="p-3 border-r border-brand-border/40 text-right">Upfront ($)</th>
+                <th className="p-3 border-r border-brand-border/40 text-right">Remaining ($)</th>
+                <th className="p-3 border-r border-brand-border/40 text-right">Tip ($)</th>
+                <th className="p-3 border-r border-brand-border/40 text-right">Total Sale ($)</th>
+                <th className="p-3 border-r border-brand-border/40 text-center">Installment (Sub-Sheet)</th>
+                <th className="p-3 border-r border-brand-border/40">Work (Stage)</th>
+                <th className="p-3 border-r border-brand-border/40">Status</th>
+                <th className="p-3 border-r border-brand-border/40">Platform</th>
+                <th className="p-3 border-r border-brand-border/40">Client Name & Email</th>
+                <th className="p-3 border-r border-brand-border/40">Agent / Sales Exec</th>
+                <th className="p-3 border-r border-brand-border/40">Payment Method</th>
+                <th className="p-3 border-r border-brand-border/40">Completion Date</th>
+                <th className="p-3 border-r border-brand-border/40">Fall in Month</th>
+                <th className="p-3 border-r border-brand-border/40">Extra Info</th>
+                <th className="p-3 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-border/40 text-xs text-brand-text-soft">
-              {sales.map(sale => {
-                const daysInStage = calculateDaysInStage(sale.stageUpdatedAt);
-                const isStagnant = daysInStage > 5 && sale.projectStage !== 'Final Artwork';
+            <tbody className="divide-y divide-brand-border/30 text-brand-text-soft">
+              {loading ? (
+                <tr>
+                  <td colSpan={18} className="p-8 text-center text-brand-text-mute">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-brand-cyan" />
+                    Loading Excel Sales Sheet...
+                  </td>
+                </tr>
+              ) : sales.length === 0 ? (
+                <tr>
+                  <td colSpan={18} className="p-8 text-center text-brand-text-mute">
+                    No sales entries found for this filter. Click "New Entry" to add one.
+                  </td>
+                </tr>
+              ) : (
+                sales.map(sale => {
+                  const daysInStage = calculateDaysInStage(sale.stageUpdatedAt);
+                  const isStagnant = daysInStage > 5 && sale.projectStage !== 'Final Artwork';
+                  const totalSaleVal = (sale.saleAmount || 0) + (sale.tipAmount || 0);
 
-                return (
-                  <tr key={sale.id} className="hover:bg-brand-bg-elevated/20 transition-colors">
-                    {/* Client & Project */}
-                    <td className="p-3.5">
-                      <div className="font-extrabold text-brand-text text-sm">{sale.projectName}</div>
-                      <div className="text-[11px] text-brand-cyan mt-0.5">{sale.clientName}</div>
-                    </td>
+                  return (
+                    <tr key={sale.id} className="hover:bg-brand-bg-elevated/40 transition-colors">
+                      {/* 1. Sale Number */}
+                      <td className="p-3 font-mono font-bold text-brand-cyan border-r border-brand-border/30">
+                        {sale.projectNumber}
+                      </td>
 
-                    {/* Date & Staff */}
-                    <td className="p-3.5 font-mono">
-                      <div className="text-brand-text font-bold">{new Date(sale.saleDate).toLocaleDateString()}</div>
-                      <div className="text-[10px] text-brand-text-mute mt-0.5">{sale.employee?.fullName || 'Unassigned'}</div>
-                    </td>
+                      {/* 2. Date */}
+                      <td className="p-3 font-mono text-white border-r border-brand-border/30 whitespace-nowrap">
+                        {new Date(sale.saleDate).toLocaleDateString()}
+                      </td>
 
-                    {/* Sale Amount */}
-                    <td className="p-3.5 text-right font-mono font-extrabold text-brand-text">
-                      PKR {sale.saleAmount.toLocaleString()}
-                    </td>
+                      {/* 3. Name (Project Name) */}
+                      <td className="p-3 font-bold text-white border-r border-brand-border/30 max-w-[180px] truncate" title={sale.projectName}>
+                        {sale.projectName}
+                      </td>
 
-                    {/* Received / Remaining */}
-                    <td className="p-3.5 text-right font-mono">
-                      <div className="text-brand-green font-bold">PKR {sale.amountReceived.toLocaleString()}</div>
-                      <div className="text-[10px] text-brand-amber mt-0.5">Rem: PKR {sale.remainingAmount.toLocaleString()}</div>
-                    </td>
+                      {/* 4. Upfront */}
+                      <td className="p-3 text-right font-mono font-bold text-brand-green border-r border-brand-border/30">
+                        ${(sale.upfrontAmount || 0).toLocaleString()}
+                      </td>
 
-                    {/* Installments */}
-                    <td className="p-3.5 font-mono text-center">
-                      <span className="px-2 py-0.5 rounded-md bg-brand-bg-elevated border border-brand-border text-[10px] font-bold text-brand-text">
-                        {sale.installmentsReceived} / {sale.installmentsCount}
-                      </span>
-                    </td>
+                      {/* 5. Remaining */}
+                      <td className="p-3 text-right font-mono font-bold text-brand-amber border-r border-brand-border/30">
+                        ${(sale.remainingAmount || 0).toLocaleString()}
+                      </td>
 
-                    {/* Project Stage Dropdown */}
-                    <td className="p-3.5">
-                      <div className="flex flex-col gap-1">
+                      {/* 6. Tip */}
+                      <td className="p-3 text-right font-mono text-brand-violet border-r border-brand-border/30">
+                        ${(sale.tipAmount || 0).toLocaleString()}
+                      </td>
+
+                      {/* 7. Total Sale */}
+                      <td className="p-3 text-right font-mono font-extrabold text-white border-r border-brand-border/30">
+                        ${totalSaleVal.toLocaleString()}
+                      </td>
+
+                      {/* 8. Installment (Sub-Sheet Drawer Button) */}
+                      <td className="p-3 text-center border-r border-brand-border/30">
+                        <button
+                          onClick={() => openInstallmentDrawer(sale)}
+                          className="px-2.5 py-1 rounded-xl bg-brand-blue/15 hover:bg-brand-blue/30 text-brand-cyan border border-brand-blue/30 text-[10px] font-bold flex items-center justify-center gap-1 mx-auto transition-all cursor-pointer"
+                        >
+                          <Layers className="w-3 h-3" />
+                          {sale.installmentsReceived} / {sale.installmentsCount} Paid 📑
+                        </button>
+                      </td>
+
+                      {/* 9. Work (Stage) */}
+                      <td className="p-3 border-r border-brand-border/30">
                         <select
                           value={sale.projectStage}
                           onChange={(e) => handleStageChange(sale.id, e.target.value)}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider border bg-brand-bg cursor-pointer focus:outline-none ${
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border bg-brand-bg cursor-pointer focus:outline-none ${
                             sale.projectStage === 'Final Artwork'
                               ? 'text-brand-green border-brand-green/30'
                               : isStagnant
@@ -409,409 +586,513 @@ export default function SalesSheet() {
                         >
                           {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
-                        <span className={`text-[9px] font-mono ${isStagnant ? 'text-brand-amber font-bold' : 'text-brand-text-mute'}`}>
-                          {daysInStage} days in stage {isStagnant ? '(>5 Days Alert!)' : ''}
-                        </span>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Brief Status */}
-                    <td className="p-3.5">
-                      <div className="flex items-center gap-2">
+                      {/* 10. Status */}
+                      <td className="p-3 border-r border-brand-border/30">
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase border ${
-                          sale.briefStatus === 'Uploaded'
+                          sale.paymentStatus === 'Paid'
                             ? 'bg-brand-green/10 text-brand-green border-brand-green/20'
-                            : 'bg-brand-amber/10 text-brand-amber border-brand-amber/20'
+                            : sale.paymentStatus === 'Partial'
+                            ? 'bg-brand-cyan/10 text-brand-cyan border-brand-cyan/20'
+                            : 'bg-brand-red/10 text-brand-red border-brand-red/20'
                         }`}>
-                          {sale.briefStatus} ({sale.briefs?.length || 0} v)
+                          {sale.paymentStatus}
                         </span>
-                        <button
-                          onClick={() => { setActiveSale(sale); setBriefModalOpen(true); }}
-                          className="p-1 rounded bg-brand-bg border border-brand-border text-brand-text hover:text-brand-text"
-                          title="Upload / View Briefs"
-                        >
-                          <Upload className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Payment Status */}
-                    <td className="p-3.5">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase border ${
-                        sale.paymentStatus === 'Paid'
-                          ? 'bg-brand-green/10 text-brand-green border-brand-green/20'
-                          : sale.paymentStatus === 'Partial'
-                          ? 'bg-brand-cyan/10 text-brand-cyan border-brand-cyan/20'
-                          : 'bg-red-500/10 text-red-400 border-red-500/20'
-                      }`}>
-                        {sale.paymentStatus}
-                      </span>
-                    </td>
+                      {/* 11. Platform */}
+                      <td className="p-3 font-mono text-[11px] text-white border-r border-brand-border/30">
+                        {sale.platform || 'Direct'}
+                      </td>
 
-                    {/* Actions */}
-                    <td className="p-3.5 text-center">
-                      <div className="flex justify-center items-center gap-1.5">
-                        <button
-                          onClick={() => { setActiveSale(sale); setPaymentModalOpen(true); }}
-                          className="px-2.5 py-1 rounded-lg bg-brand-blue/10 border border-brand-blue/30 text-brand-cyan text-[10px] font-bold uppercase hover:bg-brand-blue/20"
-                          title="Log Payment Installment"
-                        >
-                          + Pay
-                        </button>
-                        <button
-                          onClick={() => { setActiveSale(sale); setHistoryModalOpen(true); }}
-                          className="p-1 rounded bg-brand-bg-elevated border border-brand-border text-brand-text-soft hover:text-brand-text"
-                          title="View Stage History Log"
-                        >
-                          <Clock className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      {/* 12. Client Name & Email */}
+                      <td className="p-3 border-r border-brand-border/30 max-w-[160px]">
+                        <div className="font-bold text-white truncate" title={sale.clientName}>{sale.clientName}</div>
+                        {sale.clientEmail && <div className="text-[10px] text-brand-text-mute truncate" title={sale.clientEmail}>{sale.clientEmail}</div>}
+                      </td>
 
-              {sales.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="py-12 text-center text-brand-text-mute italic">
-                    No sales recorded for the selected filters
-                  </td>
-                </tr>
+                      {/* 13. Agent / Sales Exec */}
+                      <td className="p-3 border-r border-brand-border/30">
+                        <div className="font-bold text-white text-[11px]">{sale.employee?.fullName || 'Unassigned'}</div>
+                        <div className="text-[9px] text-brand-text-mute font-mono">{sale.employee?.employeeCode}</div>
+                      </td>
+
+                      {/* 14. Payment Method */}
+                      <td className="p-3 text-[11px] text-brand-text-soft border-r border-brand-border/30">
+                        {sale.paymentMethod || 'Online/Bank Transfer'}
+                      </td>
+
+                      {/* 15. Completion Date */}
+                      <td className="p-3 font-mono text-[11px] text-brand-text-soft border-r border-brand-border/30">
+                        {sale.completionDate ? new Date(sale.completionDate).toLocaleDateString() : '—'}
+                      </td>
+
+                      {/* 16. Fall in Month */}
+                      <td className="p-3 font-mono text-[11px] text-brand-cyan border-r border-brand-border/30">
+                        {sale.fallInMonth || '—'}
+                      </td>
+
+                      {/* 17. Extra Info */}
+                      <td className="p-3 max-w-[140px] truncate text-[10px] text-brand-text-mute border-r border-brand-border/30" title={sale.extraInfo || sale.notes || ''}>
+                        {sale.extraInfo || sale.notes || '—'}
+                      </td>
+
+                      {/* 18. Actions */}
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => openEditModal(sale)}
+                            className="p-1.5 rounded-lg border border-brand-border hover:border-brand-blue/50 text-brand-text-mute hover:text-white transition-colors"
+                            title="Edit Entry Row"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => { setActiveSale(sale); setBriefModalOpen(true); }}
+                            className="p-1.5 rounded-lg border border-brand-border hover:border-brand-cyan/50 text-brand-text-mute hover:text-brand-cyan transition-colors"
+                            title="Briefs & Files"
+                          >
+                            <FileCode className="w-3.5 h-3.5" />
+                          </button>
+                          {(isCEOOrAdmin || isTL) && (
+                            <button
+                              onClick={() => { setActiveSale(sale); setOverrideModalOpen(true); }}
+                              className="p-1.5 rounded-lg border border-brand-violet/30 bg-brand-violet/10 text-brand-violet hover:bg-brand-violet/20 transition-colors"
+                              title="CEO Financial Reconciliation Override"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* ---------------- New Sale Modal ---------------- */}
+      {/* Sub-Sheet Installment Drawer / Modal */}
       <AnimatePresence>
-        {newSaleModalOpen && (
-          <>
-            <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm" onClick={() => setNewSaleModalOpen(false)} />
+        {installmentDrawerOpen && activeSale && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-brand-bg-elevated border border-brand-border rounded-2xl p-6 shadow-glow z-50 text-left"
+              className="bg-brand-bg-elevated border border-brand-blue/40 rounded-2xl p-6 max-w-3xl w-full text-left space-y-4 shadow-glow max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-6">
-                <h3 className="text-sm font-extrabold text-brand-text font-display uppercase">Log New Client Sale</h3>
-                <button onClick={() => setNewSaleModalOpen(false)} className="p-1 rounded text-brand-text-soft hover:text-brand-text">
+              <div className="flex items-center justify-between border-b border-brand-border pb-3">
+                <div>
+                  <span className="text-[10px] font-bold text-brand-cyan uppercase font-mono">{activeSale.projectNumber}</span>
+                  <h3 className="text-sm font-extrabold text-white font-display">
+                    Installment Sub-Ledger: {activeSale.projectName}
+                  </h3>
+                  <p className="text-[10px] text-brand-text-mute">
+                    Manage diverse payment dates, months, gross amounts sent by client, and bank conversion fee deductions.
+                  </p>
+                </div>
+                <button onClick={() => setInstallmentDrawerOpen(false)} className="text-brand-text-mute hover:text-white">
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreateSale} className="space-y-4 text-xs">
-                <div className="grid grid-cols-2 gap-4">
+              {/* Installment Summary */}
+              {installmentSummary && (
+                <div className="grid grid-cols-3 gap-3 p-3.5 rounded-xl bg-brand-bg-soft/40 border border-brand-border/40 text-center">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Client Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={newSaleData.clientName}
-                      onChange={(e) => setNewSaleData({ ...newSaleData, clientName: e.target.value })}
-                      placeholder="e.g. Acme Corp"
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                    />
+                    <p className="text-[9px] text-brand-text-mute uppercase font-bold">Total Client Gross</p>
+                    <p className="text-sm font-extrabold text-white font-mono">${installmentSummary.totalGross}</p>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Project Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={newSaleData.projectName}
-                      onChange={(e) => setNewSaleData({ ...newSaleData, projectName: e.target.value })}
-                      placeholder="e.g. Mascot Design"
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Total Sale Amount (PKR)</label>
-                    <input
-                      type="number"
-                      required
-                      value={newSaleData.saleAmount}
-                      onChange={(e) => setNewSaleData({ ...newSaleData, saleAmount: e.target.value })}
-                      placeholder="e.g. 150000"
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                    />
+                    <p className="text-[9px] text-brand-text-mute uppercase font-bold">Total Fees/Tax Deducted</p>
+                    <p className="text-sm font-extrabold text-brand-red font-mono">${installmentSummary.totalFees}</p>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Sale Date</label>
-                    <input
-                      type="date"
-                      required
-                      value={newSaleData.saleDate}
-                      onChange={(e) => setNewSaleData({ ...newSaleData, saleDate: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                    />
+                    <p className="text-[9px] text-brand-text-mute uppercase font-bold">Net Received in Bank</p>
+                    <p className="text-sm font-extrabold text-brand-green font-mono">${installmentSummary.totalNet}</p>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Installments Count</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={newSaleData.installmentsCount}
-                      onChange={(e) => setNewSaleData({ ...newSaleData, installmentsCount: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Assigned Salesperson</label>
-                    <select
-                      value={newSaleData.employeeId}
-                      onChange={(e) => setNewSaleData({ ...newSaleData, employeeId: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                    >
-                      <option value="">Myself ({currentUser.email})</option>
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>{emp.fullName}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Notes / Special Instructions</label>
-                  <textarea
-                    rows={2}
-                    value={newSaleData.notes}
-                    onChange={(e) => setNewSaleData({ ...newSaleData, notes: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                  />
-                </div>
-
-                <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-brand-border">
-                  <button
-                    type="button"
-                    onClick={() => setNewSaleModalOpen(false)}
-                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-brand-text"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-full bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg font-bold font-display"
-                  >
-                    Create Sale
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* ---------------- Log Payment Modal ---------------- */}
-      <AnimatePresence>
-        {paymentModalOpen && activeSale && (
-          <>
-            <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm" onClick={() => setPaymentModalOpen(false)} />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-brand-bg-elevated border border-brand-border rounded-2xl p-6 shadow-glow z-50 text-left"
-            >
-              <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-4">
-                <div>
-                  <h3 className="text-sm font-extrabold text-brand-text font-display uppercase">Log Payment Installment</h3>
-                  <p className="text-[11px] text-brand-cyan mt-0.5">{activeSale.projectName} — {activeSale.clientName}</p>
-                </div>
-                <button onClick={() => setPaymentModalOpen(false)} className="p-1 rounded text-brand-text-soft hover:text-brand-text">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="p-3 rounded-xl bg-brand-bg/40 border border-brand-border mb-4 text-xs font-mono flex justify-between">
-                <div>Total: <strong>PKR {activeSale.saleAmount.toLocaleString()}</strong></div>
-                <div>Remaining: <strong className="text-brand-amber">PKR {activeSale.remainingAmount.toLocaleString()}</strong></div>
-              </div>
-
-              <form onSubmit={handleLogPayment} className="space-y-4 text-xs">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Installment Amount (PKR)</label>
-                  <input
-                    type="number"
-                    required
-                    value={paymentData.amount}
-                    onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
-                    placeholder="e.g. 50000"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Payment Method</label>
-                  <select
-                    value={paymentData.paymentMethod}
-                    onChange={(e) => setPaymentData({ ...paymentData, paymentMethod: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                  >
-                    <option value="Online/Bank Transfer">Online / Bank Transfer</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Card">Credit / Debit Card</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Notes</label>
-                  <input
-                    type="text"
-                    value={paymentData.notes}
-                    onChange={(e) => setPaymentData({ ...paymentData, notes: e.target.value })}
-                    placeholder="e.g. 2nd Installment via HBL"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                  />
-                </div>
-
-                <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-brand-border">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentModalOpen(false)}
-                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-brand-text"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-full bg-gradient-to-r from-brand-green to-emerald-500 text-brand-bg font-bold font-display"
-                  >
-                    Record Payment
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* ---------------- Upload Brief Modal ---------------- */}
-      <AnimatePresence>
-        {briefModalOpen && activeSale && (
-          <>
-            <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm" onClick={() => setBriefModalOpen(false)} />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-brand-bg-elevated border border-brand-border rounded-2xl p-6 shadow-glow z-50 text-left"
-            >
-              <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-4">
-                <div>
-                  <h3 className="text-sm font-extrabold text-brand-text font-display uppercase">Upload Project Brief</h3>
-                  <p className="text-[11px] text-brand-cyan mt-0.5">{activeSale.projectName}</p>
-                </div>
-                <button onClick={() => setBriefModalOpen(false)} className="p-1 rounded text-brand-text-soft hover:text-brand-text">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Existing Version Briefs */}
-              {activeSale.briefs && activeSale.briefs.length > 0 && (
-                <div className="mb-4 space-y-2 max-h-40 overflow-y-auto pr-1">
-                  <span className="text-[10px] font-bold text-brand-text-mute uppercase tracking-widest block">Uploaded Versions:</span>
-                  {activeSale.briefs.map(b => (
-                    <div key={b.id} className="p-2 rounded-lg bg-brand-bg/60 border border-brand-border flex justify-between items-center text-xs">
-                      <div>
-                        <p className="font-bold text-brand-text">{b.fileName} (v{b.version})</p>
-                        <p className="text-[9px] text-brand-text-mute">{new Date(b.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <a href={b.fileUrl} download={b.fileName} className="text-[10px] font-bold text-brand-cyan hover:underline">
-                        Download
-                      </a>
-                    </div>
-                  ))}
                 </div>
               )}
 
-              <form onSubmit={handleUploadBrief} className="space-y-4 text-xs">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Select Document (DOCX / PDF)</label>
-                  <input
-                    type="file"
-                    required={!briefData.fileUrl}
-                    onChange={handleFileUpload}
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
-                  />
+              {/* Installments Table */}
+              <div className="border border-brand-border/40 rounded-xl overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-brand-bg/80 text-[9px] uppercase font-bold text-brand-text-mute border-b border-brand-border/40">
+                    <tr>
+                      <th className="p-2.5">#</th>
+                      <th className="p-2.5">Date</th>
+                      <th className="p-2.5">Fall Month</th>
+                      <th className="p-2.5 text-right">Gross Client ($)</th>
+                      <th className="p-2.5 text-right">Fee/Tax ($)</th>
+                      <th className="p-2.5 text-right">Net Received ($)</th>
+                      <th className="p-2.5">Method</th>
+                      <th className="p-2.5">Status</th>
+                      <th className="p-2.5 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-brand-border/30 text-white font-mono">
+                    {activeInstallments.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="p-4 text-center text-brand-text-mute font-sans">
+                          No installments logged yet. Log the first installment below.
+                        </td>
+                      </tr>
+                    ) : (
+                      activeInstallments.map((inst, i) => (
+                        <tr key={inst.id} className="hover:bg-brand-bg-elevated/40">
+                          <td className="p-2.5 font-bold">{inst.installmentNumber || (i + 1)}</td>
+                          <td className="p-2.5">{new Date(inst.paymentDate).toLocaleDateString()}</td>
+                          <td className="p-2.5 text-brand-cyan">{inst.fallInMonth || '—'}</td>
+                          <td className="p-2.5 text-right font-bold">${inst.grossAmount}</td>
+                          <td className="p-2.5 text-right text-brand-red">${inst.feeDeducted || 0}</td>
+                          <td className="p-2.5 text-right text-brand-green font-bold">${inst.netAmount || inst.amount}</td>
+                          <td className="p-2.5 text-[10px] font-sans">{inst.paymentMethod}</td>
+                          <td className="p-2.5">
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                              inst.status === 'received' ? 'bg-brand-green/15 text-brand-green' : 'bg-brand-amber/15 text-brand-amber'
+                            }`}>
+                              {inst.status}
+                            </span>
+                          </td>
+                          <td className="p-2.5 text-center">
+                            <button
+                              onClick={() => handleDeleteInstallment(inst.id)}
+                              className="text-brand-text-mute hover:text-brand-red transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Log New Installment Form */}
+              <form onSubmit={handleLogInstallment} className="p-4 rounded-xl bg-brand-bg/60 border border-brand-border/40 space-y-3">
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider font-display">Log New Installment</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-bold text-brand-text-mute uppercase mb-1">Gross Client Sent ($)</label>
+                    <input
+                      type="number"
+                      value={newInstallmentData.grossAmount}
+                      onChange={e => setNewInstallmentData({ ...newInstallmentData, grossAmount: e.target.value })}
+                      placeholder="e.g. 200"
+                      required
+                      className="w-full px-3 py-1.5 rounded-lg border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-brand-text-mute uppercase mb-1">Tax / Fee Deducted ($)</label>
+                    <input
+                      type="number"
+                      value={newInstallmentData.feeDeducted}
+                      onChange={e => setNewInstallmentData({ ...newInstallmentData, feeDeducted: e.target.value })}
+                      placeholder="e.g. 10 (Bank/conversion loss)"
+                      className="w-full px-3 py-1.5 rounded-lg border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-brand-text-mute uppercase mb-1">Payment Date</label>
+                    <input
+                      type="date"
+                      value={newInstallmentData.paymentDate}
+                      onChange={e => setNewInstallmentData({ ...newInstallmentData, paymentDate: e.target.value })}
+                      className="w-full px-3 py-1.5 rounded-lg border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-bold text-brand-text-mute uppercase mb-1">Payment Method</label>
+                    <select
+                      value={newInstallmentData.paymentMethod}
+                      onChange={e => setNewInstallmentData({ ...newInstallmentData, paymentMethod: e.target.value })}
+                      className="w-full px-3 py-1.5 rounded-lg border border-brand-border bg-brand-bg text-xs text-white focus:outline-none cursor-pointer"
+                    >
+                      {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-brand-text-mute uppercase mb-1">Accounting Fall-In Month</label>
+                    <input
+                      type="text"
+                      value={newInstallmentData.fallInMonth}
+                      onChange={e => setNewInstallmentData({ ...newInstallmentData, fallInMonth: e.target.value })}
+                      placeholder="e.g. Sep 2026"
+                      className="w-full px-3 py-1.5 rounded-lg border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-bold text-brand-text-mute uppercase mb-1">Notes</label>
+                    <input
+                      type="text"
+                      value={newInstallmentData.notes}
+                      onChange={e => setNewInstallmentData({ ...newInstallmentData, notes: e.target.value })}
+                      placeholder="Installment notes..."
+                      className="w-full px-3 py-1.5 rounded-lg border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2 rounded-xl bg-gradient-to-r from-brand-blue to-brand-cyan text-brand-bg font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-all cursor-pointer"
+                >
+                  Log Installment & Update Main Sheet
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* New / Edit Sale Modal */}
+      <AnimatePresence>
+        {(newSaleModalOpen || editSaleModalOpen) && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-brand-bg-elevated border border-brand-border rounded-2xl p-6 max-w-2xl w-full text-left space-y-4 shadow-glow max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-brand-border pb-3">
+                <h3 className="text-sm font-extrabold text-white font-display">
+                  {editSaleModalOpen ? `Edit Entry #${activeSale?.projectNumber}` : 'New Sales Sheet Entry'}
+                </h3>
+                <button onClick={() => { setNewSaleModalOpen(false); setEditSaleModalOpen(false); }} className="text-brand-text-mute hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={editSaleModalOpen ? handleUpdateSale : handleCreateSale} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Project Name *</label>
+                    <input
+                      type="text"
+                      value={saleForm.projectName}
+                      onChange={e => setSaleForm({ ...saleForm, projectName: e.target.value })}
+                      required
+                      placeholder="e.g. Mascot Logo & Branding"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Client Name *</label>
+                    <input
+                      type="text"
+                      value={saleForm.clientName}
+                      onChange={e => setSaleForm({ ...saleForm, clientName: e.target.value })}
+                      required
+                      placeholder="e.g. John Smith"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Gross Sale ($) *</label>
+                    <input
+                      type="number"
+                      value={saleForm.saleAmount}
+                      onChange={e => setSaleForm({ ...saleForm, saleAmount: e.target.value })}
+                      required
+                      placeholder="e.g. 500"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Upfront ($)</label>
+                    <input
+                      type="number"
+                      value={saleForm.upfrontAmount}
+                      onChange={e => setSaleForm({ ...saleForm, upfrontAmount: e.target.value })}
+                      placeholder="e.g. 250"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Tip ($)</label>
+                    <input
+                      type="number"
+                      value={saleForm.tipAmount}
+                      onChange={e => setSaleForm({ ...saleForm, tipAmount: e.target.value })}
+                      placeholder="e.g. 50"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Platform</label>
+                    <select
+                      value={saleForm.platform}
+                      onChange={e => setSaleForm({ ...saleForm, platform: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none cursor-pointer"
+                    >
+                      {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Payment Method</label>
+                    <select
+                      value={saleForm.paymentMethod}
+                      onChange={e => setSaleForm({ ...saleForm, paymentMethod: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none cursor-pointer"
+                    >
+                      {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Installments Count</label>
+                    <input
+                      type="number"
+                      value={saleForm.installmentsCount}
+                      onChange={e => setSaleForm({ ...saleForm, installmentsCount: e.target.value })}
+                      min={1}
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Client Email</label>
+                    <input
+                      type="email"
+                      value={saleForm.clientEmail}
+                      onChange={e => setSaleForm({ ...saleForm, clientEmail: e.target.value })}
+                      placeholder="client@company.com"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Accounting Fall In Month</label>
+                    <input
+                      type="text"
+                      value={saleForm.fallInMonth}
+                      onChange={e => setSaleForm({ ...saleForm, fallInMonth: e.target.value })}
+                      placeholder="e.g. Sep 2026"
+                      className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-brand-text-soft mb-1">Brief Notes / Guidelines</label>
+                  <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Extra Info / Notes</label>
                   <textarea
                     rows={2}
-                    value={briefData.notes}
-                    onChange={(e) => setBriefData({ ...briefData, notes: e.target.value })}
-                    placeholder="e.g. Client requested 3D mascot render"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:outline-none"
+                    value={saleForm.extraInfo}
+                    onChange={e => setSaleForm({ ...saleForm, extraInfo: e.target.value })}
+                    placeholder="Custom notes, instructions..."
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
                   />
                 </div>
 
-                <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-brand-border">
+                <div className="flex gap-3 pt-2 border-t border-brand-border">
                   <button
                     type="button"
-                    onClick={() => setBriefModalOpen(false)}
-                    className="px-4 py-2 rounded-full border border-brand-border text-brand-text-soft hover:text-brand-text"
+                    onClick={() => { setNewSaleModalOpen(false); setEditSaleModalOpen(false); }}
+                    className="flex-1 py-2.5 rounded-xl border border-brand-border text-xs text-brand-text-soft hover:text-white"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-full bg-gradient-to-r from-brand-blue via-brand-violet to-brand-cyan text-brand-bg font-bold font-display"
+                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-brand-blue to-brand-cyan text-brand-bg font-bold text-xs uppercase tracking-wider hover:opacity-90"
                   >
-                    Upload Version
+                    {editSaleModalOpen ? 'Save Updates' : 'Add Entry to Sheet'}
                   </button>
                 </div>
               </form>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
 
-      {/* ---------------- Stage History Modal ---------------- */}
+      {/* CEO Financial Reconciliation Override Modal */}
       <AnimatePresence>
-        {historyModalOpen && activeSale && (
-          <>
-            <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm" onClick={() => setHistoryModalOpen(false)} />
+        {overrideModalOpen && activeSale && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-brand-bg-elevated border border-brand-border rounded-2xl p-6 shadow-glow z-50 text-left"
+              className="bg-brand-bg-elevated border border-brand-violet/40 rounded-2xl p-6 max-w-md w-full text-left space-y-4 shadow-glow"
             >
-              <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-4">
+              <div className="flex items-center justify-between border-b border-brand-border pb-3">
                 <div>
-                  <h3 className="text-sm font-extrabold text-white font-display uppercase">Project Stage History Log</h3>
-                  <p className="text-[11px] text-brand-cyan mt-0.5">{activeSale.projectName}</p>
+                  <span className="text-[10px] font-bold text-brand-violet uppercase font-mono">{activeSale.projectNumber}</span>
+                  <h3 className="text-sm font-extrabold text-white font-display">CEO/TL Official Reconciliation</h3>
+                  <p className="text-[10px] text-brand-text-mute">
+                    Log verified tax/conversion adjusted numbers for executive records.
+                  </p>
                 </div>
-                <button onClick={() => setHistoryModalOpen(false)} className="p-1 rounded text-brand-text-soft hover:text-white">
+                <button onClick={() => setOverrideModalOpen(false)} className="text-brand-text-mute hover:text-white">
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                {activeSale.stageLogs && activeSale.stageLogs.length > 0 ? (
-                  activeSale.stageLogs.map(log => (
-                    <div key={log.id} className="p-3 rounded-xl border border-brand-border bg-brand-bg/40 text-xs">
-                      <div className="flex justify-between font-bold text-white">
-                        <span>{log.previousStage} → {log.newStage}</span>
-                        <span className="text-[10px] font-mono text-brand-text-mute">{new Date(log.createdAt).toLocaleString()}</span>
-                      </div>
-                      {log.notes && <p className="text-[11px] text-brand-text-soft mt-1 italic">"{log.notes}"</p>}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-brand-text-mute italic">No stage history logged yet</p>
-                )}
-              </div>
+              <form onSubmit={handleSaveOverride} className="space-y-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Verified Net Received ($)</label>
+                  <input
+                    type="number"
+                    value={overrideData.verifiedNetReceivedUsd}
+                    onChange={e => setOverrideData({ ...overrideData, verifiedNetReceivedUsd: e.target.value })}
+                    placeholder="Net USD after platform tax/conversion"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Total Fees & Tax Deducted ($)</label>
+                  <input
+                    type="number"
+                    value={overrideData.totalFeesDeductedUsd}
+                    onChange={e => setOverrideData({ ...overrideData, totalFeesDeductedUsd: e.target.value })}
+                    placeholder="e.g. 20"
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Override Notes</label>
+                  <textarea
+                    rows={2}
+                    value={overrideData.overrideNotes}
+                    onChange={e => setOverrideData({ ...overrideData, overrideNotes: e.target.value })}
+                    placeholder="Reason for reconciliation..."
+                    className="w-full px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2 border-t border-brand-border">
+                  <button
+                    type="button"
+                    onClick={() => setOverrideModalOpen(false)}
+                    className="flex-1 py-2 rounded-xl border border-brand-border text-xs text-brand-text-soft hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2 rounded-xl bg-brand-violet hover:bg-brand-violet/80 text-white font-bold text-xs uppercase"
+                  >
+                    Save Reconciliation
+                  </button>
+                </div>
+              </form>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
     </div>

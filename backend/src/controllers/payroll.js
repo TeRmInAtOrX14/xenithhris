@@ -119,8 +119,17 @@ exports.runPayroll = async (req, res, next) => {
       const unpaidDays = unpaidLeaves._sum.days || 0;
       const unpaidLeaveDeduction = (baseSalary / daysInPeriod) * unpaidDays;
 
-      // 4. Late deduction (3 lates = 1 day salary deduction)
-      const lateDeduction = Math.floor(lateCount / 3) * (baseSalary / daysInPeriod);
+      // ── PENALTY RULE: Every 2 Late Marks = 1 Absence Deduction ──
+      // Business Rule:
+      //   Base Monthly Rate per day = baseSalary / 26 (working days)
+      //   Late → Absence equivalents = floor(lateCount / 2)
+      //   lateDeduction = absenceEquivalents * (baseSalary / 26)
+      // Attendance-exempt employees (Artists/Designers) are excluded from this penalty
+      const isAttendanceExempt = emp.attendanceExempt || false;
+      const WORKING_DAYS = 26;
+      const dailyRate = baseSalary / WORKING_DAYS;
+      const lateAbsenceEquivalents = isAttendanceExempt ? 0 : Math.floor(lateCount / 2);
+      const lateDeduction = isAttendanceExempt ? 0 : lateAbsenceEquivalents * dailyRate;
 
       // 5. Loans deduction for this month/year
       const loans = await prisma.loanRequest.aggregate({
@@ -296,10 +305,13 @@ exports.runPayroll = async (req, res, next) => {
           baseSalary,
           daysPresent,
           daysInPeriod,
+          lateMarksCount: isAttendanceExempt ? 0 : lateCount,
+          lateAbsenceEquivalents,
           unpaidLeaveDeduction,
           lateDeduction,
           loansDeduction,
           otherDeductions: otherDeductionsAmount,
+          overrideAdjustment: 0, // initialized to 0; updated by CEO override endpoint
           bonus: bonusAmount,
           commission: finalCommissionPkr,
           commissionUsd: totalCommissionUsd,

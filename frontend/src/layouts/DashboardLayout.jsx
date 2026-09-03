@@ -28,7 +28,9 @@ import {
   Settings,
   HelpCircle,
   Sliders,
-  ChevronDown
+  ChevronDown,
+  KeyRound,
+  BadgeDollarSign
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
@@ -117,12 +119,14 @@ export default function DashboardLayout() {
         { label: 'Attendance', path: '/dashboard/attendance', icon: CalendarCheck, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Sales Executive', 'Designer', 'Employee'] },
         { label: 'Requests', path: '/dashboard/requests', icon: FileSpreadsheet, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Sales Executive', 'Designer', 'Employee'] },
         { label: 'Loans & Advances', path: '/dashboard/loans', icon: PiggyBank, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Sales Executive', 'Employee'] },
-        { label: 'Payroll & Payslips', path: '/dashboard/payroll', icon: FileText, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Sales Executive', 'Designer', 'Employee'] }
+        { label: 'Payroll & Payslips', path: '/dashboard/payroll', icon: FileText, roles: ['Admin', 'CEO', 'COO', 'Team Lead', 'Sales Executive', 'Designer', 'Employee'] },
+        { label: 'Credential Vault', path: '/dashboard/vault', icon: KeyRound, roles: ['Admin', 'CEO', 'COO', 'Sales Executive'] },
       ]
     },
     {
       group: 'Management',
       links: [
+        { label: 'Payout Requests', path: '/dashboard/payout-requests', icon: BadgeDollarSign, roles: ['Admin', 'CEO', 'COO'] },
         { label: 'Executive Finance & P&L', path: '/dashboard/finance', icon: CircleDollarSign, roles: ['Admin', 'CEO', 'COO'] },
         { label: 'Digital Twin', path: '/dashboard/digital-twin', icon: Cpu, roles: ['Admin', 'CEO', 'COO'] }
       ]
@@ -130,6 +134,7 @@ export default function DashboardLayout() {
     {
       group: 'System',
       links: [
+        { label: 'Campaigns', path: '/dashboard/campaigns', icon: Briefcase, roles: ['Admin', 'CEO', 'COO', 'Team Lead'] },
         { label: 'Audit Trail', path: '/dashboard/audit', icon: ShieldAlert, roles: ['Admin', 'CEO', 'COO'] }
       ]
     }

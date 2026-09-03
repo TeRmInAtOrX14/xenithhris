@@ -3,17 +3,37 @@ const { logAudit } = require('../utils/audit');
 
 const prisma = new PrismaClient();
 
-async function getTeamLeadSdrIds(leadEmployeeId) {
+/**
+ * Returns all employee IDs managed by a Team Lead:
+ * 1. Sales Executives who are campaign members in campaigns the TL leads
+ * 2. Designers assigned to projects belonging to those Sales Executives
+ */
+async function getTeamLeadManagedIds(leadEmployeeId) {
+  // Step 1: Find campaigns this TL leads
   const activeCampaigns = await prisma.campaignMember.findMany({
     where: { employeeId: leadEmployeeId, role: 'team_lead', status: 'active' },
     select: { campaignId: true }
   });
   const campaignIds = activeCampaigns.map(c => c.campaignId);
+
+  // Step 2: All members in those campaigns (Sales Executives)
   const members = await prisma.campaignMember.findMany({
     where: { campaignId: { in: campaignIds }, status: 'active' },
     select: { employeeId: true }
   });
-  return members.map(m => m.employeeId);
+  const salesExecIds = members.map(m => m.employeeId);
+
+  // Step 3: Designers assigned to projects owned by those Sales Execs
+  const designerLinks = await prisma.sale.findMany({
+    where: { employeeId: { in: salesExecIds }, designerId: { not: null } },
+    select: { designerId: true }
+  });
+  const designerIds = designerLinks
+    .map(s => s.designerId)
+    .filter(Boolean);
+
+  // Combine: Sales Execs + Designers + TL themselves
+  return [...new Set([...salesExecIds, ...designerIds, leadEmployeeId])];
 }
 
 // Helper to get dates between two dates

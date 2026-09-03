@@ -186,18 +186,32 @@ exports.checkIn = async (req, res, next) => {
       return res.status(400).json({ error: `You have already checked in today at ${formattedTime}.` });
     }
 
-    // Calculate late minutes based on shiftStart & graceMinutes
     const emp = await prisma.employee.findUnique({ where: { id: employeeId } });
-    const shiftStart = emp?.shiftStart || '09:30';
-    const [sh, sm] = shiftStart.split(':').map(Number);
-    const shiftStartMins = sh * 60 + sm;
-    const checkInMins = now.getHours() * 60 + now.getMinutes();
-    const diff = checkInMins - shiftStartMins;
-    const grace = emp?.graceMinutes !== undefined ? emp.graceMinutes : 15;
-    
+
+    // Attendance-exempt employees (Artists/Designers) can still clock in manually but no late penalty
+    const isExempt = emp?.attendanceExempt || false;
+
+    // Business rule:
+    // Standard shift start: 18:00 (6:00 PM)
+    // Standard late threshold: 18:15 (15 min grace)
+    // Per-employee override: if customLateThresholdMinutes is set, threshold = 18:00 + customLateThresholdMinutes
+    // For Adeen (customLateThresholdMinutes=45): threshold = 18:45
+    const SHIFT_START_HOUR = 18;
+    const SHIFT_START_MIN = 0;
+    const shiftStartTotalMins = SHIFT_START_HOUR * 60 + SHIFT_START_MIN;
+    const thresholdMins = emp?.customLateThresholdMinutes !== null && emp?.customLateThresholdMinutes !== undefined
+      ? emp.customLateThresholdMinutes
+      : 15; // system default: 15 min grace = 18:15
+
+    const lateThresholdMins = shiftStartTotalMins + thresholdMins;
+
+    // Use local PKT time for comparison (UTC+5)
+    const checkInMins = now.getUTCHours() * 60 + now.getUTCMinutes() + 300; // +300 = +5 hours PKT offset
+    const checkInMinsPKT = checkInMins % (24 * 60); // wrap around midnight
+
     let lateMins = 0;
-    if (diff > grace) {
-      lateMins = diff;
+    if (!isExempt && checkInMinsPKT > lateThresholdMins) {
+      lateMins = checkInMinsPKT - shiftStartTotalMins; // minutes late from shift start
     }
 
     let status = 'present';
@@ -219,7 +233,7 @@ exports.checkIn = async (req, res, next) => {
         checkIn: now,
         checkOut: null,
         late: lateMins,
-        note: 'HRIS Web Check-In'
+        note: isExempt ? 'Attendance Exempt — HRIS Web Check-In' : 'HRIS Web Check-In'
       },
       update: {
         status,
@@ -229,8 +243,19 @@ exports.checkIn = async (req, res, next) => {
       }
     });
 
-    await logAudit(req.user.id, 'EMPLOYEE_CHECK_IN', 'Attendance', record.id, { checkIn: now });
-    res.json({ message: 'Check-in recorded successfully', record });
+    await logAudit(req.user.id, 'EMPLOYEE_CHECK_IN', 'Attendance', record.id, {
+      checkIn: now,
+      lateMins,
+      isExempt,
+      customThreshold: emp?.customLateThresholdMinutes
+    });
+    res.json({
+      message: 'Check-in recorded successfully',
+      record,
+      lateMinutes: lateMins,
+      isLate: lateMins > 0,
+      isExempt
+    });
   } catch (err) {
     next(err);
   }
@@ -326,11 +351,34 @@ exports.getTodayStatus = async (req, res, next) => {
 
 exports.manualPunch = async (req, res, next) => {
   try {
-    const { employeeId, date, checkIn, checkOut, status, notes } = req.body;
+    const { employeeId, date, checkIn, checkOut, status, note } = req.body;
     if (!employeeId || !date) {
       return res.status(400).json({ error: 'Employee ID and Date are required.' });
     }
     const dateMidnight = new Date(date);
+
+    // Calculate late minutes if checkIn provided
+    let lateMins = 0;
+    if (checkIn) {
+      const emp = await prisma.employee.findUnique({
+        where: { id: employeeId },
+        select: { customLateThresholdMinutes: true, attendanceExempt: true }
+      });
+      if (!emp?.attendanceExempt) {
+        const ciDate = new Date(checkIn);
+        // PKT offset: UTC+5
+        const ciHour = (ciDate.getUTCHours() + 5) % 24;
+        const ciMin = ciDate.getUTCMinutes();
+        const checkInMinsPKT = ciHour * 60 + ciMin;
+        const thresholdMins = emp?.customLateThresholdMinutes !== null && emp?.customLateThresholdMinutes !== undefined
+          ? emp.customLateThresholdMinutes : 15;
+        const lateThresholdMins = 18 * 60 + thresholdMins;
+        if (checkInMinsPKT > lateThresholdMins) {
+          lateMins = checkInMinsPKT - (18 * 60);
+        }
+      }
+    }
+
     const record = await prisma.attendance.upsert({
       where: { employeeId_date: { employeeId, date: dateMidnight } },
       create: {
@@ -339,19 +387,105 @@ exports.manualPunch = async (req, res, next) => {
         checkIn: checkIn ? new Date(checkIn) : null,
         checkOut: checkOut ? new Date(checkOut) : null,
         status: status || 'present',
-        notes
+        late: lateMins,
+        note: note || 'Manual Punch by Admin'
       },
       update: {
         checkIn: checkIn ? new Date(checkIn) : undefined,
         checkOut: checkOut ? new Date(checkOut) : undefined,
         status: status || undefined,
-        notes: notes || undefined
+        late: lateMins,
+        note: note || 'Manual Punch by Admin'
       }
     });
-    await logAudit(req.user.id, 'MANUAL_ATTENDANCE_PUNCH', 'Attendance', record.id);
+    await logAudit(req.user.id, 'MANUAL_ATTENDANCE_PUNCH', 'Attendance', record.id, { employeeId, date, lateMins });
     res.json(record);
   } catch (err) {
     next(err);
   }
 };
 
+/**
+ * POST /api/cron/auto-offmark
+ * Auto off-mark: scan all non-exempt employees who have no check-in by 00:30 AM PKT
+ * Called by Vercel Cron at 19:30 UTC (= 00:30 AM PKT, UTC+5)
+ */
+exports.autoOffMark = async (req, res, next) => {
+  try {
+    // Security: only allow from Vercel Cron (CRON_SECRET header) or internal
+    const cronSecret = req.headers['x-cron-secret'];
+    if (process.env.CRON_SECRET && cronSecret !== process.env.CRON_SECRET) {
+      return res.status(401).json({ error: 'Unauthorized cron request.' });
+    }
+
+    // Target date is "today" in PKT (UTC+5)
+    const nowUtc = new Date();
+    // Yesterday midnight PKT = today 19:00 UTC (00:00 PKT is previous day 19:00 UTC)
+    // We want yesterday in PKT as the attendance date to mark
+    const pktOffsetMs = 5 * 60 * 60 * 1000;
+    const nowPKT = new Date(nowUtc.getTime() + pktOffsetMs);
+    // Since cron fires at 00:30 AM PKT (just past midnight), the "today" date in PKT is the current PKT day
+    const targetDatePKT = new Date(Date.UTC(
+      nowPKT.getUTCFullYear(),
+      nowPKT.getUTCMonth(),
+      nowPKT.getUTCDate()
+    ));
+    // Convert back to UTC midnight of that date
+    const targetDateUTC = new Date(targetDatePKT.getTime() - pktOffsetMs);
+
+    // Get all non-exempt active employees
+    const employees = await prisma.employee.findMany({
+      where: { status: 'active', attendanceExempt: false }
+    });
+
+    let markedCount = 0;
+    const markedEmployees = [];
+
+    for (const emp of employees) {
+      // Check if they have a check-in or non-absent status for today
+      const existing = await prisma.attendance.findUnique({
+        where: {
+          employeeId_date: {
+            employeeId: emp.id,
+            date: targetDateUTC
+          }
+        }
+      });
+
+      // If no record, or record exists but no check-in (and not leave/holiday/weekend)
+      const shouldAutoMark = !existing || (
+        !existing.checkIn &&
+        !['leave', 'holiday', 'weekend', 'half_day'].includes(existing.status)
+      );
+
+      if (shouldAutoMark) {
+        await prisma.attendance.upsert({
+          where: { employeeId_date: { employeeId: emp.id, date: targetDateUTC } },
+          create: {
+            employeeId: emp.id,
+            date: targetDateUTC,
+            status: 'absent',
+            late: 0,
+            note: 'Auto Off-Mark: No check-in by 00:30 AM cutoff'
+          },
+          update: {
+            status: 'absent',
+            note: 'Auto Off-Mark: No check-in by 00:30 AM cutoff'
+          }
+        });
+        markedCount++;
+        markedEmployees.push({ id: emp.id, fullName: emp.fullName, employeeCode: emp.employeeCode });
+      }
+    }
+
+    console.log(`[AutoOffMark] Marked ${markedCount} employees as Absent for ${targetDateUTC.toISOString().split('T')[0]}`);
+    res.json({
+      success: true,
+      date: targetDateUTC.toISOString().split('T')[0],
+      markedAbsent: markedCount,
+      employees: markedEmployees
+    });
+  } catch (err) {
+    next(err);
+  }
+};

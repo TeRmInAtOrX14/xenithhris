@@ -19,6 +19,8 @@ import SalesSheet from './pages/SalesSheet';
 import BriefManagement from './pages/BriefManagement';
 import ArtistAssignments from './pages/ArtistAssignments';
 import FinanceDashboard from './pages/FinanceDashboard';
+import CredentialVault from './pages/CredentialVault';
+import PayoutRequests from './pages/PayoutRequests';
 
 const queryClient = new QueryClient();
 
@@ -62,6 +64,8 @@ export default function App() {
               <Route path="payroll" element={<Payroll />} />
               <Route path="audit" element={<Audit />} />
               <Route path="digital-twin" element={<DigitalTwin />} />
+              <Route path="vault" element={<CredentialVault />} />
+              <Route path="payout-requests" element={<PayoutRequests />} />
             </Route>
 
             {/* Fallback Catch-all Redirect */}

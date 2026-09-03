@@ -17,7 +17,8 @@ model User {
   id                 String    @id @default(uuid())
   email              String    @unique
   passwordHash       String
-  role               String    @default("Employee") // Admin, CEO, COO, Team Lead, Employee
+  // Roles: Admin | CEO | COO | Team Lead | Sales Executive | Designer | Employee
+  role               String    @default("Employee")
   googleId           String?   @unique
   refreshToken       String?
   isActive           Boolean   @default(true)
@@ -25,10 +26,12 @@ model User {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  employee           Employee?
-  givenSpiffs        Spiff[]   @relation("SpiffGiver")
-  auditLogs          AuditLog[]
-  notifications      Notification[]
+  employee            Employee?
+  givenSpiffs         Spiff[]            @relation("SpiffGiver")
+  auditLogs           AuditLog[]
+  notifications       Notification[]
+  approvedOverrides   PayslipOverride[]  @relation("OverrideApprover")
+  reviewedPayouts     DesignerPayoutRequest[] @relation("PayoutReviewer")
 }
 
 model CompanyProfile {
@@ -80,9 +83,16 @@ model Employee {
   emergencyContact String?
   photoUrl         String?
   
-  shiftStart       String      @default("09:30")
-  shiftEnd         String      @default("18:30")
-  graceMinutes     Int         @default(15)
+  shiftStart       String      @default("18:00") // Standard shift start: 6:00 PM
+  shiftEnd         String      @default("23:59") // Standard shift end
+  graceMinutes     Int         @default(15)      // Legacy: grace period in minutes
+  // Per-employee custom late threshold override (minutes after shiftStart)
+  // Standard: 15 min (18:15). For Adeen: 45 (18:45). null = use system default
+  customLateThresholdMinutes Int?
+  // Artists/Designers are exempt from daily shift clock-in rules and use monthly salary cycle
+  attendanceExempt Boolean     @default(false)
+  // Fast flag: true for Designers on monthly salary cycle (5th settlement)
+  isArtist         Boolean     @default(false)
   zkUserId         String?     @unique
   
   commissionPercentage Float    @default(0)
@@ -93,20 +103,23 @@ model Employee {
   updatedAt        DateTime    @updatedAt
 
   // Relations
-  salaryHistory    SalaryHistory[]
-  campaignMembers  CampaignMember[]
-  performances     CampaignPerformance[]
-  spiffs           Spiff[]         @relation("EmployeeSpiff")
-  attendance       Attendance[]
-  leaveRequests    LeaveRequest[]
-  halfdayRequests  HalfdayRequest[]
-  wfhRequests      WfhRequest[]
-  loanRequests     LoanRequest[]
-  payslips         Payslip[]
-  documents        Document[]
-  sales            Sale[]          @relation("SalesExecutiveSales")
-  designedProjects Sale[]          @relation("DesignerProjects")
-  salaryPayments   SalaryPayment[]
+  salaryHistory        SalaryHistory[]
+  campaignMembers      CampaignMember[]
+  performances         CampaignPerformance[]
+  spiffs               Spiff[]              @relation("EmployeeSpiff")
+  attendance           Attendance[]
+  leaveRequests        LeaveRequest[]
+  halfdayRequests      HalfdayRequest[]
+  wfhRequests          WfhRequest[]
+  loanRequests         LoanRequest[]
+  payslips             Payslip[]
+  documents            Document[]
+  sales                Sale[]               @relation("SalesExecutiveSales")
+  designedProjects     Sale[]               @relation("DesignerProjects")
+  salaryPayments       SalaryPayment[]
+  payoutRequests       DesignerPayoutRequest[]
+  credentialVault      CredentialVault[]
+  artistAdvances       ArtistAdvance[]
 }
 
 // ----------------------------------------------------------------------
@@ -128,6 +141,7 @@ model Sale {
   id                   String            @id @default(uuid())
   projectNumber        String            @unique // e.g. PRJ-1024
   clientName           String
+  clientEmail          String?
   projectName          String
   saleDate             DateTime          @default(now())
   employeeId           String            // Sales Executive ID
@@ -136,7 +150,9 @@ model Sale {
   designerId           String?           // Assigned Designer ID
   designer             Employee?         @relation("DesignerProjects", fields: [designerId], references: [id], onDelete: SetNull)
   
-  saleAmount           Float             // USD
+  saleAmount           Float             // USD Gross Sale
+  upfrontAmount        Float             @default(0) // USD Upfront Paid
+  tipAmount            Float             @default(0) // USD Tip Amount
   designerFee          Float             @default(0) // USD
   amountPaidToDesigner Float             @default(0) // USD
   salesCommissionUsd   Float             @default(0) // USD
@@ -146,12 +162,18 @@ model Sale {
   briefStatus          String            @default("Pending") // Pending, Uploaded, Resolved
   paymentStatus        String            @default("Unpaid") // Unpaid, Partial, Paid
   
-  amountReceived       Float             @default(0) // USD
+  amountReceived       Float             @default(0) // USD Net/Gross Received
   remainingAmount      Float             @default(0) // USD
   installmentsCount    Int               @default(1)
   installmentsReceived Int               @default(0)
   nextPaymentDate      DateTime?
-  paymentMethod        String?           @default("Online/Bank Transfer") // Online/Bank Transfer, Cash, Card
+  
+  platform             String?           @default("Direct / Website") // Outreach Platform e.g. Upwork, Fiverr, LinkedIn, Instagram, Email
+  paymentMethod        String?           @default("Online/Bank Transfer") // Online/Bank Transfer, Wise, Stripe, PayPal, Crypto
+  completionDate       DateTime?
+  fallInMonth          String?           // e.g. "Sep 2026", "2026-09"
+  workDetails          String?           // Work description / specifications
+  extraInfo            String?           // Notes / Extra Info
   notes                String?
 
   createdAt            DateTime          @default(now())
@@ -160,6 +182,10 @@ model Sale {
   briefs               ProjectBrief[]
   stageLogs            ProjectStageLog[]
   payments             SalePayment[]
+  payoutRequests       DesignerPayoutRequest[]
+  floatEntries         FloatLedger[]
+  assetUploads         ProjectAssetUpload[]
+  overrides            SaleOverride[]
 }
 
 model ProjectBrief {
@@ -187,14 +213,47 @@ model ProjectStageLog {
 }
 
 model SalePayment {
-  id            String   @id @default(uuid())
-  saleId        String
-  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  amount        Float
-  paymentDate   DateTime @default(now())
-  paymentMethod String   @default("Online/Bank Transfer")
-  notes         String?
-  createdAt     DateTime @default(now())
+  id                String   @id @default(uuid())
+  saleId            String
+  sale              Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  installmentNumber Int      @default(1)
+  dueDate           DateTime?
+  paymentDate       DateTime @default(now())
+  
+  grossAmount       Float    // USD sent by client e.g. $200
+  feeDeducted       Float    @default(0) // USD bank/tax fee e.g. $10
+  netAmount         Float    // USD net in bank e.g. $190
+  amount            Float    // Legacy field (alias to netAmount)
+  
+  exchangeRate      Float?   // USD -> PKR rate e.g. 278.5
+  pkrAmount         Float?   // PKR received
+  paymentMethod     String   @default("Online/Bank Transfer")
+  status            String   @default("received") // received | pending | delayed
+  fallInMonth       String?  // e.g. "Sep 2026"
+  verifiedByCeo     Boolean  @default(false)
+  ceoNotes          String?
+  notes             String?
+  createdAt         DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------
+// Sales Override — CEO & Team Lead official reconciled layer
+// ----------------------------------------------------------------------
+
+model SaleOverride {
+  id                     String   @id @default(uuid())
+  saleId                 String
+  sale                   Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  verifiedSaleAmount     Float?
+  verifiedUpfront        Float?
+  verifiedRemaining      Float?
+  verifiedNetReceivedUsd Float?
+  totalFeesDeductedUsd   Float?
+  verifiedPkrReceived    Float?
+  overrideNotes          String?
+  updatedById            String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 // ----------------------------------------------------------------------
@@ -452,11 +511,18 @@ model Payslip {
   baseSalary           Float      // PKR
   daysPresent          Float      @default(0)
   daysInPeriod         Int        @default(0)
+
+  // Attendance-driven deduction tracking
+  lateMarksCount       Int        @default(0)   // raw late count for the month
+  lateAbsenceEquivalents Int      @default(0)   // floor(lateMarksCount / 2)
   
   unpaidLeaveDeduction Float      @default(0) // PKR
-  lateDeduction        Float      @default(0) // PKR
+  lateDeduction        Float      @default(0) // PKR — from 2-lates=1-absence rule
   loansDeduction       Float      @default(0) // PKR
   otherDeductions      Float      @default(0) // PKR
+
+  // CEO override net adjustment (without altering original time logs)
+  overrideAdjustment   Float      @default(0) // PKR — positive=bonus, negative=extra deduction
   
   bonus                Float      @default(0) // PKR
   commission           Float      @default(0) // PKR (legacy field)
@@ -476,6 +542,8 @@ model Payslip {
   pdfUrl               String?    // link to Supabase Storage
   generatedAt          DateTime   @default(now())
 
+  overrides            PayslipOverride[]
+
   @@unique([payrollRunId, employeeId])
 }
 
@@ -489,8 +557,126 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
   title     String
   message   String
-  type      String   // system, leave, payroll, loan...
+  type      String   // system, leave, payroll, loan, payout_request, sla_alert, float_alert
   isRead    Boolean  @default(false)
   link      String?
   createdAt DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------
+// Designer Payout Requests (Artist → CEO approval workflow)
+// ----------------------------------------------------------------------
+
+model DesignerPayoutRequest {
+  id           String    @id @default(uuid())
+  saleId       String
+  sale         Sale      @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  designerId   String
+  designer     Employee  @relation(fields: [designerId], references: [id], onDelete: Cascade)
+  amount       Float     // USD amount requested
+  reason       String?
+  // Status: pending | approved | rejected | paid
+  status       String    @default("pending")
+  reviewedById String?
+  reviewedBy   User?     @relation("PayoutReviewer", fields: [reviewedById], references: [id])
+  reviewedAt   DateTime?
+  ceoNote      String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// ----------------------------------------------------------------------
+// Float Ledger — Tracks early artist payouts vs delayed client installments
+// ----------------------------------------------------------------------
+
+model FloatLedger {
+  id           String   @id @default(uuid())
+  saleId       String
+  sale         Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  // type: artist_payout_advance | client_installment_received | float_reconcile | manual_adjustment
+  type         String
+  amount       Float    // USD — positive = money in, negative = money out
+  description  String?
+  runningFloat Float    @default(0) // Snapshot of float balance after this entry
+  createdById  String
+  createdAt    DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------
+// Payslip CEO Overrides — Adjust net pay without altering time logs
+// ----------------------------------------------------------------------
+
+model PayslipOverride {
+  id             String   @id @default(uuid())
+  payslipId      String
+  payslip        Payslip  @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+  // overrideType: waive_late_deduction | waive_absence_deduction | custom_bonus | custom_deduction
+  overrideType   String
+  originalAmount Float    // PKR — the original computed deduction/bonus
+  overrideAmount Float    // PKR — the new amount (0 to waive entirely)
+  reason         String
+  approvedById   String
+  approvedBy     User     @relation("OverrideApprover", fields: [approvedById], references: [id])
+  createdAt      DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------
+// Credential Vault — Sales Executive outreach account management
+// ----------------------------------------------------------------------
+
+model CredentialVault {
+  id            String   @id @default(uuid())
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  platform      String   // e.g. LinkedIn, HubSpot, Apollo, Instantly, Gmail
+  label         String   // e.g. Primary Account, Backup Account 1
+  username      String?
+  // Password stored as a hint/partial mask — NOT plain text
+  passwordHint  String?
+  url           String?
+  accountType   String   @default("primary") // primary | backup | shared
+  isActive      Boolean  @default(true)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ----------------------------------------------------------------------
+// Artist Salary Cycle — Monthly advances & 5th-of-month settlement
+// ----------------------------------------------------------------------
+
+model ArtistAdvance {
+  id           String   @id @default(uuid())
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  month        Int      // 1–12
+  year         Int
+  amount       Float    // PKR — mid-month draw entered by CEO
+  note         String?  // e.g. "Emergency draw", "Project completion bonus"
+  enteredById  String   // CEO/Admin user ID who logged this
+  createdAt    DateTime @default(now())
+
+  @@index([employeeId, month, year])
+}
+
+// ----------------------------------------------------------------------
+// Project Asset Uploads — Designer-submitted completed artwork
+// ----------------------------------------------------------------------
+
+model ProjectAssetUpload {
+  id           String   @id @default(uuid())
+  saleId       String
+  sale         Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  uploadedById String   // Designer's user ID
+  designerId   String   // Designer's employee ID
+  fileName     String
+  fileUrl      String   // Supabase Storage URL
+  // fileType: png | jpeg | jpg | pdf
+  fileType     String
+  stage        String   // Which project stage this asset belongs to
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  @@index([saleId])
+  @@index([designerId])
 }

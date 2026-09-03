@@ -13,7 +13,9 @@ import {
   ChevronRight,
   ShieldAlert,
   Lock,
-  Upload
+  Upload,
+  BadgeDollarSign,
+  X
 } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
@@ -33,6 +35,13 @@ export default function ArtistAssignments() {
   const [stageNotes, setStageNotes] = useState('');
   const [updating, setUpdating] = useState(false);
 
+  // Payout Request Modal (Designer only)
+  const [payoutProject, setPayoutProject] = useState(null);
+  const [payoutAmount, setPayoutAmount] = useState('');
+  const [payoutReason, setPayoutReason] = useState('');
+  const [submittingPayout, setSubmittingPayout] = useState(false);
+  const [payoutRequests, setPayoutRequests] = useState([]);
+
   const currentUser = JSON.parse(localStorage.getItem('user')) || {};
   const isDesigner = currentUser.role === 'Designer';
   const isCEOOrAdmin = ['Admin', 'CEO', 'COO'].includes(currentUser.role);
@@ -46,6 +55,11 @@ export default function ArtistAssignments() {
         setProjects(res.data.projects || []);
         setMetrics(res.data.metrics || null);
         setShowDesignerPayments(res.data.showDesignerPayments || false);
+        // Fetch payout requests for this designer
+        try {
+          const prRes = await api.get('/payout-requests');
+          setPayoutRequests(prRes.data || []);
+        } catch (_) { /* silent */ }
       } else {
         // Fetch all sales/projects for CEO/Team Lead
         const res = await api.get(`/sales${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`);
@@ -250,16 +264,46 @@ export default function ArtistAssignments() {
               </div>
 
               {/* Action Button */}
-              <button
-                onClick={() => {
-                  setSelectedProject(project);
-                  setNewStage(project.projectStage);
-                }}
-                className="w-full py-2 px-3 rounded-xl bg-brand-blue/15 hover:bg-brand-blue/25 text-brand-cyan hover:text-white border border-brand-blue/30 text-xs font-bold font-display uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                Update Project Stage
-              </button>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setSelectedProject(project);
+                    setNewStage(project.projectStage);
+                  }}
+                  className="w-full py-2 px-3 rounded-xl bg-brand-blue/15 hover:bg-brand-blue/25 text-brand-cyan hover:text-white border border-brand-blue/30 text-xs font-bold font-display uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Update Project Stage
+                </button>
+
+                {/* Request Expedited Payout — Designers only */}
+                {isDesigner && (project.designerFee || 0) > (project.amountPaidToDesigner || 0) && (() => {
+                  const existingReq = payoutRequests.find(r => r.saleId === project.id);
+                  const isPending = existingReq?.status === 'pending';
+                  const isPaid = existingReq?.status === 'paid' || existingReq?.status === 'approved';
+                  return (
+                    <button
+                      onClick={() => {
+                        if (isPending || isPaid) return;
+                        setPayoutProject(project);
+                        setPayoutAmount(String(Math.max(0, (project.designerFee || 0) - (project.amountPaidToDesigner || 0))));
+                        setPayoutReason('');
+                      }}
+                      disabled={isPending || isPaid}
+                      className={`w-full py-2 px-3 rounded-xl border text-xs font-bold font-display uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                        isPaid
+                          ? 'bg-brand-green/10 text-brand-green border-brand-green/30 cursor-default'
+                          : isPending
+                          ? 'bg-brand-amber/10 text-brand-amber border-brand-amber/30 cursor-default animate-pulse'
+                          : 'bg-brand-violet/15 hover:bg-brand-violet/25 text-brand-violet hover:text-white border-brand-violet/30'
+                      }`}
+                    >
+                      <BadgeDollarSign className="w-3.5 h-3.5" />
+                      {isPaid ? 'Payout Processed' : isPending ? 'Payout Request Pending...' : 'Request Expedited Payout'}
+                    </button>
+                  );
+                })()}
+              </div>
             </motion.div>
           );
         })}
@@ -333,6 +377,109 @@ export default function ArtistAssignments() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Payout Request Modal */}
+      <AnimatePresence>
+        {payoutProject && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-brand-bg-elevated border border-brand-violet/40 rounded-2xl p-6 max-w-md w-full text-left space-y-4 shadow-glow"
+            >
+              <div className="flex items-center justify-between border-b border-brand-border pb-3">
+                <div>
+                  <span className="text-[10px] font-bold text-brand-violet uppercase font-mono">{payoutProject.projectNumber}</span>
+                  <h3 className="text-sm font-extrabold text-white font-display">Request Expedited Payout</h3>
+                  <p className="text-[10px] text-brand-text-mute mt-0.5">This request will be sent to CEO for approval</p>
+                </div>
+                <button onClick={() => setPayoutProject(null)} className="text-brand-text-mute hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-brand-bg-soft/40 border border-brand-border/30 text-center">
+                <div>
+                  <p className="text-[9px] text-brand-text-mute uppercase font-bold">Total Fee</p>
+                  <p className="text-xs font-bold text-white">${payoutProject.designerFee || 0}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-brand-text-mute uppercase font-bold">Paid So Far</p>
+                  <p className="text-xs font-bold text-brand-green">${payoutProject.amountPaidToDesigner || 0}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-brand-text-mute uppercase font-bold">Remaining</p>
+                  <p className="text-xs font-bold text-brand-amber">
+                    ${Math.max(0, (payoutProject.designerFee || 0) - (payoutProject.amountPaidToDesigner || 0))}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Amount to Request ($)</label>
+                <input
+                  type="number"
+                  value={payoutAmount}
+                  onChange={e => setPayoutAmount(e.target.value)}
+                  max={Math.max(0, (payoutProject.designerFee || 0) - (payoutProject.amountPaidToDesigner || 0))}
+                  min={1}
+                  step={0.01}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-brand-text-soft uppercase mb-1">Reason / Context</label>
+                <textarea
+                  rows={3}
+                  value={payoutReason}
+                  onChange={e => setPayoutReason(e.target.value)}
+                  placeholder="e.g. Final artwork delivered, urgent financial need..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-xs text-white focus:outline-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2 border-t border-brand-border">
+                <button
+                  onClick={() => setPayoutProject(null)}
+                  className="flex-1 py-2 rounded-xl border border-brand-border text-xs text-brand-text-soft hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={submittingPayout}
+                  onClick={async () => {
+                    if (!payoutAmount || parseFloat(payoutAmount) <= 0) {
+                      toast.error('Enter a valid amount');
+                      return;
+                    }
+                    try {
+                      setSubmittingPayout(true);
+                      await api.post('/payout-requests', {
+                        saleId: payoutProject.id,
+                        amount: parseFloat(payoutAmount),
+                        reason: payoutReason
+                      });
+                      toast.success('Payout request submitted to CEO!');
+                      setPayoutProject(null);
+                      fetchDesignerData();
+                    } catch (err) {
+                      toast.error(err.response?.data?.error || 'Failed to submit request');
+                    } finally {
+                      setSubmittingPayout(false);
+                    }
+                  }}
+                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-blue text-white font-bold text-xs uppercase tracking-wider hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <BadgeDollarSign className="w-3.5 h-3.5" />
+                  {submittingPayout ? 'Submitting...' : 'Submit to CEO'}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
