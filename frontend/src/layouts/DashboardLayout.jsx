@@ -64,12 +64,58 @@ export default function DashboardLayout() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Fetch Notifications
+  // Real-time Notification Engine (Audio Chime, Desktop OS Pop-up, In-App Toast)
+  const seenNotifIdsRef = React.useRef(new Set());
+  const isInitialFetchRef = React.useRef(true);
+
+  // Web Audio Chime Sound (Zero dependency)
+  const playNotificationChime = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (_) { /* silent fallback */ }
+  };
+
+  // Request Native Browser Desktop Notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Fetch & Process Notifications with Pop-Up Triggers
   const fetchNotifications = async () => {
     try {
       setNotifLoading(true);
       const res = await api.get('/system/notifications');
-      setNotifications(res.data || []);
+      const list = res.data || [];
+      setNotifications(list);
+
+      if (isInitialFetchRef.current) {
+        // Seed seen IDs on first load so old notifications don't trigger popups
+        list.forEach(n => seenNotifIdsRef.current.add(n.id));
+        isInitialFetchRef.current = false;
+      } else {
+        // Check for new incoming unread notifications
+        list.forEach(n => {
+          if (!n.isRead && !seenNotifIdsRef.current.has(n.id)) {
+            seenNotifIdsRef.current.add(n.id);
+            triggerNotificationPopup(n);
+          }
+        });
+      }
     } catch (err) {
       console.error('Failed to load notifications');
     } finally {
@@ -77,9 +123,65 @@ export default function DashboardLayout() {
     }
   };
 
+  const triggerNotificationPopup = (notif) => {
+    // 1. Play Audio Chime
+    playNotificationChime();
+
+    // 2. In-App Xenith High-Contrast Toast Popup
+    toast.custom((t) => (
+      <div
+        className={`${
+          t.visible ? 'animate-enter' : 'animate-leave'
+        } max-w-md w-full bg-[#111111] border border-[#262626] shadow-2xl rounded-2xl p-4 flex items-start gap-3 pointer-events-auto text-left cursor-pointer hover:border-[#D7F000] transition-all`}
+        onClick={() => {
+          toast.dismiss(t.id);
+          if (notif.link) navigate(notif.link);
+        }}
+      >
+        <div className="p-2 rounded-xl bg-[#D7F000] text-black font-bold shrink-0">
+          🔔
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-extrabold text-white font-display truncate">{notif.title}</p>
+          <p className="text-[11px] text-brand-text-gray mt-0.5 line-clamp-2">{notif.message}</p>
+          {notif.link && (
+            <span className="text-[9px] font-extrabold uppercase text-[#D7F000] tracking-wider mt-1 inline-block">
+              Click to View →
+            </span>
+          )}
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toast.dismiss(t.id);
+          }}
+          className="text-brand-text-mute hover:text-white p-1"
+        >
+          ✕
+        </button>
+      </div>
+    ), { duration: 6000 });
+
+    // 3. Desktop OS Native Notification (Pops up on other tabs or minimized browser!)
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        const desktopNotif = new Notification(notif.title, {
+          body: notif.message,
+          icon: '/favicon.png',
+          tag: notif.id
+        });
+        desktopNotif.onclick = () => {
+          window.focus();
+          desktopNotif.close();
+          if (notif.link) navigate(notif.link);
+        };
+      } catch (_) { /* fallback silent */ }
+    }
+  };
+
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 45000);
+    const interval = setInterval(fetchNotifications, 10000); // Efficient 10-second polling
     return () => clearInterval(interval);
   }, []);
 
