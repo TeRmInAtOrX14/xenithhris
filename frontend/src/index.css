@@ -140,6 +140,17 @@
 }
 
 /* Custom Component Utility Classes */
+.xenith-logo-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.85rem;
+  background-color: #000000 !important;
+  border: 1px solid #262626 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
 .glass-panel {
   background-color: var(--brand-bg-elevated);
   border: 1px solid var(--brand-border);

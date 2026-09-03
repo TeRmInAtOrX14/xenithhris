@@ -92,8 +92,8 @@ export default function Login() {
       >
         {/* Logo & Heading */}
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="flex items-center gap-3 mb-3">
-            <img src="/logo.png" alt="ArtXenith logo" className="h-20 w-auto object-contain" />
+          <div className="xenith-logo-container mb-4">
+            <img src="/logo.png" alt="ArtXenith logo" className="h-16 w-auto object-contain" />
             <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-widest bg-[#D7F000] text-black rounded font-mono">
               HRIS
             </span>

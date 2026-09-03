@@ -168,8 +168,8 @@ export default function DashboardLayout() {
         {/* Sidebar Header with Logo */}
         <div className="h-20 flex items-center justify-between px-4 border-b border-brand-sidebar-border shrink-0">
           {!collapsed ? (
-            <div className="flex items-center gap-2 py-1 overflow-hidden">
-              <img src="/logo.png" alt="ArtXenith Logo" className="w-[155px] h-10 object-contain aspect-auto" />
+            <div className="xenith-logo-container">
+              <img src="/logo.png" alt="ArtXenith Logo" className="w-[145px] h-9 object-contain aspect-auto" />
               <span className="px-1.5 py-0.5 text-[8px] font-extrabold uppercase bg-[#D7F000] text-black rounded font-mono shrink-0">
                 HRIS
               </span>
@@ -291,9 +291,9 @@ export default function DashboardLayout() {
               className="fixed top-0 bottom-0 left-0 w-64 bg-brand-sidebar-bg border-r border-brand-sidebar-border z-50 lg:hidden flex flex-col"
             >
               <div className="h-16 flex items-center justify-between px-5 border-b border-brand-sidebar-border">
-                <div className="flex items-center gap-2">
-                  <img src="/logo.png" alt="ArtXenith Logo" className="h-8 w-auto object-contain" />
-                  <span className="px-1.5 py-0.5 text-[8px] font-mono font-bold uppercase bg-brand-orange text-white rounded">HRIS</span>
+                <div className="xenith-logo-container">
+                  <img src="/logo.png" alt="ArtXenith Logo" className="h-7 w-auto object-contain" />
+                  <span className="px-1.5 py-0.5 text-[8px] font-mono font-extrabold uppercase bg-[#D7F000] text-black rounded">HRIS</span>
                 </div>
                 <button onClick={() => setSidebarOpen(false)}>
                   <X className="w-5 h-5 text-brand-text-soft" />
